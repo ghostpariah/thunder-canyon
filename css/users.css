@@ -1,0 +1,45 @@
+body{
+    background-color: #5e81ad;
+    width: 400px;
+    color:white;
+    
+}
+h3{
+    text-align: center;
+}
+.-user-input-text{
+    border:1px solid aliceblue;
+    border-radius: 5px;
+    line-height: 20px;
+    margin:5px;
+}
+.-user-label{
+    display:inline-block;
+    color:white;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    width: 150px;
+    text-align: right;
+}
+.-user-submit{
+    display: inline-block;
+    color:black;
+    width: 95px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 15px;
+    height: 25px;
+    border:1px solid black;
+    border-radius: 5px;
+    vertical-align: middle;
+    padding-top: 0px;
+    margin-top: 0px;
+}
+#-message-area{
+    color:red;
+    text-align: center;
+    width: 100%;
+}
+#lsDiv{
+    margin-top: 10px;
+    width: 95%;
+    text-align: center;
+}

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contacts</title>
+    <link rel="stylesheet" type="text/css" href="../css/contacts.css"/>
+    
+    <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+	
+    <script src="../scripts/jquery-1.11.3.min.js"></script>
+    <script src="../scripts/jquery-ui-1.11.4.custom/jquery-ui.min.js"></script>
+    
+	<script>if (window.module) module = window.module;</script>
+</head>
+<body>
+    <div id='contactsHeader'>
+        <h1>Contacts</h1>
+    </div>
+    <div  id="customerNamesWrapper">
+                    
+        <label>Customer Name:&nbsp;</label>
+        <input id="txtCustomerNames" tabindex="4" list="lstCustomers"/>
+        
+        <datalist id="lstCustomers">
+            
+          </datalist>
+        </div>
+        <div id="results"></div>
+    <div id = 'contactsMain'>
+        <div id='currentContacts'>
+            <ul id='l'></ul>
+
+        </div>
+        <!--
+        <form>  
+            <div class = 'inline-input-group'>
+                <div class = 'input-block'>
+                    <label>Company Name</label><br>
+                    <input>
+                </div>           
+            </div>        
+            <div class = 'inline-input-group'>
+                <div class = 'input-block'>
+                    <label>First Name</label><br>
+                    <input>
+                </div>
+                <div class = 'input-block'>
+                    <label>Last Name</label><br>
+                    <input type="text">
+                </div>
+            </div>
+            <div class = 'inline-input-group'>
+                <div class = 'input-block'>
+                    <label>Phone Number</label><br>
+                    <input type="text"><img src="images/Address_Book-512.png">
+                </div>           
+            </div>
+            <div class = 'inline-input-group'>
+                <div class = 'input-block'>
+                    <label>Email</label><br>
+                    <input type="text">
+                </div>           
+            </div>
+
+        </form>-->
+    </div>
+<script>
+const conElectron = require('electron');
+const conIPC = conElectron.ipcRenderer
+const path = require('path')
+const url = require('url')
+const inpCompany = document.getElementById('txtCustomerNames')
+const dataList = document.getElementById('lstCustomers')
+const contactContent = document.getElementById('l')
+
+
+conIPC.on('name-chosen', (event,args)=>{
+        console.log(args)
+        inpCompany.value = args
+        pullContacts(args)
+            
+        //$('#txtCustomerNames').trigger('change')
+        
+    })
+   
+setTimeout(()=>{
+    loadContactsPage()
+    
+},200)
+function loadContactsPage(){
+    fillCustomersDataList()
+    inpCompany.addEventListener('change', ()=>{
+        //alert('change triggered')
+        let cn = inpCompany.value
+        if(cn!="" || cn!=undefined){
+            pullContacts(cn)
+        }
+    })
+    
+}
+function pullContacts(comp){
+    if(comp){
+    let cont = conIPC.sendSync('get-contacts',comp)
+    console.log(cont)
+    fillContacts(cont)
+    }
+}
+function fillContacts(cont){
+    let ul = document.createElement('ul')
+    contactContent.innerHTML=""
+        for(member in cont[0].contacts){
+            let li = document.createElement('li')
+            let text = document.createTextNode(`
+            ${cont[0].contacts[member].firstname} ${cont[0].contacts[member].lastname}
+            `)
+            let linkEl = document.createElement('a')
+            linkEl.setAttribute('href', '#')
+            let link = document.createTextNode(`  add number`)
+            linkEl.appendChild(link)
+            // let cc = `            
+            //     <li>${cont[0].contacts[member].lastname}</li>
+            // `
+            contactContent.appendChild(li)
+            li.appendChild(text)
+            li.appendChild(linkEl)
+            for(n in cont[0].contacts[member].phoneNumbers){
+                let nUl = document.createElement('ul')
+                let nLi = document.createElement('li')
+                let tNu = document.createTextNode(cont[0].contacts[member].phoneNumbers[n].number)
+                nLi.appendChild(tNu)
+                nUl.appendChild(nLi)
+                li.appendChild(nUl)
+            }
+            //contactContent.childNodes[0].innerHTML = cc
+        }
+}
+function onlyUnique(value, index, self) { 
+         return self.indexOf(value) === index;
+}
+
+function fillCustomersDataList(){
+    let listCustomers = document.getElementById('lstCustomers')
+	listCustomers.style.display="block";	
+	
+	listCustomers.innerHTML=""
+	customerList = conIPC.sendSync('get-customer-names')
+	
+	
+	var uniqueNames = customerList.sort(function (a, b) {
+	 	return a.toLowerCase().localeCompare(b.toLowerCase());
+	 	}).filter(onlyUnique);
+	
+	
+	for(i=0;i<customerList.length;i++){
+		
+		var newOption=document.createElement("OPTION");
+		newOption.setAttribute("value",uniqueNames[i]);
+		listCustomers.appendChild(newOption);		
+		//console.log(uniqueNames[i])
+    }
+}       
+    </script>
+</body>
+</html>

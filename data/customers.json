@@ -1,0 +1,201 @@
+{
+  "customers": [
+    {
+      "companyName": "Bilbo Burgers",
+      "contacts": [
+        {
+          "firstname": "Alexius",
+          "lastname": "Popovich",
+          "address": "Paco, Botolan, Zambales",
+          "phoneNumbers": [
+            {
+              "number": "614-500-2043"
+            },
+            {
+              "number": "614-879-2043"
+            }
+          ]
+        },
+        {
+          "firstname": "Alexius",
+          "lastname": "Davidson",
+          "address": "Paco, Botolan, Zambales",
+          "phoneNumbers": [
+            {
+              "number": "614-500-2054"
+            }
+          ]
+        }
+      ],
+      "jobs": [
+        {
+          "jobID": 1588229599709
+        },
+        {
+          "jobID": 1588849888685
+        }
+      ],
+      "id": 1579585988310
+    },
+    {
+      "companyName": "Bently",
+      "jobs": [
+        {
+          "jobID": null
+        }
+      ],
+      "id": 1588309423514
+    },
+    {
+      "companyName": "Cryst",
+      "contacts": [
+        {
+          "firstname": "Jim",
+          "lastname": "Norvell",
+          "address": "Paco, Botolan, Zambales",
+          "phoneNumbers": [
+            {
+              "number": "614-500-2043"
+            },
+            {
+              "number": "614-879-2043"
+            }
+          ]
+        },
+        {
+          "firstname": "Polly",
+          "lastname": "Simmons",
+          "address": "Paco, Botolan, Zambales",
+          "phoneNumbers": [
+            {
+              "number": "614-500-2054"
+            }
+          ]
+        }
+      ],
+      "jobs": [
+        {
+          "jobID": 1588309423464
+        },
+        {
+          "jobID": 1588850081975
+        }
+      ],
+      "id": 1588317014382
+    },
+    {
+      "companyName": "Nina",
+      "jobs": [
+        {
+          "jobID": 1588317014329
+        }
+      ],
+      "id": 1588317342333
+    },
+    {
+      "companyName": "Poplar",
+      "jobs": [
+        {
+          "jobID": 1588317342273
+        }
+      ],
+      "id": 1588319072963
+    },
+    {
+      "companyName": "Deerfield",
+      "jobs": [
+        {
+          "jobID": 1588319072819
+        }
+      ],
+      "id": 1588319360995
+    },
+    {
+      "companyName": "Simon",
+      "jobs": [
+        {
+          "jobID": 1588319360924
+        }
+      ],
+      "id": 1588320014303
+    },
+    {
+      "companyName": "fyda",
+      "jobs": [
+        {
+          "jobID": 1588497727606
+        },
+        {
+          "jobID": 1588848834184
+        },
+        {
+          "jobID": 1588849766461
+        }
+      ],
+      "id": 1588470398453
+    },
+    {
+      "companyName": "Litchfield Escavating",
+      "jobs": [
+        {
+          "jobID": 1588497727606
+        }
+      ],
+      "id": 1588497727685
+    },
+    {
+      "companyName": "filly",
+      "jobs": [
+        {
+          "jobID": 1588884479132
+        }
+      ],
+      "id": 1588884479169
+    },
+    {
+      "companyName": "Test 1",
+      "jobs": [
+        {
+          "jobID": 1588927647218
+        }
+      ],
+      "id": 1588927647241
+    },
+    {
+      "companyName": "test 2",
+      "jobs": [
+        {
+          "jobID": 1588927689521
+        }
+      ],
+      "id": 1588927689541
+    },
+    {
+      "companyName": "Test 3",
+      "jobs": [
+        {
+          "jobID": 1588927724885
+        }
+      ],
+      "id": 1588927724905
+    },
+    {
+      "companyName": "test 4",
+      "jobs": [
+        {
+          "jobID": 1588927761097
+        }
+      ],
+      "id": 1588927761117
+    },
+    {
+      "companyName": "City of Columbus",
+      "jobs": [
+        {
+          "jobID": 1588929503165
+        }
+      ],
+      "id": 1588929503189
+    }
+  ]
+}

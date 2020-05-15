@@ -1,0 +1,40 @@
+{
+  "users": [
+    {
+      "password": "sonic",
+      "role": "admin",
+      "user_name": "root",
+      "id": 1588663630674
+    },
+    {
+      "password": "lop",
+      "role": "user",
+      "user_name": "sean",
+      "id": 1588664185039
+    },
+    {
+      "password": "yippe",
+      "role": "user",
+      "user_name": "gets",
+      "id": 1588665893895
+    },
+    {
+      "password": "gostory",
+      "role": "admin",
+      "user_name": "val",
+      "id": 1589423456663
+    },
+    {
+      "password": "trick123",
+      "role": "user",
+      "user_name": "tim",
+      "id": 1589432281837
+    },
+    {
+      "password": "cream",
+      "role": "user",
+      "user_name": "whip",
+      "id": 1589432439606
+    }
+  ]
+}

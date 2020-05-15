@@ -1,0 +1,22 @@
+.welcome{
+	font-size: 4em;
+}
+#open-content{
+	float:left;
+	text-align: center;
+	color:white;
+	font-family: "Arial Narrow";
+	width: 99%;
+	
+}
+#headlineContent{
+    
+    float: left;
+    margin-left: 600px;
+    text-align:center;
+}
+
+#headlineContent > ul, li{
+    text-align:left;
+   
+}

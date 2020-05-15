@@ -1,0 +1,17 @@
+{
+  "name": "electronworkflow",
+  "version": "1.0.0",
+  "description": "app to manage workflow for Frame & Spring",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "Sean Davidson",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^8.2.5"
+  },
+  "dependencies": {
+    "electron-db": "^1.0.0"
+  }
+}
