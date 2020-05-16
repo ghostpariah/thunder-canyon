@@ -8,21 +8,84 @@ var thisYear = d.getFullYear();// xxxx
 var today = d.getDate();
 var thisMonth = month_name[monthIndex];
 let chosenCompany=""
+//const contactContent = document.getElementById('custNameWrapper')
+let txtCust
 setTimeout(()=>{
 	let e = document.getElementById('contactsIcon')
 	e.addEventListener('click',()=>{
 		let chosenCompany = document.getElementById('txtCustomerName').value
-		if(chosenCompany == ""){
-			ipc.send('open-contacts')
-		}else{
-		ipc.send('open-contacts', chosenCompany)
-		}
+		// if(chosenCompany == ""){
+		// 	ipc.send('open-contacts')
+		// }else{
+		// ipc.send('open-contacts', chosenCompany)
+		// }
+		
+		
 	})
+	// let txtCust = document.getElementById('txtCustomerName')
+	// 	txtCust.addEventListener('change', ()=>{
+	// 		//alert('blur activated')
+	// 		pullContacts(txtCust.value)
+	// 	})
 },200)
 
 // setTimeout(()=>{
 // 	$('#')
 // },200)
+function pullContacts(comp){
+	
+    if(comp){
+    	let cont = ipc.sendSync('get-contacts',comp)
+		//console.log(cont)
+		if(cont!=undefined){
+			fillContacts(cont)
+		}
+    }
+}
+function fillContacts(cont){
+	let ul = document.createElement('ul')
+	const contactContent = document.getElementById('contactsList')
+	contactContent.innerHTML="add contact"
+	if(cont[0].contacts.length>0){
+        for(member in cont[0].contacts){
+            let li = document.createElement('li')
+            let text = document.createTextNode(`
+            ${cont[0].contacts[member].firstname} ${cont[0].contacts[member].lastname}
+            `)
+            let linkEl = document.createElement('a')
+            linkEl.setAttribute('href', '#')
+            let link = document.createTextNode(`  add number`)
+            linkEl.appendChild(link)
+            // let cc = `            
+            //     <li>${cont[0].contacts[member].lastname}</li>
+			// `
+			let nUl = document.createElement('ul')
+			contactContent.appendChild(ul)
+			ul.appendChild(li)
+            li.appendChild(text)
+			li.appendChild(linkEl)
+			li.appendChild(nUl)
+			
+            for(n in cont[0].contacts[member].phoneNumbers){
+                //let nUl = document.createElement('ul')
+                let nLi = document.createElement('li')
+                let tNu = document.createTextNode(cont[0].contacts[member].phoneNumbers[n].number)
+				let  input = document.createElement('input')
+				input.type = 'radio';
+				
+				input.name = 'pn'
+				input.value = tNu
+				nLi.appendChild(tNu)
+				nLi.appendChild(input)
+				nUl.appendChild(nLi)
+				nUl.appendChild(linkEl)
+				li.appendChild(nUl)
+				//li.appendChild(linkEl)
+            }
+            //contactContent.childNodes[0].innerHTML = cc
+		}
+	}
+}
 
 function jDate(ds){
 	console.log(ds)
@@ -65,16 +128,20 @@ function fillCustomerDataList(){
 			return this.value.toUpperCase() === val.toUpperCase();        
 		}).length) {
 			//send ajax request
+			pullContacts(val)
 			openInput(event,this,'unitWrapper');
+			
 			document.getElementById("txtUnit").focus();
 			//alert(this.value);
 		}
 	});
 	
 }
-function onlyUnique(value, index, self) { 
-    return self.indexOf(value) === index;
-}
+
+ function onlyUnique(value, index, self) { 
+ 	return self.indexOf(value) === index;
+ 	
+ }
 function todayIs() {
 	const objDate = new Date();
 	const day = objDate.getDate();
@@ -146,7 +213,7 @@ function addNewVehicle() {
 	objNewVehicle.ampm = $("input[type='radio'][name='ampm2']:checked").val();
 	
 	ipc.send('addNew',objNewVehicle)	
-	
+	let obj
 	if(isNewCustomer(company.toLowerCase())){
 		let newCompany={
 			"companyName": company,
@@ -181,10 +248,10 @@ function openInput(e, active, inputID1, inputID2) {
 			document.getElementById(inputID1).className = "hiddenInput";
 			//alert(document.getElementById(inputID1).value);
 		}
-	} else {
+	}else{
 		if (!e || e.keyCode != 9) {
 			if (v && v != "") {
-				//alert(k);
+				
 				document.getElementById(inputID1).className = "visibleInput";
 				next.style.display = "block";
 				

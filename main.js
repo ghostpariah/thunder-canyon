@@ -146,10 +146,11 @@ function getCustomerNames(){
 
 function getContacts(comp){
     let c 
+    console.log(comp)
     db.getRows('customers', location,{
         companyName: comp
       }, (succ, result) => {
-         console.log(result)
+         console.log('getContacts()'+result)
         // succ - boolean, tells if the call is successful
         if(succ){
             console.log('From getContacts '+result[0].contacts[0].lastname)
@@ -621,10 +622,13 @@ ipcMain.on('open-contacts', (events,args)=>{
     createContactsWindow(args)
 })
 ipcMain.on('get-contacts', (event, args)=>{
-    console.log(args)
-    let gc = getContacts(args)
-    console.log(gc)
-    event.returnValue = gc
+    console.log('on(get-contacts'+args)
+    if(args != undefined){
+        let gc = getContacts(args)    
+        event.returnValue = gc
+    }else{
+        event.returnValue = true
+    }
 })
 
 /************

@@ -6,6 +6,18 @@ body{
 #txtCustomerName{
     width: 158px;
 }
+
+#custNameWrapper  ul{
+    list-style: none;
+    color:rgb(136, 197, 250);
+    margin-bottom:10px;
+    float:left;
+    text-align: left;
+    padding-inline-start: 30px;
+    margin-block-start: 0;
+}
+
+
 .visibleInput{
 	display:block;
 	float:right;
@@ -52,4 +64,8 @@ input[type="text"], select{
     width: 180px;
     box-sizing: content-box;
     -webkit-box-sizing: content-box;
+}
+#contactsList{
+    float: right;
+    width:185px;
 }

@@ -41,13 +41,19 @@
                 </span>
                 <span class="visibleInput" id="custNameWrapper">
                     
-                    <label>Contact:&nbsp;</label>
-                    <div id="contactsIcon"><img src="../images/Address_Book-512.png"></div>
+                    <label for="contactsList">Contacts:&nbsp;</label>
+                    <div id="contactsList"><a href="#" onclick = "alert('you')">add contact</a></div>
+                   <!--
                     <input id="txtContacts" tabindex="4" list="lstCustomer" onkeyup="openInput(event,this,'unitWrapper')" type="text" style="z-index:20000;"/>
                     
                     <datalist id="lstCustomer">
                         
                       </datalist>
+                    -->  
+                </span>
+                <span class="hiddenInput" id="unitWrapper">
+                    <label>Unit#:&nbsp;</label>
+                    <input id="txtUnit" tabindex="5" onkeyup= "openInput(event,this,'jobTypeWrapper')" type="text"/>
                 </span>
                 <span class="visibleInput" id="originWrapper"> <label for="selOrigin">Job Status:&nbsp;</label>
                     <select id="selOrigin" tabindex="1" onchange="openInput(event,this,'customerNameWrapper','dateWrapper')">
@@ -69,10 +75,7 @@
                     </span> 
                 </span>
                 
-                <span class="hiddenInput" id="unitWrapper">
-                    <label>Unit#:&nbsp;</label>
-                    <input id="txtUnit" tabindex="5" onkeyup= "openInput(event,this,'jobTypeWrapper')" type="text"/>
-                </span>
+                
 
                 <span class="hiddenInput" id="jobTypeWrapper">
                     <label>Job Type: &nbsp;</label>
