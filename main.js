@@ -270,7 +270,8 @@ function createAddJobWindow(){
             parent: win,
             modal: true,            
             width:465,
-            height: 650,
+            height: 950,
+            
             autoHideMenuBar: true,
             show: false,
             webPreferences: {
@@ -291,7 +292,7 @@ function createAddJobWindow(){
             //attachDatePicker()
             
           })
-
+          addJobWin.webContents.openDevTools()
           addJobWin.webContents.focus()
          // console.log(win.webContents.isFocused())
          addJobWin.on('closed', ()=>{
@@ -327,7 +328,7 @@ function createCreateUserWindow(){
         
       })
 }
-function createContactsWindow(args){
+function createContactsWindow(args1, args2){
     contactsWin = new BrowserWindow({
             parent: win,
             modal: true,            
@@ -358,7 +359,7 @@ function createContactsWindow(args){
          // console.log(win.webContents.isFocused())
          contactsWin.webContents.once('did-finish-load',()=>{
              console.log('contacts page finish loading')
-             contactsWin.webContents.send('name-chosen', args)
+             contactsWin.webContents.send('name-chosen', args1, args2)
          })
          contactsWin.on('closed', ()=>{
             contactsWin = null
@@ -539,6 +540,57 @@ ipcMain.on('deactivate', (event,args)=>{
  * communications regarding contacts
  * ******
  ********/
+ipcMain.on('add-contact',(event,args1,args2, args3)=>{
+    let objCompany
+    let set
+    let isNew = args3
+    console.log('add-contact triggered' +args2+" "+args3)
+    db.getRows('customers', location, {
+        "companyName" : args1
+        
+      }, (succ, result) => {
+          
+        console.log("result from getting company for add " +JSON.stringify(result))
+        objCompany = result
+        //console.log(result[0].jobs[0].jobID)
+
+      })
+      if(isNew){
+          //send object to add job window to add to the new company object that doesnt exist yet
+        console.log('send object to addjob window')
+      }else{
+      if(objCompany[0].contacts){
+            objCompany[0].contacts.push(args2)
+             set = {
+                "contacts" : objCompany[0].contacts
+               
+            } 
+      }else{
+          let contacts = {
+              "contacts":[
+                  args2
+              ]
+          }
+          objCompany.push(contacts)
+           set = contacts
+      } 
+     //objCompany[0].contacts.push(args2)
+      
+      console.log(JSON.stringify(objCompany))
+      let where = {
+        "companyName" : args1        
+      };
+    // let set = {
+    //     "contacts" : objCompany[0].contacts
+       
+    // } 
+    db.updateRow('customers',location, where, set, (succ, msg) => {
+        // succ - boolean, tells if the call is successful
+        console.log("Success: " + succ);
+        console.log("Message: " + msg);
+      });  
+    }
+})
 ipcMain.on('add-new-company', (event, args)=>{
     if (db.valid('customers',location)) {
         db.insertTableContent('customers', location, args, (succ, msg) => {
@@ -618,8 +670,8 @@ ipcMain.on('get-customer-names', (event,args)=>{
         
 })
 
-ipcMain.on('open-contacts', (events,args)=>{
-    createContactsWindow(args)
+ipcMain.on('open-contacts', (events,args1,args2)=>{
+    createContactsWindow(args1,args2)
 })
 ipcMain.on('get-contacts', (event, args)=>{
     console.log('on(get-contacts'+args)

@@ -1,10 +1,10 @@
 body{
-    background-color: whitesmoke;
-    width:100%;
+    background-color: #5e81ad;
+    width:500px;
     height:auto;
-    color: black;
+    color: white;
     font-weight: 400;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-family: "Arial Narrow";
 }
 datalist{
 	display:none;
@@ -19,8 +19,8 @@ li > a{
 }
 #contactsMain{
     float: left;
-    width: 500px;
-    border: 1px solid black;
+    width: 100%;
+    
 }
 #contactsHeader h1{
     font-weight: 400;

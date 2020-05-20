@@ -17,6 +17,7 @@
     <div id='contactsHeader'>
         <h1>Contacts</h1>
     </div>
+    <!--
     <div  id="customerNamesWrapper">
                     
         <label>Customer Name:&nbsp;</label>
@@ -28,64 +29,73 @@
         </div>
         <div id="results"></div>
     <div id = 'contactsMain'>
+        
         <div id='currentContacts'>
             <ul id='l'></ul>
 
         </div>
-        <!--
+        -->
         <form>  
             <div class = 'inline-input-group'>
                 <div class = 'input-block'>
                     <label>Company Name</label><br>
-                    <input>
+                    <input id="txtCompanyName" class="classic">
                 </div>           
             </div>        
             <div class = 'inline-input-group'>
                 <div class = 'input-block'>
                     <label>First Name</label><br>
-                    <input>
+                    <input id="txtFirstName">
                 </div>
                 <div class = 'input-block'>
                     <label>Last Name</label><br>
-                    <input type="text">
+                    <input id="txtLastName" type="text">
                 </div>
             </div>
             <div class = 'inline-input-group'>
                 <div class = 'input-block'>
                     <label>Phone Number</label><br>
-                    <input type="text"><img src="images/Address_Book-512.png">
+                    <input id="txtPhoneNumber1" type="text">
                 </div>           
             </div>
             <div class = 'inline-input-group'>
                 <div class = 'input-block'>
                     <label>Email</label><br>
-                    <input type="text">
+                    <input id="txtEmail" type="text">
                 </div>           
             </div>
+            <div class = 'inline-input-group'>
+                <div class = 'input-block'>
+                    
+                    <input id="btnSubmit" type="button" value="add contact" onclick="add()">
 
-        </form>-->
+                </div>           
+            </div>
+        </form>
     </div>
 <script>
 const conElectron = require('electron');
 const conIPC = conElectron.ipcRenderer
 const path = require('path')
 const url = require('url')
-const inpCompany = document.getElementById('txtCustomerNames')
+const inpCompany = document.getElementById('txtCompanyName')
 const dataList = document.getElementById('lstCustomers')
 const contactContent = document.getElementById('l')
+let companyIsNew = false
 
 
-conIPC.on('name-chosen', (event,args)=>{
-        console.log(args)
-        inpCompany.value = args
-        pullContacts(args)
+conIPC.on('name-chosen', (event,args1, args2)=>{
+        //console.log(args)
+        inpCompany.value = args1
+        companyIsNew = args2
+       // pullContacts(args)
             
-        //$('#txtCustomerNames').trigger('change')
+        
         
     })
    
 setTimeout(()=>{
-    loadContactsPage()
+    //loadContactsPage()
     
 },200)
 function loadContactsPage(){
@@ -98,6 +108,21 @@ function loadContactsPage(){
         }
     })
     
+}
+function add(){
+   let objNewContact =
+    
+        {
+        'firstname': document.getElementById('txtFirstName').value,
+        'lastname': document.getElementById('txtLastName').value,
+        'phoneNumbers': [
+            {'number': document.getElementById('txtPhoneNumber1').value}
+            ]
+        }
+    
+    console.log(JSON.stringify(objNewContact) + " "+ inpCompany.value)
+    conIPC.send('add-contact', inpCompany.value, objNewContact, companyIsNew)
+
 }
 function pullContacts(comp){
     if(comp){

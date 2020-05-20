@@ -32,31 +32,33 @@
                 <span class="visibleInput" id="customerNameWrapper">
                     
                     <label>Customer Name:&nbsp;</label>
-                    <div id="contactsIcon"><img src="../images/Address_Book-512.png"></div>
-                    <input id="txtCustomerName" tabindex="4" list="lstCustomer" onkeyup="openInput(event,this,'unitWrapper')" type="text" style="z-index:20000;"/>
                     
-                    <datalist id="lstCustomer">
+                    <input id="txtCustomerName" tabindex="1" list="lstCustomer" onfocus='fillCustomerDataList()'onchange="openInput(event,this,'unitWrapper')" type="text" style="z-index:20000;"/>
+                    
+                    <datalist id="lstCustomer" class="classic">
                         
                       </datalist>
                 </span>
                 <span class="visibleInput" id="custNameWrapper">
                     
-                    <label for="contactsList">Contacts:&nbsp;</label>
-                    <div id="contactsList"><a href="#" onclick = "alert('you')">add contact</a></div>
-                   <!--
-                    <input id="txtContacts" tabindex="4" list="lstCustomer" onkeyup="openInput(event,this,'unitWrapper')" type="text" style="z-index:20000;"/>
+                    <label for="txtContacts">Contacts:&nbsp;</label>
                     
-                    <datalist id="lstCustomer">
-                        
-                      </datalist>
-                    -->  
+                  
+                    <select id="txtContacts" class="classic" tabindex="2" onchange="tellParent(this)" type="text" style="z-index:20000;">
+                    
+                    </select>
+                    
+                    
+                   
+                    <div id="contactsList">
+                    </div>  
                 </span>
                 <span class="hiddenInput" id="unitWrapper">
                     <label>Unit#:&nbsp;</label>
-                    <input id="txtUnit" tabindex="5" onkeyup= "openInput(event,this,'jobTypeWrapper')" type="text"/>
+                    <input id="txtUnit" tabindex="3" onkeyup= "openInput(event,this,'jobTypeWrapper')" type="text"/>
                 </span>
                 <span class="visibleInput" id="originWrapper"> <label for="selOrigin">Job Status:&nbsp;</label>
-                    <select id="selOrigin" tabindex="1" onchange="openInput(event,this,'customerNameWrapper','dateWrapper')">
+                    <select id="selOrigin" class='classic' tabindex="4" onchange="openInput(event,this,'customerNameWrapper','dateWrapper')">
                         <option value="None"></option>
                         <option value="On the Lot">On the Lot</option>
                         <option value="Scheduled">Scheduled</option>
@@ -65,13 +67,13 @@
                 </span>
                 <span id="dateWrapper" class="hiddenInput">
                     <label>Schedule Date: &nbsp;</label>
-                    <input type="text" id="datepicker">
+                    <input type="text" id="datepicker" tabindex="5">
                     <br/>
                     <span>
                         <label>AM</label>
-                        <input type='radio' id="radAM" tabindex='2'name='ampm2' value='am'>
+                        <input type='radio' id="radAM" tabindex='6'name='ampm2' value='am'>
                         <label>PM</label>
-                        <input type='radio' id="radPM" tabindex='3' name='ampm2' value='pm'>
+                        <input type='radio' id="radPM" tabindex='7' name='ampm2' value='pm'>
                     </span> 
                 </span>
                 
@@ -79,7 +81,7 @@
 
                 <span class="hiddenInput" id="jobTypeWrapper">
                     <label>Job Type: &nbsp;</label>
-                    <select id="selJobType" tabindex="6" onchange="openInput(event,this,'cbWrapper','notesFieldset')">
+                    <select id="selJobType" class='classic' tabindex="8" onchange="openInput(event,this,'cbWrapper','notesFieldset')">
                         <option value="None"></option>
                         <option value="Spring">Spring</option>
                         <option value="Alignment">Alignment</option>
@@ -98,31 +100,31 @@
                         Optional Job Info: Check all that apply
                     </legend>
                     <span class="visibleInput">Cash Customer:
-                        <input type="checkbox" id="cbCash" tabindex="8" onchange="openInput(event,this,'est')"/>
+                        <input type="checkbox" id="cbCash" tabindex="9" onchange="openInput(event,this,'est')"/>
                     </span>
                     <div id="est" class="hiddenInput">
                         <label>Estimated cost:</label>
-                        <input id="txtCost" type="text" tabindex="9"/>
+                        <input id="txtCost" type="text" tabindex="10"/>
                     </div>
                     <span class="visibleInput">
                         <label>Parts Needed:</label>
-                        <input id="cbParts" type="checkbox" tabindex="10"/>
+                        <input id="cbParts" type="checkbox" tabindex="11"/>
                     </span>
                     <span class="visibleInput">
                         <label>Approval Needed:</label>
-                        <input id="cbApproval" type="checkbox" tabindex="10"/>
+                        <input id="cbApproval" type="checkbox" tabindex="12"/>
                     </span>
                     <span class="visibleInput">
                         <label>Checked:</label>
-                        <input id="cbChecked" type="checkbox" tabindex="10"/>
+                        <input id="cbChecked" type="checkbox" tabindex="13"/>
                     </span>
                     <span class="visibleInput">
                         <label>Comeback:</label>
-                        <input id="cbComeback"type="checkbox" tabindex="11"/>
+                        <input id="cbComeback"type="checkbox" tabindex="14"/>
                     </span>
                     <span class="visibleInput">
                         <label>Waiting:</label>
-                        <input id="cbWaiting" type="checkbox" tabindex="12"/>
+                        <input id="cbWaiting" type="checkbox" tabindex="15"/>
                     </span>
                     
                 </fieldset>
@@ -130,13 +132,13 @@
                 <legend>Notes</legend>
                 <span class="visibleInput" id="notesWrapper">
                 
-                    <textarea id="txtNotes" rows="5" cols="44" tabindex="7" type="text" style="vertical-align:middle;"></textarea>
+                    <textarea id="txtNotes" rows="5" cols="44" tabindex="16" type="text" style="vertical-align:middle;"></textarea>
                 </span>
             </fieldset>
                 <span id="formButtons" class="hiddenInput">
-                    <input id="frmCancel" type="button" tabindex="14" value="Cancel" onclick="cancelAdd()"/>
-                    <input id="frmReset" type="reset" tabindex="15" value="Reset"/>
-                    <input id="frmSubmit" type="button" tabindex="13" value="Add Job"onclick="addNewVehicle()"/>
+                    <input id="frmCancel" type="button" tabindex="19" value="Cancel" onclick="cancelAdd()"/>
+                    <input id="frmReset" type="reset" tabindex="18" value="Reset"/>
+                    <input id="frmSubmit" type="button" tabindex="17" value="Add Job"onclick="addNewVehicle()"/>
                 </span>
             
         </form>
