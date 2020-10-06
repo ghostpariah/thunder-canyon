@@ -9,7 +9,7 @@
   "author": "Sean Davidson",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^8.2.5"
+    "electron": "^8.5.2"
   },
   "dependencies": {
     "electron-db": "^1.0.0"
