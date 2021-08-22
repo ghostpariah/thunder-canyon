@@ -35,6 +35,24 @@
       "role": "user",
       "user_name": "whip",
       "id": 1589432439606
+    },
+    {
+      "user_name": "sean.davidson",
+      "password": "tungst3n",
+      "role": "admin",
+      "id": 1605729124009
+    },
+    {
+      "user_name": "sean davidson",
+      "password": "trippy",
+      "role": "admin",
+      "id": 1627274520408
+    },
+    {
+      "user_name": "p",
+      "password": "p",
+      "role": "admin",
+      "id": 1628913962182
     }
   ]
 }

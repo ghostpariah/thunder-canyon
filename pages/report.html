@@ -31,7 +31,7 @@
             Daily Sales
         </div>
         <div class="lineItem">
-            Keybank ACH<span class="reportTotal" id="totalCashCheck"></span>
+            ACH<span class="reportTotal" id="totalCashCheck"></span>
         </div>
         <div class="lineItem">
             --From<span class="reportTotal" id="from"></span>
@@ -65,7 +65,7 @@
         <h2 style="text-align:center;">Report Data Entry</h2>
         <form id="reportForm">
             <label>Date</label>
-            <input type="text" id="datepickerReport">
+            <input type="text" id="datepickerReport" onchange="fillPrint(this)">
             
             
             <label>Keybank ACH: </label>

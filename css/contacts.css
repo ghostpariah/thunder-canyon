@@ -1,5 +1,5 @@
 body{
-    background-color: #5e81ad;
+    background-color: black;
     width:500px;
     height:auto;
     color: white;
@@ -13,17 +13,45 @@ datalist{
     height: 0px;
     
 }
-li > a{
-    font-size:13px;
+#customerNameWrapper{
+    display: none;
+    position:relative
+}
+#newContactFormContainer{
+    display:none;
+    position:relative;
+}
+select option :disabled{color:blue;}
+#companyHeader{
+    float:left;
+    clear:both;
+    padding:0;
+    margin-bottom:-20px;
+    color:#5e81ad;/*rgb(186, 245, 242);*/
+    display:none;
+    display:relative;
+    width:100%;
+}
+label{
+    color:#5e81ad;
+}
+ul li ul > a{
+    font-size:15px;
     text-decoration: none;
+    text-align: right;
+    float: center;
 }
 #contactsMain{
     float: left;
-    width: 100%;
+    width: 95%;
+    display: "block";
+    position: relative;
     
 }
-#contactsHeader h1{
-    font-weight: 400;
+#contactsHeader h2{
+   
+    color: #5e81ad;/*lightcyan;*/
+    
 }
 .inline-input-group{
 float: left;
@@ -36,17 +64,21 @@ width:100%;
    
 }
 input{
-    border-radius: 5px;
+   
     border:1px solid #5e81ad;
-    height: 1.5rem;
+    height: 1.25rem;
     float: left;    
-    padding-left: 5px;;
+    padding-left: 5px;
+    margin-top: 3px;
 }
 label{
     float:left;
     font-size: 1rem;
     margin-bottom: 5px;
   
+}
+#vlah{
+    clear:both;
 }
 .addAdditional{
     float:left;
@@ -56,3 +88,124 @@ label{
     border:1px solid black;
     height:20px;
 }
+ul {
+font-size: 1.4rem;
+color: #5e81ad;/*lightcyan;*/
+list-style: none;
+padding-left: 15px;
+font-weight:200;
+
+}
+ul li{
+    clear: both;
+    border-top: 1px solid #5e81ad;/*lightcyan;*/
+    font-weight: 800;
+}
+ul li ul{
+    clear: both;
+    font-size: 1.15rem;
+    color: #5e81ad;
+    padding-left: 30px;
+    padding-bottom: 10px;
+   
+
+}
+.contactName{
+    float:left;
+    margin: 0 5px 10px 5px;
+}
+ul li ul li{
+    clear: both;
+    
+    list-style: none;
+    font-size: .85em;
+    color:white;
+    list-style-position: outside;
+    padding-left: 15px;
+    border: none;
+    font-weight: 200;
+}
+.actionLink{
+    font-size: .8rem;
+    cursor: pointer;
+    margin: 3px;
+    color: plum;
+    text-decoration-line:none;
+    display:none;
+}
+.actionLink:hover{
+    color: rgb(180, 134, 180);
+
+}
+#currentCOntacts{
+    width:100%;
+}
+
+  
+  .actionLink .tooltip {
+    font-size: .75rem;
+    visibility: hidden;
+    width: 120px;
+    background-color: white;
+    color: #5e81ad;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+  
+    /* Position the tooltip */
+    position: absolute;
+    z-index: 1;
+  }
+  
+  .actionLink:hover .tooltip {
+    visibility: visible;
+  }
+.contactButton{
+    width: 30px;
+    height:15px;
+    text-align: center;
+    margin:5px 3px 3px 10px;
+    cursor: pointer;
+    border: 1px solid #5e81ad;
+    float:left;
+    padding:2px 10px;
+    font-size:12px;/*.8em;*/
+    color:#5e81ad;
+    
+}
+.contactButton:hover{
+    color:black;
+    background:#5e81ad;
+}
+.compHeader{
+    float:left;
+    font-size:1.5em;
+    margin: 10px 10px 10px 0px;
+    font-weight: 800;
+    width:100%;
+    border-bottom: 1px solid black;
+}
+.mainContactButton{
+    float:left;
+    border:1px solid #5e81ad;
+    background-color: black;
+    margin: 2px 5px 10px 0px;
+    padding:1px 3px;
+    cursor:pointer;
+    color:#5e81ad;
+}
+.mainContactButton:hover{
+    color:black;
+    background: #5e81ad;
+}
+.nameInput{
+    width:100px;
+    margin: 5px 5px 5px 5px;
+    float:left;
+}
+.wrapper{
+    width:100%;
+    float:left;
+}
+
+

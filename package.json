@@ -4,14 +4,17 @@
   "description": "app to manage workflow for Frame & Spring",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "postinstall": "install-app-deps"
   },
   "author": "Sean Davidson",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^8.2.5"
+    "electron": "^13.1.7",
+    "electron-builder": "^22.11.7"
   },
   "dependencies": {
-    "electron-db": "^1.0.0"
+    "electron-db": "^1.0.0",
+    "sqlite3": "^5.0.2"
   }
 }

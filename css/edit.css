@@ -21,7 +21,7 @@ input[type='text'] {
 
     /* styling */
     background-color: white;
-    border: thin solid blue;
+    border: thin solid rgb(21, 21, 48);
     border-radius: 4px;
     display: inline-block;
     font: inherit;
@@ -42,7 +42,7 @@ input[type='text'] {
 
     /* styling */
     background-color: white;
-    border: thin solid blue;
+    border: thin solid rgb(21, 21, 48);
     border-radius: 4px;
     display: inline-block;
     font: inherit;
@@ -59,7 +59,7 @@ input[type='text'] {
     -moz-appearance: none;
   }
   input[type='checkbox']:checked{
-      background-color: orangered;
+      background-color:peru;
   }
 select {
 
@@ -146,16 +146,22 @@ select {
     border-bottom: 2px solid black;
   }
 .visibleInput{
-	display:block;
-	float:right;
+	display:inline-block;
+	width: 100%;
 	margin:5px;
 	clear: both;
-	
+	text-align: right;
+}
+#notesFieldset{
+  padding-left:0;
 }
 .visibleFieldset{
-    display: block;	
+  display: inline-block;
+  width: 410px;
 	margin:5px;
+  
 	clear: both;	
+  
 }
 .hiddenInput{
         display:none;
@@ -178,13 +184,20 @@ select {
         margin-top:-1px;
         cursor: pointer;
 }
-#h {
-    text-align:right;
+ 
+.btn{
+  background-color: black;
+  color:#5e81ad;
+  cursor: pointer;
 }
-
+.btn:hover{
+  color:black;
+  background-color:#5e81ad;
+}
 #formButtons{
     width: 100%;
-    margin-left: 20px;
+    margin-left:30px;
+    padding: 0;
 }
 #formButtons input{
     margin:5px;

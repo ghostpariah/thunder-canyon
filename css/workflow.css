@@ -26,6 +26,23 @@
 	}
   }
 */
+html, body {
+    height: 100%;
+}
+
+html {
+    display: table;
+    margin: auto;
+}
+
+body {
+    display: table-cell;
+    vertical-align: middle;
+}
+#wpuJobContainer{
+	padding-left: 7px;
+	padding-bottom: 5px;
+}
 datalist{
 	display:none;
 	z-index: 900000;
@@ -33,26 +50,37 @@ datalist{
 }
 body {
 	
-	width:1600px;
-	background: #5e81ad;
+	width:100%;/*1600px;*/
+	background: black;
+	margin:0 auto;
+	vertical-align: middle;
 }
-#main{
-	width: 1600px;
-	min-height: 700px;
-	
-	
-}
+
 #contentArea{
 	float:left;
 	width:100%;
+	
     
 }
-
+[contenteditable]:focus {
+    outline: 0px solid transparent;
+}
+#whiteBoardContent{
+	width:490px;
+	height:180px;
+	float:left;
+	padding: 5px;
+	font-family: 'Arial Narrow';
+	font-size: 30px;
+	color:red;
+}
 
 
 #main {
 	width: 1600px;
-	margin: auto;
+	
+	min-height: 800px;;
+	border: 1px solid white;
 }
 #customerContainer{
 	float:left;
@@ -80,14 +108,16 @@ body {
 #trashButton{
 	width:50px;
 	height:45px;
-	background-image:  url("warningLegend.jpg");
-	float:right;
-	background:#FFFFFF;
-	margin:20px;
-	border:3px solid #cecece;
+	/*background-image:  url("warningLegend.jpg");*/
+	float:left;
+	/*background:#FFFFFF;*/
+	
+	
 	font-size:10px;
-	padding-top:5px;
+	padding-top:40px;
+	padding-left: 20px;
 	display: none;
+
 }
 .dateInput{
 	width:100px;
@@ -105,27 +135,31 @@ body {
 	cursor: pointer;
 }
 #login-message{
-	float:right;
+	float:left;
 	color: #5e81ad;
-	font-size: 20px;
-	margin-right: 20px;
-	margin-top: -2px;
+	font-size: 18px;
+	margin: -2px 0px 0px 20px;
+	text-align:right;
+	width: 250px;
+	/*margin-right: 20px;
+	margin-top: -2px;*/
 }
 #legend{
-	width:1580px;
+	width:100%;/*1580px;*/
 	height:23px;
 	float:left;
-	background: #FFFFFF;
+	background: #ffffff;
 	color:#525252;
 	padding-top: 5px;
 	text-align: center;
 	vertical-align: middle;
 	font-family: 'Arial Narrow';
 	font-size:15px;
-	
+	/*
 	border-left:2px solid #cecece;
 	border-right:2px solid #cecece;
 	border-bottom: 2px solid #cecece;
+	*/
 }
 #legend span{
 	margin-top:10px;
@@ -164,34 +198,69 @@ body {
 #left {
 	width: 52%;
 	float: left;
-	margin-left:-3px;
+	
+	margin-top: 5px;
 }
 #middle {
 	width: 31%;/*32%;*/
 	float: left;
-	margin-left:1px;
+	margin-left:2px;
+	height:auto;
+	margin-top: 5px;
 }
+
 #right {
+	
 	width: 16%;
 	float: left;
-	margin-left:3px;
+	margin-right:8px;
+	height:640px;
+	margin-top: 5px;
 }
 .cat {
 	width: 97%;
-	border: 2px solid #cdcdcd;
+	/*border: 2px solid #cdcdcd;*/
 	float: left;
 	height: 300px;
 	margin: 2px;
 	background: whitesmoke;
+}
+#cBucket{
+margin-right: px;
+}
+.catButton{
+	float:left;
+	width: 97%;
+	margin: 2px;
+	height:30px;
+	background-color: black;
+	border: 2px solid #5e81ad;
+	color: #5e81ad;
+	font-family: "Arial Narrow";
+	font-size: 30px;
+	text-align: center;
+	padding-bottom: 3px;
+	cursor: pointer;
+}
+.catButton:hover{
+	background: #5e81ad;
+	color:black;
 }
 #waiting.cat {
 	height: auto;
 	width: 99%;
 	overflow:auto;
 }
+#waiting{
+	background-image: url(../images/bgTest2V.svg);
+	background-repeat: no-repeat;
+	
+	
+}
+
 #wip.cat {
 	/*height: 625px;*/
-	height:auto;
+	height:420px;/*420*/
 	width:99%;
 }
 #right .cat {
@@ -200,41 +269,120 @@ body {
 	font-size: 30px;
 	color: #736F6E;
 	text-align: center;
+
 }
 #bottom{
 	float:left;
-	height:162px;/*169px;*/
-	width:746px;
-	background-color: whitesmoke;
+	height:200px;/*169px;*/
+	width:492px;
+	background-color: white;
 	margin-left:3px;
-	border: 2px solid #cecece;
+	
 	margin-top: 1px;
+	padding:0;
+
+}
+.upcomingScheduledHeader{
+	height: 20px;
+	width: 100.3%;
+	float:left;
+	color:black;
+	background-color: #5e81ad;
+	margin-left: -1px;
+	
+	font-family: 'Arial Narrow';
+	text-align:center;
+	font-weight: 600;
+}
+.usButton{
+	height:80%;
+	width:20px;
+	color:black;
+	background-color: #ad5e82;
+	float:left;
+}
+.glimpseData{
+	width:90%;
+	height:100%;
+	background:seashell;
+	font-family: 'Arial Narrow';
+	float:left;
+	color:black;
+	text-align: center;
+	
+}
+.colorBlock{
+	width:10%;
+	height:100%;
+	
+	float:left;
+}
+.glimpseCustomer{
+	width:100%;
+	float:left;
+	font-size: 15px;
+	font-weight:bold;
+	color: #5e81ad;
+}
+.glimpseDate{
+	width:100%;
+	float:left;
+	font-size: 18px;
+	font-weight:bold;
+}
+.glimpseNotes{
+	width:100%;
+	float:left;
+	font-size: 12px;
+}
+.glimpseSpan{
+	width:100%;
+	float:left;
 }
 .bottomBox{
-	width:32%;
-	height:153px;
-	border:2px solid #cecece;
+	width:100%px;
+	height:125px;
+	border:2px solid #5e81ad;
 	float:left;
 	margin:3px;
+	background: black;
+	color:#5e81ad;
+}
+.bottomBox .header{
+	
+	border-bottom: 1px solid #5e81ad;
+	
+}
+.openBoxJobContainer{
+	display: table;
+	width:auto;
+	height:auto;
+	padding-left:7px;
+	padding-bottom: 3px;
+	padding-top: 3px;
+	float:left;
 }
 .bottomBoxOpen {
 	display: none; /* NEW */
 	background: whitesmoke;
-	border: 3px solid black;
-	margin-top: -490px;
-	margin-right: 400px;
-	margin-left: -400px;
-	padding: 2px;
+	
+	left:800px;
+	
 	position: absolute;
 	z-index: 2000;
-	width: 350px;
-	height: 530px;
+	width: 780px;/*350px;*/
+	height: auto;/*530px;*/
 	font-size: 12px;
 	color: black;
 }
+#schBox .job{
+	width: 150px;
+}
 #schBox{
 	margin-left:-300px;
+	margin-top: 50px;
 	box-shadow: 5px 10px 18px #888888;
+	
 }
 #posBox{
 	margin-left:-200px;
@@ -254,17 +402,22 @@ input[type="checkbox"], input[type="radio"] {
 }
 #addNewJob{
 	display:none;
-	float:right;
+	float:left;
 	width:200px;
 	height:50px;
-	background-color: #5e81ad;
+	background-color: black;
 	border:1px solid #5e81ad;
 	font-size: 40px;
-	color: white;
-	border-radius: 3px;;
+	color: #5e81ad;
+	
 	vertical-align:middle;
-	margin:20px;
+	margin:40px;
 	cursor:pointer;
+	font-family: 'Arial Narrow';
+}
+#addNewJob:hover{
+	background-color: #5e81ad;
+	color:black;
 }
 #editSubmit{
 	float:right;
@@ -395,7 +548,7 @@ div.lineItem:first-child{
 #legend-color-blocks{
 	
 	float: left;
-	margin: 0px 50px 0px 50px;
+	margin: 0px 30px 0px 10px;
 	width: auto;
 }
 #legend-color-blocks span{
@@ -409,49 +562,73 @@ div.lineItem:first-child{
 }
 #legend-statuses{
 	float:left;
+	
 }
 #legendButtonContainer{
-	display:inline-block;
-	padding-top: -10px;
-	margin: 0 0 0 200px;
-	width:300px;
+	float: left;
+	/*display:inline-block;
+	padding-top: -10px;*/
+	margin: -3px 0 0 0;
+	width:250px;
 }
 .legendButton{
 	float:right;
 	border: 1px solid #5e81ad;
 	height:13px;
-	margin-left: 5px;
-	
-	border-radius: 5px;
+	margin-left: 5px;	
 	width:auto;
-	padding: 0px 2px 5px 2px;
-	background-color:#5e81ad;
-	color:whitesmoke;
-	
+	padding: 2px 5px 7px 5px;
+	background-color:#335f94;
+	color:white;	
 	font-family: "Arial Narrow";
 	cursor:pointer;
+}
+.legendButton:hover{
+	background-color: black;
+	
 }
 #btnAdmin{
 	display: none;
 }
-#menuAdmin{
-	
+#btnContacts{
 	display:none;
-	margin-left:-15px;
-	margin-top:5px;
+}
+.adminMenu{	
+	display:none;	
 	width:100px;
-	
+	color: white;
 	position: absolute;
 	height:auto;
-	background-color:white;
-	border: 1px solid black;
+	background-color:black;	
 	box-shadow: 5px 10px 18px #888888;
 }
-#menuAdmin input{
-	width:90px;
-	margin:3px;
-	cursor:pointer;
+#adminMenu{
+	margin-left: -7px;
+	margin-top:5px;
 }
+
+.adminMenuItem{
+	height: 25px;
+	padding-top: 3px;
+	
+}
+.adminMenuItem:hover{
+	background: #335f94;
+	
+	
+}
+.adminSubMenu{
+	
+	position: relative;
+	
+	margin-left: 100px;
+	margin-top: -21px;
+	
+	
+}
+
+
+
 #g span{
 	display:block;
 	
@@ -477,7 +654,7 @@ div.lineItem:first-child{
 	margin-left: 0;
 }
 .bottomBoxOpen .job {
-	width: 48%;
+	width: 19%;/*48%;*/
 	height: 44px;
 	margin-left: 0;
 }
@@ -488,7 +665,7 @@ div.lineItem:first-child{
 }
 #wip .job {
 	width: 48%;
-	height: 50px;
+	height: 44px;
 }
 #refresh.cat {
 
@@ -504,11 +681,13 @@ div.lineItem:first-child{
 	float: left;
 	font-family: "Arial Narrow";
 	font-size: 20px;
-	
-	color: #736f6e;
+	font-weight: 600;
+	background-color: #5e81ad;
+	color: black;/*#736f6e;*/
 	text-align: center;
 	
-	border-bottom: 2px solid #cecece;
+	
+	
 }
 .headerMiddle {
 	width: 100%;
@@ -531,14 +710,31 @@ div.lineItem:first-child{
 }
 .bigCount {
 	width: 20%;
-	float: right;
-	margin: 75px 15px 15px 15px;
-	background: white;
-	color: #736f6e;
+	float: left;
+	
+	background: black;
+	color: #5e81ad;
 	font-size: 40px;
 	font-family: "Arial Narrow";
 	text-align:center;
-	border: 1px solid #736f6e;
+	border: 1px solid #5e81ad;
+}
+#SCH{
+	border: none;
+	height: 97.5%;
+	background-color:whitesmoke;
+	margin-left: 7px;
+}
+#bigSCHcountBox{
+	width: 150px;
+	float: left;
+	margin:auto;
+	background: black;
+	color: #5e81ad;
+	font-size: 40px;
+	font-family: "Arial Narrow";
+	text-align:center;
+		
 }
 .countBox{
 	width: 45%;
@@ -607,36 +803,67 @@ div.lineItem:first-child{
 
 .jobCat {
 	width: 8%;
-	float: right;
-	/*background: red;*/
+	float: right;	
 	height: inherit;
 }
 .mainHeader {
-	float: left;
-	/*display: none;*/
-	width:1580px;
-	
-	height: auto;/*75px;*/
-	background: rgb(167, 223, 188);
-	border: 2px solid #cdcdcd;
+	float: left;	
+	width:100%;/*1580px;	*/
+	height: auto;	
+	background: black;
+	/*border: 2px solid #cdcdcd;*/
 	color: #736F6E;
-	text-align: center;
-	
+	text-align: center;	
 }
 #headerLeft{
 	float: left;
-	width:25%;
+	width:30%;
 }
 #headerMiddle{
 	float:left;
-	width:50%;
+	width:40%;
 	margin-top:3px;
 	margin-bottom:3px;
 }
 #headerRight{
 	float:left;
-	width:25%;
+	width:30%;
 }
+#topCounts{
+	float:left;
+	display:none;
+	width: 80%;
+	height:75px;
+	margin-top: 25px;
+	color: #5e81ad;
+	font-family:'Arial Narrow'
+
+	
+}
+.topCountBox{
+	border: 1px solid#5e81ad;
+	float:left;
+	height: 65px;
+	width:16.5%;
+	margin:5px;
+}
+.topCountHeader{
+	border-bottom:1px solid #5e81ad;
+	font-size: 14px;
+}
+.topCount{
+	color: #5e81ad;
+	font-size: 25px;
+	margin-top: 10px;
+}
+.schTopCountHeader{
+	border-bottom:1px solid #5e81ad;
+	font-size: 14px;
+	background: #5e81ad;
+	color: black;
+}
+
+
 #formHeader.header {
 	font-size: 30px;
 	border-bottom-color: whitesmoke;
@@ -678,11 +905,32 @@ input {
 	display: block;
 	z-index:4;
 }
+.vehicle:hover .toolTipBottom {/* NEW */
+	color: black;
+	
+	max-width: 250px;
+	display: block;
+	z-index:4;
+}
+
+.vehicle:hover .tooltipLast {
+	color: black;
+	margin-top: -400px;
+	
+	max-width: 250px;
+	display: block;
+	z-index:4;
+}
 #wpuBoxHeader{
 	text-align: center;
 }
 #wpuBox{
 	box-shadow: 5px 10px 18px #888888;
+	top:350px;
+	left: 1200px;
+}
+#wpuBox .job{
+	width:150px;
 }
 #WPU .vehicle:hover .tooltip{
 	display:block;
@@ -693,7 +941,7 @@ input {
 	
 }
 .bucket{
-	width:20%;
+	width:19.95%;
 	margin: 0;
 	padding: 0;
 	height:auto;
@@ -703,21 +951,7 @@ input {
 #posBox:hover{
 	z-index:5;
 }
-.wpuCashTotal{
-	width:95%;
-	height:30px;
-	font-family:"Arial Narrow";
-	font-size:20px;
-	background-color:white;
-	border:1px solid #736F6E;
-	color:green;
-	margin-left: 6px;
-	margin-top: -5px;
-	margin-bottom: 10px;
-	float: left;
-	
-	
-}
+
 
 .tooltip {
 	display: none; /* NEW */
@@ -741,51 +975,95 @@ input {
 	overflow-x: auto;
 	
 }
+.toolTipBottom {
+	display: none; /* NEW */
+	background: white;
+	border: 1px solid #5e81ad;
+	
+	margin-left: 115px;
+	
+	bottom:40px;
+	box-shadow: 5px 10px 18px #888888;
+	padding-left: 10px;
+	padding-right:0px;
+	position: absolute;
+	z-index: 100000 !important;
+	max-width: 250px;
+	width: 200px;
+	height: auto;
+	font-family: "Arial Narrow";
+	font-size: 16px;
+	text-align: left;
+	overflow: auto;
+	overflow-x: auto;
+	
+}
 .tooltipLast{
 	display: none; /* NEW */
 	background: white;
 	border: 1px solid black;
 	
 	margin-left: 115px;
-	margin-top:40px;
-	
+	bottom:-5px;
+	box-shadow: 5px 10px 18px #888888;
 	padding-left: 10px;
 	position: absolute;
 	z-index: 1000;
-	width: 115px;
+	max-width: 250px;
+	width: 200px;
 	height: auto;
 	font-family:"Arial Narrow";
-	font-size: 14px;
+	font-size: 16px;
 	text-align: left;
 	overflow: auto;
 	overflow-x: auto;
 }
+
 .waitingForParts {
 	display: none; /* NEW */
 	background: whitesmoke;
-	border: 1px solid black;
-	margin-top: -160px;
-	margin-right: 400px;
+	
+	margin-top: -145px;
+	margin-right: 430px;
 	margin-left: -100px;
-	padding: 2px;
+	
 	position: absolute;
 	z-index: 2000;
-	width: 350px;
-	height: 530px;
+	width: 320px;
+	height: auto;
 	font-size: 12px;
 	color: black;
 }
 .closeButton{
 	float:right;
-	background-image:url("../images/close.jpg");
-	/*border:2px solid black;*/
-	width:15px;
-	height: 15px;
-	margin-top: 3px;
-	margin-right:3px;
-	border:2px solid #525252;
+	/*background-image:url("../images/redxicon.png");*/
+	background-repeat: no-repeat;
+	width:30px;
+	height: 25px;
+	/*margin-top: 5px;
+	margin-right:5px;
+	font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;*/
+	font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+	font-size:20px;
 	cursor: pointer;
+	padding-bottom:7px;
+	/*padding-top: -20px;*/
 	
+	
+}
+#t{
+	
+	display: none;
+	
+	width:25px;
+	height:25px;
+	float:left;
+	padding-left:5px;
+	padding-top: 5px;
+}
+.closeButton:hover{
+	background: red;
+	color:white;
 }
 .closeButton img{
 	border:2px solid black;
@@ -805,7 +1083,7 @@ input {
 */
 #WPU{
 	text-align: center;
-	color: black;
+	
 
 }
 #WPU .waitingForParts{
@@ -820,31 +1098,62 @@ input {
 .couponcode {
 	margin: 100px;
 }
+#SCH .catButton{
+	background: #5e81ad;
+	color:black;
+	cursor:default;
+	margin:0;
+	width:100%;
+	border: none;
+}
+#compBox{
+	cursor: pointer;
+}
+
+.upcomingBox{
+	margin:2px 0 0 2px;
+	width:97%;
+	height: 40px;
+	border: 1px solid black;
+	float:left;
+}
 #schPopUp{
 	
 	float:left;
 	
 	
-	margin:15px;
-	height: 100px;
-	width: 100px;
+	margin:0px;
+	height: 75px;
+	width: 100%;
 	border-radius: 10px;
 	
+}
+.ucWrapper{
+	width:95%;
+	height:500px;
+	border: 1px solid #5e81ad;
+	float:left;
+	margin-left: 5px;
 }
 .viewButton{
 	float:left;
 	font-size: 18px;;
 	font-family: "Arial Narrow";
-	border:1px solid #5e81ad;
-	height: 25px;
-	width: 75px;
-	border-radius: 3px;
-	margin: 10px;
-	background-color: #5e81ad;
+	
+	height: 23px;
+	width: 80%;
+	margin: 5px 0 5px 20px;
+	font-weight:800;
+	background-color: #335f94;
 	text-align: center;
 	cursor: pointer;
 	color:white;
-	padding-top: 5px;
+	padding-top: 2px;
+	
+}
+.viewButton:hover{
+	background: black;
+	color:white;
 }
 #schQuestionBox{
 	position:relative;
@@ -887,6 +1196,88 @@ input {
 	height: 14px;
 	
 	margin-left: 3px;
+}
+.context-Menu{
+	position: absolute;
+	display:none;
+	z-index: 10000;
+	width:150px;
+	height: 100px;
+	background: #1b1a1a;
+	margin-left: 150px;
+	margin-top: -40px;
+	box-shadow: 5px 10px 18px #888888;
+	
+}
+.popuprow{
+	float:left;
+	width: 100%;
+	padding-left: 5px;
+	margin-top:10px;
+}
+.halfrow{
+	float:left;
+	width:40%;
+}
+.popupButton{
+	float: left;
+	border:1px solid #5e81ad;
+	background-color: black;
+	color: #5e81ad;
+	width: 70px;
+	margin-left:5px;
+	margin-right:7px;
+	text-align: center;
+	font-size: 14px;
+	padding: 5px 2px;
+	
+}
+.popupButton:hover{
+	background-color: #5e81ad;
+	color:black;
+}
+.popupHeader{
+	float:left;
+	font-size: 14px;
+	border-bottom: 1px solid white;
+	width:100%;
+	margin-bottom: 10px;
+	text-align: center;
+}
+.context-submenu{
+	position: absolute;
+	display:none;
+	z-index: 10000;
+	width:300px;
+	height: 100px;
+	background: #1b1a1a;
+	margin-left: 150px;
+	margin-top: -60px;
+	box-shadow: 5px 10px 18px #888888;
+	color:#5e81ad;
+	padding-top:5px;
+	font-family: 'Arial Narrow';
+	
+}
+
+.context-Menu > .item{
+	float:left;
+	font-family: 'Arial Narrow';
+	padding: 2px 5px;
+	font-size:16px;
+	color:#5e81ad;
+	cursor: pointer;
+	width:140px;
+	
+	height:20px;
+	
+}
+
+.item:hover{
+	
+	background: #5e81ad;
+	color: black;
+	
 }
 .jobIndicatorCash{
 	background-image: url('../images/dollarSignSmaller.jpg');

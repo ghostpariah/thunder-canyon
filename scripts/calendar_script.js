@@ -1,6 +1,7 @@
 const calElectron = require('electron')
 const calIPC = calElectron.ipcRenderer
 const date = new Date();
+let allJobs
 let scheduledJobs
 let day = date.getDate();
 let month = date.getMonth() + 1;
@@ -81,7 +82,7 @@ function setToday(){
     //console.log(selectedMonth+ " "+today+" "+selectedYear);
     if(selectedMonth==thisMonth && selectedYear==thisYear){
         var t=today+firstDay-1;
-        document.getElementById("dayNumber"+t).style.background="#fa9600";//rgb(78, 77, 77)";
+        document.getElementById("dayNumber"+t).style.background='#803b3b'//"#fa9600";//rgb(78, 77, 77)";
         document.getElementById("dayNumber"+t).style.color="white";
     }
 }
@@ -245,28 +246,45 @@ function fillDays(y){
     
     
 }
+function getScheduled(){
+    arrScheduledJobs = []
+
+    allJobs = calIPC.sendSync('pull_jobs')
+    for(member in allJobs){
+
+		(allJobs[member].status == 'sch')? arrScheduledJobs.push(allJobs[member]):'';
+	}
+    console.log(arrScheduledJobs)
+   for(i=0;i<arrScheduledJobs.length;i++){
+       arrScheduledJobs[i].customer_name = calIPC.sendSync('db-get-customer-name',arrScheduledJobs[i].customer_ID)
+   }
+    
+    return arrScheduledJobs
+}
 function countSchJobsForCalendar(){
     m=monthIndex+1;
     resetSCHcounts();
-    scheduledJobs = calIPC.sendSync('get-scheduled')
-    console.log(scheduledJobs)
+    
+    
+    scheduledJobs = getScheduled()
+    //console.log(scheduledJobs)
     //alert("kingpin count after calling reset is "+dayHolder[168].pm.kingpinCount);
     for(i=1;i<=daysInMonth(monthIndex, year)+daysAfter;i++){
         for(j=0;j<scheduledJobs.length;j++){
-            let schD=scheduledJobs[j].scheduledDate;
-            console.log(schD)
+            let schD=scheduledJobs[j].date_scheduled;
+            //console.log(schD)
             var calYear = schD.substr(schD.length - 4);
             //alert("year listed in XML"+calYear);
             var todaysJulianDate=jDate(m.toString()+"/"+i.toString()+"/"+year.toString());
             var isEligible = (selectedYear==calYear || monthIndex==11) ? true:false;
             //console.log(scheduledJobs[j].julian)
             //alert(isNextYearPreview());
-            if(todaysJulianDate==scheduledJobs[j].julian &&isEligible){
-               console.log(JSON.stringify(scheduledJobs[j]))
-                var ampm = scheduledJobs[j].ampm;
-                var jd = scheduledJobs[j].julian;
+            if(todaysJulianDate==scheduledJobs[j].julian_date &&isEligible){
+               //console.log(JSON.stringify(scheduledJobs[j]))
+                var ampm = scheduledJobs[j].time_of_day;
+                var jd = scheduledJobs[j].julian_date;
                 //alert(scheduledJobs[j].jobType + " ")
-                switch(scheduledJobs[j].jobType){
+                switch(scheduledJobs[j].job_type){
                     
                     case "Check All":
                         if(ampm=="am"){
@@ -498,10 +516,11 @@ function createDayBlocks(){
         var db = document.createElement('div');
         db.setAttribute("id","dayBlock"+i);
         db.setAttribute("class","day-block");
-        db.onmouseenter = function(event){
-            $('#jobWallet').remove();
-            
-        };
+        // db.onmouseenter = function(event){
+        //     if(document.getElementById('jobWallet')){
+        //     $('#jobWallet').remove();
+        //     }
+        // };
         db.onmouseover = function(event){
             event.stopPropagation();
             if(this.childNodes.length>1){
@@ -534,12 +553,10 @@ function createDayBlocks(){
             event.stopPropagation();
             event.preventDefault();
             if(document.getElementById('jobWallet')){
-                //event.relatedTarget.className != "pm" && event.relatedTarget.className != "am"
                 if(event.relatedTarget==null || event.relatedTarget.id != "jobWallet" && 
                 !event.target.parentNode.contains(event.relatedTarget)&& event.target.className != "calJobContainer"&&
                 !event.relatedTarget.parentNode.contains(event.target)){
-                   //alert(event.target.className);
-                   //$('#jobWallet').innerHTML="";
+                   
                     $('#jobWallet').remove();
                 }
             }
@@ -650,8 +667,9 @@ function makeCalenderJobContainers(e){
     //alert(dayBlockJulian);
 
     //var thisDaysSchJobs = [];
+    //console.log(scheduledJobs.length)
     for(i=0;i<scheduledJobs.length;i++){
-        if(scheduledJobs[i].julian == dayBlockJulian){
+        if(scheduledJobs[i].julian_date == dayBlockJulian){
             thisDaysSchJobs.push(scheduledJobs[i]);
             //alert(scheduledJobs[i].customerName)
         }
@@ -682,7 +700,7 @@ function makeCalenderJobContainers(e){
     document.getElementById("jobHeaderPM").innerHTML="PM";
     //console.log(thisDaysSchJobs)
     for(j=0;j<thisDaysSchJobs.length;j++){
-        let schJobType = thisDaysSchJobs[j].jobType;
+        let schJobType = thisDaysSchJobs[j].job_type;
         //let schJobRecordNumber = thisDaysSchJobs[j].recordNumber;
 
         let jcName = thisDaysSchJobs[j].customerName;
@@ -695,8 +713,14 @@ function makeCalenderJobContainers(e){
     jobContainer.setAttribute("class", "calJobContainer");
     //jobContainer.setAttribute("data-recordNumber", thisDaysSchJobs[j].id);
     jobContainer.onclick = function (event){
-        //showToolTip(event.target);
+        if(event.target.tagName.toLowerCase() === 'a'){
+            
+          } else {
+            event.stopPropagation()
+        event.target.className = (event.target.className == 'explode')?event.target.className= 'calJobContainer':event.target.className = 'explode';
        
+          }
+        
         
     };
     jobContainer.oncontextmenu = function (event){
@@ -721,51 +745,53 @@ function makeCalenderJobContainers(e){
         return false;
     };
     */
+
+    //job_type should be customer name. just used job_type to test
     jobContainer.innerHTML=
-    "<a class='customerName'>"+thisDaysSchJobs[j].customerName.toUpperCase()+
+    "<a class='customerName'>"+thisDaysSchJobs[j].customer_name.toUpperCase()+
     "</a><br/>" + "Unit #: "+thisDaysSchJobs[j].unit+"<br/>"+thisDaysSchJobs[j].notes;
-    if(thisDaysSchJobs[j].waiting=="-1"){
+    if(thisDaysSchJobs[j].waiting_customer=="-1"){
         jobContainer.innerHTML+="<br/>Customer will be waiting";
     }
         switch(schJobType){
             case "Spring":
-                jobContainer.style.color="black";
-                jobContainer.style.fontWeight = "bold"
+                jobContainer.style.color="#5e81ad";
+                //jobContainer.style.fontWeight = "bold"
                 jobContainer.style.borderColor="#5e81ad";
-                jobContainer.style.borderWidth="2px";
+                //jobContainer.style.borderWidth="2px";
             break;
             case "Check All":
-                jobContainer.style.color="black"; 
-                jobContainer.style.fontWeight = "bold"  
+                jobContainer.style.color="#ff9e0c"; 
+                //jobContainer.style.fontWeight = "bold"  
                 jobContainer.style.borderColor="#ff9e0c";  
-                jobContainer.style.borderWidth="2px";               
+                //jobContainer.style.borderWidth="2px";               
                 break;
                 
             case "Alignment":
-                jobContainer.style.color="black";
-                jobContainer.style.fontWeight = "bold"
+                jobContainer.style.color="#ad5ea8";
+                //jobContainer.style.fontWeight = "bold"
                 jobContainer.style.borderColor="#ad5ea8";
-                jobContainer.style.borderWidth="2px";
+                //jobContainer.style.borderWidth="2px";
                 break;
             case "King Pin":
-                jobContainer.style.color="black";  
-                jobContainer.style.fontWeight = "bold"                  
+                jobContainer.style.color="#5ead63";  
+                //jobContainer.style.fontWeight = "bold"                  
                 jobContainer.style.borderColor="#5ead63"; 
-                jobContainer.style.borderWidth="2px";      
+               // jobContainer.style.borderWidth="2px";      
                 break;
             case "Frame":
-                jobContainer.style.color="black";
-                jobContainer.style.fontWeight = "bold"
+                jobContainer.style.color="#ff2d00";
+                //jobContainer.style.fontWeight = "bold"
                 jobContainer.style.borderColor="#ff2d00";
-                jobContainer.style.borderWidth="2px";
+                //jobContainer.style.borderWidth="2px";
                 break;
             default:
                 break;
         }
         
-        if(thisDaysSchJobs[j].ampm=="am"){
+        if(thisDaysSchJobs[j].time_of_day=="am"){
             document.getElementById("container0").appendChild(jobContainer);
-        }else if(thisDaysSchJobs[j].ampm=="pm"){
+        }else if(thisDaysSchJobs[j].time_of_day=="pm"){
             document.getElementById("container1").appendChild(jobContainer);
         }else{
             document.getElementById("container0").appendChild(jobContainer);
@@ -823,14 +849,14 @@ function openContextMenu(e){
     cmList.setAttribute("class","cm_list");
     cmList.setAttribute("id","cmList");
     document.getElementById(cId+"_cm").appendChild(cmList);
-    let listItems =["send to lot","edit","noshow || completed"];
+    let listItems =["send to lot","edit","no-show","completed"];
     for(i=0;i<listItems.length;i++){
         var cmListItem =document.createElement('li');
         cmListItem.setAttribute("id","cmListItem"+i);
         cmListItem.setAttribute("class","cmListItem"); 
         cmListItem.onclick= function(e){
-            event.stopPropagation();
-            switch(event.target.id){
+            e.stopPropagation();
+            switch(e.target.id){
                 case "cmListItem0":
                     sendTo("lot",rn);
                     break;

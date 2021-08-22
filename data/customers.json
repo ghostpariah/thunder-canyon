@@ -1,322 +1,670 @@
 {
   "customers": [
     {
-      "companyName": "BILBO BURGERS",
-      "contacts": [
-        {
-          "firstname": "Alexius",
-          "lastname": "Popovich",
-          "address": "Paco, Botolan, Zambales",
-          "phoneNumbers": [
-            {
-              "number": "614-500-2043"
-            },
-            {
-              "number": "614-879-2043"
-            }
-          ]
-        },
-        {
-          "firstname": "Alexius",
-          "lastname": "Davidson",
-          "address": "Paco, Botolan, Zambales",
-          "phoneNumbers": [
-            {
-              "number": "614-500-2054"
-            }
-          ]
-        }
-      ],
+      "companyName": "BERRY FOODS",
       "jobs": [
         {
-          "jobID": 1588229599709
+          "jobID": 1590797832245
         },
         {
-          "jobID": 1588849888685
+          "jobID": 1590797832245
         },
         {
-          "jobID": 1589945473022
+          "jobID": 1590808245281
+        },
+        {
+          "jobID": 1591211350314
+        },
+        {
+          "jobID": 1591211385852
+        },
+        {
+          "jobID": 1591213198560
+        },
+        {
+          "jobID": 1591304701823
+        },
+        {
+          "jobID": 1605164393144
+        },
+        {
+          "jobID": 1605510616372
+        },
+        {
+          "jobID": 1616437326125
+        },
+        {
+          "jobID": 1627166566636
         }
       ],
-      "id": 1579585988310
-    },
-    {
-      "companyName": "BENTLY",
-      "jobs": [
-        {
-          "jobID": null
-        }
-      ],
-      "id": 1588309423514,
-      "contacts": [
-        {
-          "firstname": "Jeff",
-          "lastname": "Finebaum",
-          "phoneNumbers": [
-            {
-              "number": "513-542-9997"
-            }
-          ]
-        },
-        {
-          "firstname": "Lisa",
-          "lastname": "Fricker",
-          "phoneNumbers": [
-            {
-              "number": "614-235-1245"
-            }
-          ]
-        },
-        {
-          "firstname": "Val",
-          "lastname": "Davidson",
-          "phoneNumbers": [
-            {
-              "number": "614-975-2277"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "companyName": "CRYST",
       "contacts": [
         {
           "firstname": "Jim",
-          "lastname": "Norvell",
-          "address": "Paco, Botolan, Zambales",
+          "lastname": "Dent",
           "phoneNumbers": [
             {
-              "number": "614-500-2043"
+              "number": "(235) 521-4586"
             },
             {
-              "number": "614-879-2043"
+              "number": "(513) 258-7894"
+            },
+            {
+              "number": "(333) 333-3333"
+            },
+            {
+              "number": "(614) 500-2054"
+            },
+            {
+              "number": "(614) 522-2222"
+            },
+            {
+              "number": "(614) 870-2057"
+            },
+            {
+              "number": "(614) 851-0002"
             }
-          ]
+          ],
+          "emails": [
+            {
+              "email": "jim@berryfoods.com"
+            },
+            {
+              "email": "jd@berryfoods.com"
+            },
+            {
+              "email": "you@me.com"
+            },
+            {
+              "email": "me@you.com"
+            }
+          ],
+          "contactID": 1590797832242
         },
         {
-          "firstname": "Polly",
-          "lastname": "Simmons",
-          "address": "Paco, Botolan, Zambales",
+          "lastname": "Goldblum",
+          "firstname": "Kim",
           "phoneNumbers": [
             {
-              "number": "614-500-2054"
+              "number": "(614) 555-1212 ext:12"
             }
-          ]
-        }
-      ],
-      "jobs": [
-        {
-          "jobID": 1588309423464
+          ],
+          "emails": [],
+          "contactID": 1590802121543
         },
         {
-          "jobID": 1588850081975
-        }
+          "lastname": "Crazy",
+          "firstname": "Critter",
+          "phoneNumbers": [
+            {
+              "number": "(222) 222-1111"
+            }
+          ],
+          "emails": [
+            {
+              "email": "b@cd"
+            },
+            {
+              "email": "l@l.com"
+            }
+          ],
+          "contactID": 1590827999204
+        },
+        {
+          "lastname": "Teste",
+          "firstname": "Terry",
+          "phoneNumbers": [
+            {
+              "number": "513-584-2515"
+            }
+          ],
+          "emails": [
+            {
+              "email": "teryy@berry.com"
+            }
+          ],
+          "contactID": 1591211312648
+        },
+        {
+          "lastname": "Brown",
+          "firstname": "Sharon",
+          "phoneNumbers": [
+            {
+              "number": "(513) 555-2631"
+            },
+            {
+              "number": "(614) 878-1234"
+            }
+          ],
+          "contactID": 1605816350871
+        },
+        {
+          "lastname": "Jenkins",
+          "firstname": "John",
+          "contactID": 1605900394659,
+          "phoneNumbers": [
+            {
+              "number": "(513) 851-4214"
+            }
+          ]
+        },
+        {},
+        {}
       ],
-      "id": 1588317014382
+      "id": 1590797832242
     },
     {
-      "companyName": "NINA",
-      "jobs": [
-        {
-          "jobID": 1588317014329
-        }
-      ],
-      "id": 1588317342333,
+      "companyName": "JOHNSONVILLE",
+      "contacts": [],
+      "jobs": [],
+      "id": 1591131810381
+    },
+    {
+      "companyName": "BLAINE",
       "contacts": [
         {
-          "firstname": "b",
-          "lastname": "b",
+          "lastname": "LLama",
+          "firstname": "B",
           "phoneNumbers": [
             {
-              "number": "67"
+              "number": "513-513-5135"
+            },
+            {
+              "number": "513-584-7777"
+            }
+          ],
+          "contactID": 1604694520898,
+          "emails": [
+            {
+              "email": "k@blaine.com"
             }
           ]
         },
         {
-          "firstname": "Jelly",
-          "lastname": "Jones",
+          "lastname": "Contact",
+          "firstname": "New",
           "phoneNumbers": [
             {
-              "number": "513-542-9997"
+              "number": "513-523-8964"
+            }
+          ],
+          "contactID": 1604943937417
+        },
+        {
+          "lastname": "Andlow",
+          "firstname": "Hi",
+          "emails": [
+            {
+              "email": "hi@blaineco.com"
+            }
+          ],
+          "contactID": 1604944049148
+        }
+      ],
+      "jobs": [
+        {
+          "jobID": 1604953003987
+        },
+        {
+          "jobID": 1605337850765
+        },
+        {
+          "jobID": 1605510867731
+        }
+      ],
+      "id": 1591187738203
+    },
+    {
+      "companyName": "JELLY",
+      "contacts": [],
+      "jobs": [],
+      "id": 1591188258286
+    },
+    {
+      "companyName": "CHIP GAINES",
+      "contacts": [],
+      "jobs": [],
+      "id": 1591192260277
+    },
+    {
+      "companyName": "FREE",
+      "contacts": [
+        {
+          "lastname": "lewis",
+          "firstname": "gary",
+          "phoneNumbers": [
+            {
+              "number": "513-245-0469"
+            }
+          ],
+          "contactID": 1591192506383
+        }
+      ],
+      "jobs": [],
+      "id": 1591192536319
+    },
+    {
+      "companyName": "FISHODOR",
+      "contacts": [
+        {
+          "lastname": "FISHODOR",
+          "firstname": "mr",
+          "phoneNumbers": [
+            {
+              "number": "513-513-9632"
+            },
+            {
+              "number": "614-975-2277"
+            },
+            {
+              "number": "666-299-8974"
+            }
+          ],
+          "contactID": 1591193874200
+        }
+      ],
+      "jobs": [
+        {
+          "jobID": 1591304866009
+        },
+        {
+          "jobID": 1591305089065
+        }
+      ],
+      "id": 1591193897650
+    },
+    {
+      "companyName": "GRE",
+      "contacts": [
+        {
+          "lastname": "Dav",
+          "firstname": "Sean",
+          "phoneNumbers": [
+            {
+              "number": "(666) 666-6666"
+            }
+          ],
+          "contactID": 1627362726046
+        },
+        {
+          "lastname": "Greer",
+          "firstname": "Ben",
+          "emails": [
+            {
+              "email": "ben@gre.com"
+            }
+          ],
+          "contactID": 1627363442116
+        }
+      ],
+      "jobs": [],
+      "id": 1591195456763
+    },
+    {
+      "companyName": "KILL",
+      "contacts": [
+        {
+          "lastname": "L",
+          "firstname": "Terry",
+          "emails": [
+            {
+              "email": "terry@kill.com"
+            }
+          ],
+          "contactID": 1591196611291
+        },
+        {
+          "lastname": "Ofsam",
+          "firstname": "Son",
+          "phoneNumbers": [
+            {
+              "number": "(513) 222-8473"
+            }
+          ],
+          "contactID": 1627362218103
+        }
+      ],
+      "jobs": [],
+      "id": 1591196648148
+    },
+    {
+      "companyName": "BG",
+      "contacts": [],
+      "jobs": [],
+      "id": 1591199258858
+    },
+    {
+      "companyName": "CALLON",
+      "contacts": [
+        {
+          "lastname": "Callon",
+          "firstname": "f",
+          "phoneNumbers": [
+            {
+              "number": "(513) 245-0469"
+            },
+            {
+              "number": "(614) 975-2277"
+            },
+            {
+              "number": "(614) 500-2054"
+            },
+            {
+              "number": "(614) 851-4214"
+            }
+          ],
+          "contactID": 1591199685667,
+          "emails": [
+            {
+              "email": "f@farmhouse.com"
+            },
+            {
+              "email": "f@g.com"
+            }
+          ]
+        }
+      ],
+      "jobs": [
+        {
+          "jobID": 1604613651334
+        },
+        {
+          "jobID": 1605509877284
+        },
+        {
+          "jobID": 1605510504005
+        },
+        {
+          "jobID": 1606371393808
+        }
+      ],
+      "id": 1591199702612
+    },
+    {
+      "companyName": "PEBBLES",
+      "contacts": [
+        {
+          "lastname": "Atric",
+          "firstname": "Jerry",
+          "phoneNumbers": [
+            {
+              "number": "513-888-8888"
+            }
+          ],
+          "contactID": 1604691811089
+        },
+        {}
+      ],
+      "jobs": [
+        {
+          "jobID": 1604691864929
+        }
+      ],
+      "id": 1591199757865
+    },
+    {
+      "companyName": "KIRBY VACUUM",
+      "contacts": [
+        {
+          "lastname": "kirby",
+          "firstname": "jack",
+          "emails": [
+            {
+              "email": "jk@dc.com"
+            }
+          ],
+          "contactID": 1591200532883,
+          "phoneNumbers": [
+            {
+              "number": "(513) 825-7345"
+            },
+            {
+              "number": "(704) 231-2314"
+            },
+            {
+              "number": "(513) 825-7345"
+            },
+            {
+              "number": "(614) 500-2054"
+            },
+            {
+              "number": "(614) 525-6649"
             }
           ]
         },
         {
-          "firstname": "Billy",
-          "lastname": "Tester",
+          "lastname": "smith",
+          "firstname": "jerry ",
           "phoneNumbers": [
             {
-              "number": "324-567-0963"
+              "number": "(513) 248-5521"
             }
-          ]
-        }
-      ]
-    },
-    {
-      "companyName": "Poplar",
-      "jobs": [
-        {
-          "jobID": 1588317342273
-        }
-      ],
-      "id": 1588319072963
-    },
-    {
-      "companyName": "DEERFIELD",
-      "jobs": [
-        {
-          "jobID": 1588319072819
-        }
-      ],
-      "id": 1588319360995
-    },
-    {
-      "companyName": "SIMON",
-      "jobs": [
-        {
-          "jobID": 1588319360924
-        }
-      ],
-      "id": 1588320014303
-    },
-    {
-      "companyName": "FYDA",
-      "jobs": [
-        {
-          "jobID": 1588497727606
+          ],
+          "contactID": 1627360394834
         },
         {
-          "jobID": 1588848834184
+          "lastname": "Perkins",
+          "firstname": "Van",
+          "phoneNumbers": [
+            {
+              "number": "(614) 500-2054"
+            }
+          ],
+          "emails": [
+            {
+              "email": "van@kirby.com"
+            }
+          ],
+          "contactID": 1627361716509
         },
         {
-          "jobID": 1588849766461
+          "lastname": "Cuomo",
+          "firstname": "Perry",
+          "phoneNumbers": [
+            {
+              "number": "(614) 312-8847"
+            }
+          ],
+          "contactID": 1627361987120
         }
       ],
-      "id": 1588470398453
-    },
-    {
-      "companyName": "LITCHFIELD ESCAVATING",
       "jobs": [
         {
-          "jobID": 1588497727606
-        }
-      ],
-      "id": 1588497727685
-    },
-    {
-      "companyName": "FILLY",
-      "jobs": [
+          "jobID": 1604618494215
+        },
         {
-          "jobID": 1588884479132
+          "jobID": 1627078382238
         }
       ],
-      "id": 1588884479169
-    },
-    {
-      "companyName": "TEST 1",
-      "jobs": [
-        {
-          "jobID": 1588927647218
-        }
-      ],
-      "id": 1588927647241
-    },
-    {
-      "companyName": "TEST 2",
-      "jobs": [
-        {
-          "jobID": 1588927689521
-        }
-      ],
-      "id": 1588927689541
-    },
-    {
-      "companyName": "TEST 3",
-      "jobs": [
-        {
-          "jobID": 1588927724885
-        }
-      ],
-      "id": 1588927724905
-    },
-    {
-      "companyName": "TEST 4",
-      "jobs": [
-        {
-          "jobID": 1588927761097
-        }
-      ],
-      "id": 1588927761117
-    },
-    {
-      "companyName": "CITY OF COLUMBUS",
-      "jobs": [
-        {
-          "jobID": 1588929503165
-        }
-      ],
-      "id": 1588929503189
-    },
-    {
-      "companyName": "DARRYL",
-      "jobs": [
-        {
-          "jobID": 1589515905901
-        }
-      ],
-      "id": 1589515905926
+      "id": 1591200552782
     },
     {
       "companyName": "SEAN",
-      "jobs": [
-        {
-          "jobID": 1589866638270
-        }
-      ],
-      "id": 1589866638291
-    },
-    {
-      "companyName": "BILLY BONG",
-      "jobs": [
-        {
-          "jobID": 1589866853366
-        }
-      ],
-      "id": 1589866853384
-    },
-    {
-      "companyName": "JORDAN FRUITS",
-      "jobs": [
-        {
-          "jobID": 1589867261423
-        }
-      ],
-      "id": 1589867261440
-    },
-    {
-      "companyName": "GORTON FISHERMAN",
-      "jobs": [
-        {
-          "jobID": 1589867419767
-        }
-      ],
       "contacts": [
         {
-          "firstname": "Jim",
-          "lastname": "Norvell",
-          "address": "Paco, Botolan, Zambales",
+          "lastname": "v",
+          "firstname": "v",
           "phoneNumbers": [
             {
-              "number": "614-500-2043"
-            },
-            {
-              "number": "614-879-2043"
+              "number": "3"
             }
-          ]
+          ],
+          "contactID": 1591200707914
         }
       ],
-      "id": 1589867419785
+      "jobs": [],
+      "id": 1591200720818
+    },
+    {
+      "companyName": "FYDA",
+      "contacts": [
+        {
+          "lastname": "f",
+          "firstname": "f",
+          "phoneNumbers": [
+            {
+              "number": "4444"
+            }
+          ],
+          "contactID": 1591201060009
+        },
+        {
+          "lastname": "johnson",
+          "firstname": "jim",
+          "phoneNumbers": [
+            {
+              "number": "513-666-5478"
+            }
+          ],
+          "contactID": 1591224298243
+        },
+        {
+          "lastname": "john",
+          "firstname": "dear",
+          "phoneNumbers": [
+            {
+              "number": "513-825-7345"
+            }
+          ],
+          "contactID": 1591561993888
+        },
+        {}
+      ],
+      "jobs": [
+        {
+          "jobID": 1591224334589
+        },
+        {
+          "jobID": 1591562019464
+        },
+        {
+          "jobID": 1615579835416
+        }
+      ],
+      "id": 1591201072362
+    },
+    {
+      "companyName": "VAL",
+      "contacts": [],
+      "jobs": [
+        {
+          "jobID": 1591201337807
+        }
+      ],
+      "id": 1591201336202
+    },
+    {
+      "companyName": "GYPSIE",
+      "contacts": [
+        {
+          "lastname": "g",
+          "firstname": "g",
+          "phoneNumbers": [
+            {
+              "number": "66"
+            }
+          ],
+          "contactID": 1591202165072
+        }
+      ],
+      "jobs": [
+        {
+          "jobID": 1591202180457
+        }
+      ],
+      "id": 1591202178814
+    },
+    {
+      "companyName": "AARON FOODS",
+      "contacts": [
+        {
+          "lastname": "Kress",
+          "firstname": "Tim",
+          "phoneNumbers": [
+            {
+              "number": "(513) 265-5555"
+            },
+            {
+              "number": "(614) 754-4117"
+            },
+            {
+              "number": "(614) 500-2054"
+            },
+            {
+              "number": "(614) 975-2277"
+            }
+          ],
+          "contactID": 1596649699885
+        },
+        {
+          "lastname": "Jones",
+          "firstname": "Cary",
+          "phoneNumbers": [
+            {
+              "number": "(513) 854-4578"
+            },
+            {
+              "number": "(513) 825-6637"
+            }
+          ],
+          "emails": [
+            {
+              "email": "cary@fred.com"
+            }
+          ],
+          "contactID": 1596725987081
+        },
+        {
+          "lastname": "Gaines",
+          "firstname": "Chip",
+          "phoneNumbers": [
+            {
+              "number": "(614) 528-3333"
+            },
+            {
+              "number": "(513) 999-9999"
+            }
+          ],
+          "emails": [
+            {
+              "email": "chip@b.com"
+            }
+          ],
+          "contactID": 1597678196926
+        },
+        {}
+      ],
+      "jobs": [
+        {
+          "jobID": 1596649746976
+        },
+        {
+          "jobID": 1597678266030
+        },
+        {
+          "jobID": 1602014709595
+        },
+        {
+          "jobID": 1627274061434
+        }
+      ],
+      "id": 1596649743754
+    },
+    {
+      "companyName": "NH",
+      "contacts": [
+        {
+          "lastname": "Bento",
+          "firstname": "Jerry",
+          "phoneNumbers": [
+            {
+              "number": "(555) 555-1212"
+            }
+          ],
+          "contactID": 1627190296821
+        }
+      ],
+      "jobs": [],
+      "id": 1627188640942
     }
   ]
 }

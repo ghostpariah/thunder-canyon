@@ -12,13 +12,16 @@ const electron = require('electron')
 const ipc = electron.ipcRenderer
 const btn = document.getElementById("btnEdit")
 const container = document.getElementById("customerContainer")
+const whiteBoard = document.getElementById('whiteBoardContent')
 
-
+let popupDate
 let jobToEdit = {}
 let loggedIn = false
 let listItem
 let extractedData
 let customerList = document.getElementById('customerList')
+let admin = false
+
 let x
 let jFile
 let rawFile
@@ -26,14 +29,51 @@ let totalCount = 0
 let lotCount = 0
 let scheduledCount = 0
 let completedCount = 0
+let countStatusesCalled = 0
 let bucket = {}
 let openContent = createOpenContent();
 let accessGrantedContent
-//window.$ = window.jQuery = require('jquery');
- window.onload = () =>{
-	 ipc.send('message')
+const scope = document.querySelector('body')
+let allJobs
+
+window.onload = () =>{
 	 
+	allJobs = ipc.sendSync('pull_jobs')
+	/*
+	for (var member in allJobs){ 
+		placeElement(allJobs[member]);			
+	}
+	*/
+	accessGrantedContent = document.getElementById('contentArea').innerHTML
+	//console.log(accessGrantedContent)
+	document.getElementById('contentArea').innerHTML = openContent;
+	//document.getElementById('ALLcounts').innerHTML = '99'
+	
+	
+	
+ }
+
+ 
+
+
+ $('body').on('focus',".popup", function(){
+    $(this).datepicker();
+});
+$('body').on('blur',".whiteBoardContent", function(){
+	saveWhiteBoard($(this))
+    //alert($(this).text())
+});
+
+ipc.on('update', (event, args)=>{
+	allJobs = args;
+	loadJobs(args)
+	countStatuses()
+	
+});
+
+ function openContacts(){
 	 
+	 ipc.send('open-contacts', 'main page')//,undefined,undefined,undefined,undefined,undefined,'directButton')
  }
  function openCalendar(){
 	 ipc.send('open-calendar')
@@ -79,15 +119,15 @@ ipc.on('count', (event,args)=>{
 	for (var member in args){ 
 		placeElement(args[member]);			
 	}	
-	countStatuses()
+	//countStatuses()
 	document.getElementById('contentArea').innerHTML = openContent;   	
 	
  })
  ipc.on('reload',(event,args)=>{
+	 console.log("from reload"+args)
 	clearPage()    	
-	for (var member in args){ 
-		placeElement(args[member]);			
-	}
+	
+	loadJobs(args)
 	countStatuses()	 
  })
 
@@ -216,6 +256,8 @@ var frameCount = 0;
 var springCount = 0;
 var alignmentCount = 0;
 var kingpinCount = 0;
+const arrPenultimateRow = ['wfw10','wfw22','wfw34','wfw46','wfw58']
+const arrLastRow = ['wfw11','wfw23','wfw35','wfw47','wfw59']
 /*
 let springBucket = ["wfw0", "wfw1", "wfw2", "wfw3", "wfw4", "wfw5", "wfw6", "wfw7", "wfw8", "wfw9", "wfw10", "wfw11"];
 var checkallBucket = ["wfw12", "wfw13", "wfw14", "wfw15", "wfw16", "wfw17", "wfw18", "wfw19", "wfw20", "wfw21", "wfw22", "wfw23"];
@@ -374,6 +416,195 @@ function reloadPage() {
 	//alert(lastRecord);
 	
 }
+ function saveWhiteBoard(wb){
+	ipc.send('get-whiteboard', 'write',document.getElementById('whiteBoardContent').innerText)
+	setTimeout(() => {
+		document.getElementById('whiteBoardContent').innerHTML = ipc.sendSync('get-whiteboard', 'read')
+	
+	}, 50);
+	 console.log('get out a here!')
+	 //console.log(ipc.sendSync('get-whiteboard')+whiteBoard.id)
+ }
+ function loadJobs(args){
+	fillScheduleGlimpse(args)
+	createCompleted(args)
+	for (var member in args){ 
+		placeElement(args[member]);			
+	}
+
+ }
+ function createCompleted(args){
+	 let arrCompleted = new Array()
+	 let wpuJobContainer = document.getElementById('wpuJobContainer')
+	 let spotsNeeded 
+	
+	//empty array of completed jobs
+	if(arrCompleted.length>0){
+		arrCompleted=[]
+	}
+	//fill array of completed jobs
+	for(member in args){
+		(args[member].status == 'wpu')? arrCompleted.push(args[member]):'';
+	}
+	spotsNeeded = Math.ceil((arrCompleted.length/2)+2)*2
+	console.log('completed spots needed: '+ spotsNeeded)
+	//remove any elements that are already in the wpu container
+	if(wpuJobContainer.hasChildNodes()){
+		console.log(wpuJobContainer.childNodes)
+		console.log('spotsNeeded is: '+spotsNeeded)
+		while(wpuJobContainer.hasChildNodes()){
+			wpuJobContainer.childNodes[0].remove()
+		}
+	}
+
+	//create elements and put them in wpu container
+	for(i=0;i<spotsNeeded;i++){
+		let div = document.createElement('div')
+		div.setAttribute('id', 'wpu'+i)
+		div.setAttribute('class', 'job')
+		div.addEventListener('drop', (event)=>{
+			drop(event);
+		})
+		div.addEventListener('dragover', (event)=>{
+			allowDrop(event);
+		})
+		wpuJobContainer.appendChild(div)
+	}
+ }
+function fillScheduleGlimpse(args){
+	//console.log('glimpse called')
+	arrScheduledStatus = new Array()
+	let wrapper = document.getElementById('ucWrapper')
+	let schJobContainer = document.getElementById('schJobContainer')
+	if(wrapper.hasChildNodes()){
+		for(i=2;i<wrapper.childNodes.length;i++){
+			wrapper.childNodes[i].remove()
+		}
+	}
+
+	if(arrScheduledStatus.length>0){
+		arrScheduledStatus=[]
+	}
+	wrapper.innerHTML=''
+	for(member in args){
+		(args[member].status == 'sch')? arrScheduledStatus.push(args[member]):'';
+	}
+
+	/**
+	 * create job containers for view all
+	 */
+	//console.log()
+	//console.log("rows is: "+ arrScheduledStatus.length % 5 )
+	let spotsNeeded = Math.ceil((arrScheduledStatus.length/5)+2)*5
+	///console.log(spotsNeeded)
+	if(schJobContainer.hasChildNodes()){
+		console.log(schJobContainer.childNodes)
+		console.log('spotsNeeded is: '+spotsNeeded)
+		while(schJobContainer.hasChildNodes()){
+			schJobContainer.childNodes[0].remove()
+		}
+	}
+	for(i=0;i<spotsNeeded;i++){
+		let div = document.createElement('div')
+		div.setAttribute('id', 'sch'+i)
+		div.setAttribute('class', 'job')
+		div.addEventListener('drop', (event)=>{
+			drop(event);
+		})
+		div.addEventListener('dragover', (event)=>{
+			allowDrop(event);
+		})
+		schJobContainer.appendChild(div)
+	}
+
+
+	
+	/**
+	 * set variable for sort function below
+	 * direction: (1 ascending() (-1 descending)
+	 * 
+	 */
+	let sortBy = [{
+		prop:'date_scheduled',
+		direction: 1
+	  },{
+		prop:'time_of_day',
+		direction: 1
+	  }];
+	let x = arrScheduledStatus.sort(function(a,b){
+		let i = 0, result = 0;
+		while(i < sortBy.length && result === 0) {
+		  result = sortBy[i].direction*(a[ sortBy[i].prop ].toString() < b[ sortBy[i].prop ].toString() ? -1 : (a[ sortBy[i].prop ].toString() > b[ sortBy[i].prop ].toString() ? 1 : 0));
+		  i++;
+		}
+		return result;
+	  })
+
+
+	
+	for(i=0;i<11;i++){
+		if(x[i] != undefined){
+		let glimpse = document.createElement('div')
+		glimpse.setAttribute('class', 'upcomingBox')
+
+		let data = document.createElement('div')
+		data.setAttribute('class', 'glimpseData')
+		
+
+		let colorBlock = document.createElement('div')
+		colorBlock.setAttribute('class','colorBlock')
+		colorBlock.setAttribute('id', 'colorBlock'+x[i].job_ID)
+		
+
+		let spanCustomer = document.createElement('span')
+		spanCustomer.setAttribute('class', 'glimpseCustomer')
+		let tCustomer = document.createTextNode((x[i].customer_ID != null) ? ipc.sendSync('db-get-customer-name', x[i].customer_ID).toUpperCase(): 'no name');
+		
+		spanCustomer.appendChild(tCustomer)
+		data.appendChild(spanCustomer)
+
+		let spanDate = document.createElement('span')
+		let date = new Date(x[i].date_scheduled)
+		let days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+		let day = days[date.getDay()]
+		spanDate.setAttribute('class', 'glimpseDate')
+		let tDate = document.createTextNode(day+ ' '+x[i].date_scheduled + " "+x[i].time_of_day.toUpperCase())
+		spanDate.appendChild(tDate)
+		data.appendChild(spanDate)
+
+		
+		
+		glimpse.appendChild(data)
+		glimpse.appendChild(colorBlock)
+		
+		
+		wrapper.appendChild(glimpse)
+		let el = document.getElementById('colorBlock'+x[i].job_ID)
+		
+		switch(x[i].job_type){
+			case 'Spring':
+				el.style.backgroundColor = '#5e81ad';
+				break;
+			case 'Check All':
+				el.style.backgroundColor = '#ff9e0c';
+				break;
+			case 'Alignment':
+				el.style.backgroundColor = '#ad5ea8';
+				break;
+			case 'King Pin':
+				el.style.backgroundColor = '#5ead63';
+				break;
+			case 'Frame':
+				el.style.backgroundColor = '#ff2d00';
+				break;
+			default:
+				break;
+		}
+	}
+	}
+	//console.log(JSON.stringify(x))
+
+}
 function findSize() {
     
     
@@ -388,25 +619,32 @@ function countStatuses(){
 	scheduledCount = 0
 	lotCount = 0
 	completedCount = 0
-	let objAllJobs = ipc.sendSync('getActive')
+	let shopCount = 0
+	countStatusesCalled+=1
+	console.log('countStatuses() has been called '+countStatusesCalled+ ' times')
+	//let objAllJobs = ipc.sendSync('getActive')
 	//let objAllJobs = arrAllJobs[0]
-	for (let job in objAllJobs){ 
-		totalCount+=1  
-		//console.log(objAllJobs[job].customerName)  
-		 if(objAllJobs[job].status == "wfw"){lotCount+=1}
-		 if(objAllJobs[job].status == "sch"){scheduledCount+=1}
-		 if(objAllJobs[job].status == "wpu"){completedCount+=1}
+	for (let job in allJobs){ 
+		if(allJobs[job].status != 'sch'){totalCount+=1} 
+		  
+		 if(allJobs[job].status == "wfw"){lotCount+=1}
+		 if(allJobs[job].status == "wip"){shopCount+=1}
+		 if(allJobs[job].status == "sch"){scheduledCount+=1}
+		 if(allJobs[job].status == "wpu"){completedCount+=1}
 				
 	}
-	fillCountBoxes()
+	fillCountBoxes(lotCount, shopCount, scheduledCount, totalCount, completedCount)
 
 
 }
-function fillCountBoxes(){
-	document.getElementById('ALLcount').innerHTML = totalCount
-	document.getElementById('WFWcount').innerHTML = lotCount
-	document.getElementById('bigSCHcountBox').innerHTML = scheduledCount
-	document.getElementById('bigWPUcountBox').innerHTML = completedCount
+function fillCountBoxes(lot,shop, scheduled, total, completed){
+	
+	document.getElementById('totCount').innerHTML = total
+	document.getElementById('lotCount').innerHTML = lot
+	document.getElementById('schCount').innerHTML = scheduled
+	document.getElementById('shopCount').innerHTML = shop
+	document.getElementById('completedCount').innerHTML = completed
+	
 }
 
 function countJobTypes() {
@@ -718,8 +956,234 @@ function pullData() {
 }
 
 function toggleAdminMenu() {
-	$("#menuAdmin").toggle("drop", 500);
+	let menuBox = document.getElementById('adminMenu')
+	
+	
+	//destroy menu items
+	if(menuBox.hasChildNodes()){
+		while(menuBox.hasChildNodes()){
+			menuBox.childNodes[0].remove()
+		}
+	}
+
+	//create menu items
+	
+	let objMenuItems =
+	[{
+		'text': 'Create User'
+	},
+	{
+		'text': 'Reports',
+		'submenu': [{
+			text : 'EOD'
+		},
+		{
+			text : 'No-Shows'
+		}]
+	}];
+	let menuItem
+	let menuText
+	let subMenu
+	let subMenuItem
+	let subMenuItemText
+	for(item in objMenuItems){
+		menuItem = document.createElement('div')
+		menuText = document.createTextNode(objMenuItems[item].text)
+		menuItem.setAttribute('class','adminMenuItem')
+		menuItem.setAttribute('id', 'adminMenuItem'+item)
+		menuItem.appendChild(menuText)		
+		
+		if(objMenuItems[item].hasOwnProperty('submenu')){
+			subMenu = document.createElement('div')
+			subMenu.setAttribute('class',"adminMenu adminSubMenu")
+			subMenu.setAttribute('id', 'adminMenuItem'+item+'subMenu')
+			
+			for(i in objMenuItems[item].submenu){
+				subMenuItem = document.createElement('div')
+				subMenuItemText = document.createTextNode(objMenuItems[item].submenu[i].text)
+				subMenuItem.setAttribute('class', 'adminMenuItem')
+				subMenuItem.setAttribute('id', 'adminMenuItem'+item+'subItem'+i)
+				subMenuItem.appendChild(subMenuItemText)
+				
+				subMenu.appendChild(subMenuItem)
+				
+				
+			}
+			menuItem.appendChild(subMenu)
+			
+		}
+		
+		menuBox.appendChild(menuItem)
+
+
+		document.onmouseover = function(ev){	
+			ev.stopPropagation()		
+			displaySubMenu(ev.target, ev.relatedTarget)
+			
+		}
+
+		document.onclick = function(event){
+			dosomething(event.target)
+		}
+	
+		
+	}
+	
+	menuBox.style.display = 'block'
+	
+
+	
 }
+function dosomething(e){
+	
+	let adminMenu = document.getElementById('adminMenu')
+	let caller = document.getElementById(e.id)
+	
+	//is it an admin menu item
+	if(adminMenu.contains(caller)){
+		//does it have a submenu
+		if(e.childNodes.length<2){
+			//console.log(e.innerHTML)
+			adminMenu.style.display = 'none'
+
+			//which menu item was clicked
+			switch(e.innerHTML){
+				case 'EOD':
+					console.log('EOD option chosen')
+					eod()
+					break;
+				case 'No-Shows':
+					console.log('No-Shows option chosen')
+					break;
+				case 'Create User':
+					console.log('Create User chosen')
+					openCreateUser()
+				default:
+					break;
+			}
+		}else{
+			
+		}
+	}
+	
+}
+function displaySubMenu(objCaller, pc){
+	
+	//variables
+	
+	let menuOpen =true
+	let subMenuOpen = false
+	let cID = objCaller.id
+	let isParent
+	let menuType
+	let adminMenu = document.getElementById('adminMenu')
+	let caller = (typeof(objCaller) === 'object')?document.getElementById(objCaller.id):null;
+		
+	let isMenu = adminMenu.contains(caller)
+	if(isMenu){
+		
+		menuType = (typeof(caller.id)!= undefined)
+			? (caller.id.includes('sub'))
+				? 'sub'
+				: 'top'
+			:''
+
+		 isParent = caller.childNodes.length>=2;
+		
+	
+		//methods
+		let showSubMenu = function() {	
+				
+			document.getElementById(cID+'subMenu').style.display = 'block'
+			subMenuOpen = true
+			
+		}
+		let closeSubMenu = function(){
+			document.getElementById(cID+'subMenu').style.display = 'none'
+			subMenuOpen = false
+		}
+		let closeMenu = function(){
+			adminMenu.style.display = 'none'
+			menuOpen = false
+		}
+		let setTimer = function(){
+
+		}
+		let menuHasHover = function(){
+			let x = 0
+			let hover
+
+			if(menuType == 'sub'){
+				//check submenu for hover
+				for(i=0;i<caller.parentNode.childNodes.length; i++){
+					x+= $(`#${caller.parentNode.childNodes[i].id}:hover`).length				
+				}
+				//check top menu for hover
+				for(i=0;i<adminMenu.childNodes.length; i++){
+					x+= $(`#${adminMenu.childNodes[i].id}:hover`).length
+				}
+			}else if(menuType =='top'){
+				//check top menu for cover
+				for(i=0;i<adminMenu.childNodes.length; i++){
+					x+= $(`#${adminMenu.childNodes[i].id}:hover`).length
+				}
+			}
+
+			
+			hover = (x>0)?true: false;
+			return hover;
+		}
+
+
+		//main process
+		if(caller && isMenu){
+			if(menuType == 'top'){
+				if(isParent){
+					showSubMenu()
+					
+				}
+					setTimeout(() => {
+						if(!menuHasHover()){
+							closeMenu()
+							
+						}
+					}, 50);
+					$(`#${caller.id}`).mouseleave(function (){
+						setTimeout(() => {
+							if(!menuHasHover()){
+							closeMenu()
+							}else{
+								if(subMenuOpen){
+								closeSubMenu()
+								}
+							}
+						},50);
+					})
+				
+			}else if(menuType == 'sub'){
+				setTimeout(() => {
+					if(!menuHasHover()){
+						if(subMenuOpen){
+						closeSubMenu()
+						}
+						closeMenu()
+						
+					}
+				}, 50);
+				$(`#${caller.id}`).mouseleave(function (){
+					setTimeout(() => {
+						if(!menuHasHover()){
+							if(subMenuOpen){
+								closeSubMenu()
+							}
+						}
+					},50);
+				})
+			}
+		}//end main process
+	}	
+}
+
 
 function dynamicSort(property) {
 	var sortOrder = 1;
@@ -838,12 +1302,14 @@ function allowDrop(ev) {
 function drag(ev) {
 	try{
 	//pullData();
+	//console.log(ev.currentTarget.id)
 	ev.dataTransfer.setData("Text", ev.target.id);
 	//console.log(ev.currentTarget.childNodes[1].id)
 	//var l = ev.currentTarget.id;
 	//loc = l.substr(4, 2);
 	//makes tooltip disappear when dragging
 	document.getElementById(ev.currentTarget.childNodes[1].id).style.display = "none";
+	document.getElementById('context-Menu-'+ev.currentTarget.id.substr(4))
 	}catch(e){
 		logError(e);
 	}
@@ -854,69 +1320,193 @@ $(function()
 });
 
 function drop(ev) {
-	
+	//console.log(ev.dataTransfer.getData('id'))
 	ns = ev.target.id;
 	let newStatus;
 	
 	let data = ev.dataTransfer.getData("Text");
-	let jsonId = data.substr(4,17)
-	let newLocation = event.target.id;
-	let nl = newLocation.substr(0,3)
-	let cellOccupied = document.getElementById(newLocation).hasChildNodes()	
+	let id = data.substr(4)
 	
+	let oldStatus = document.getElementById(data).parentNode.id.substr(0, 3).toLowerCase(); 
+	
+	let newLocation = ev.target.id;
+	
+	let cellOccupied = document.getElementById(newLocation).hasChildNodes()	
+	//console.log(data + ' '+id+' newLocation:'+newLocation+ ' '+cellOccupied)
 	ev.stopPropagation();
 	ev.preventDefault();
 
-	let ov = ipc.sendSync('getVehicle', jsonId)
-	let objVehicle = ov[0]
-	//console.log(objVehicle.status)
+	let thisJob
+	//allJobs = ipc.sendSync('pull_jobs')
+	
+	let objMoving = new Object()
+	
 	if(cellOccupied){
 		
 		newStatus = ns.substr(0, 3).toLowerCase(); 
-		if(newStatus == "wpu" || newStatus == "sch"){
-			newLocation = "new"; 
-			objVehicle.status = newStatus;
-			objVehicle.shopLocation = newLocation;
-			ipc.send('edit', objVehicle)
-			objVehicle = ipc.sendSync('getVehicle', jsonId)
-			//countStatuses();
-			placeElement(objVehicle[0]);
-			countStatuses();
-			document.getElementById(data).remove()
-			//document.getElementById(newLocation).appendChild(document.getElementById(data))
+		
+		if(newStatus == "wpu" || newStatus == "sch" || newStatus =="SCH"){
+			 
+			objMoving.status = newStatus;
+			
+			if(newStatus=='sch' || newStatus=='SCH'){
+				objMoving.designation = "Scheduled"
+			}		
+			
+			
+			//clearPage()
+			for(member in allJobs){
+				if(id == allJobs[member].job_ID){
+					let getSpot = new Object()
+					getSpot.job_type = allJobs[member].job_type
+					getSpot.status = newStatus
+					newLocation = findSpot(getSpot)
+					objMoving.shop_location = newLocation
+					objMoving.date_in = allJobs[member].date_in					
+					objMoving.job_ID = id
+					//console.log('location from for loop under occupied'+objMoving.shop_location)
+				}else{
+					objMoving.date_in = null
+					objMoving.job_ID = id
+				}
+			
+			}
+			
 		}
 	}
 	else{
 		newStatus = ns.substr(0, 3).toLowerCase();
-		objVehicle.status = newStatus;
-		objVehicle.shopLocation = newLocation;
-		document.getElementById(newLocation).appendChild(document.getElementById(data))
-		ipc.send('edit', objVehicle) 
-		countStatuses()
+		objMoving.status = newStatus;
+		objMoving.shop_location = newLocation
+		objMoving.designation = 'On the Lot'
+		
+		
+
+		// determine whether the job is being dragged from scheduled to on the lot
+		// and set date_in accordingly. 
+		if(oldStatus == 'sch' && newStatus != 'sch'){
+			objMoving.date_in = todayIs()
+		}else{
+			for(member in allJobs){
+				if(id == allJobs[member].job_ID){
+					objMoving.date_in = allJobs[member].date_in
+				}
+			}
+		}
+		
+
+		
+		
 		
 		
 	}
-	  
+		
+		
+		objMoving.job_ID = id
+		document.getElementById(data).remove()
+		//ipc.send('update-job',objMoving)
+		let editedJob = ipc.sendSync('edit-location-drop', objMoving, id)
+		let reloadedJobs = ipc.sendSync('pull_jobs')
+
+		allJobs = reloadedJobs;
+		for(member in editedJob){
+			if(id == editedJob[member].job_ID){
+				placeElement(editedJob[member])
+			}
+		}
+		document.getElementById(newLocation).appendChild(document.getElementById(data))
+		/**
+		 * determine if it is being dragged into sch in order to create 
+		 * schedule date edit popup
+		 * 
+		 */
+		if(newStatus == 'sch'){
+
+
+			//event.target.parentNode.nextElementSibling.style.display = 'block'
+				let sub_content = `<div class= 'popupHeader'>CONFIRM OR CHANGE SCHEDULED DATE</div><br/>
+				<div class='popuprow'><label> Scheduled Date:&nbsp;&nbsp;</label>
+				<input type="text" id="datepicker" class = "popup"></div>
+				<br/>
+				<div class='popuprow'>
+					<div class= 'halfrow'>
+                        <label>AM</label>
+                        <input type='radio' id="radAM" tabindex='6'name='ampm2' value='am'>
+                        <label>PM</label>
+                        <input type='radio' id="radPM" tabindex='7' name='ampm2' value='pm'>
+						
+                    </div>
+					<div class='popupButton' onclick= 'moveToScheduled(this, ${true})' >MOVE</div><div class='popupButton' onclick='cancelScheduleAdd(this)'>CANCEL</div>
+				</div>
+					
+					 `
+					 //event.target.parentNode.nextElementSibling.innerHTML = sub_content;
+					 ev.target.firstChild.childNodes[5].innerHTML =sub_content
+					 ev.target.firstChild.childNodes[5].style.display= 'inline-block'
+					 console.log(ev.target.firstChild.childNodes)
+					  		
+					for(member in allJobs){
+						if (allJobs[member].job_ID == ev.target.firstChild.childNodes[5].id.substr(8)){
+							popupDate = allJobs[member].date_scheduled;
+							
+							(allJobs[member].time_of_day == 'am')? document.getElementById('radAM').checked = true : document.getElementById('radAM').checked = false;
+    						(allJobs[member].time_of_day == 'pm')? document.getElementById('radPM').checked = true : document.getElementById('radPM').checked = false;
+						}
+
+					}	
+					
+					 
+					 $('.popup').datepicker().datepicker('setDate', popupDate );
+					 $('#datepicker').datepicker({
+						onSelect: function () {
+							$('#datepicker').text(this.value);
+						}
+					 });
+			
+		}
+
+
+		// determine whether new location is at bottom of page and reset
+		// tooltip class accordingly
+		//console.log(newLocation)
+		let t = document.getElementById(newLocation)
+		
+		let tt = t.firstChild.childNodes[1]
+		
+			
+		
+		let tooltip = (arrLastRow.includes(newLocation))?'tooltipLast':(arrPenultimateRow.includes(newLocation))?'toolTipBottom':'tooltip'	
+		tt.className = tooltip
+		
 	
-	let tooltip = document.getElementById(data).childNodes[1];
-	//let cellOccupied = document.getElementById(newLocation).hasChildNodes()
-	
-	//document.getElementById(newLocation).appendChild(document.getElementById(data))
-	
-	
+		
+		
 	//jquery function to bind the hover event to the created element
 	$('.vehicle').on('mouseenter',function() {
-		$(this).find('.tooltip').fadeIn();
+		$(this).find('.tooltip').fadeIn(50);
 	});
 	
 	$('.vehicle').on('mouseleave',function() {
-		$(this).find('.tooltip').fadeOut();
+		$(this).find('.tooltip').fadeOut(50);
 	});
-	//console.log(event.target.children)
-	//console.log(tooltip.style.display+"  "+tooltip.parentNode.className)
+	$('.vehicle').on('mouseenter',function() {
+		$(this).find('.toolTipBottom').fadeIn(50);
+	});
+	
+	$('.vehicle').on('mouseleave',function() {
+		$(this).find('.toolTipBottom').fadeOut(50);
+	});
+	$('.vehicle').on('mouseenter',function() {
+		$(this).find('.tooltipLast').fadeIn(50);
+	});
+	
+	$('.vehicle').on('mouseleave',function() {
+		$(this).find('.tooltipLast').fadeOut(50);
+	});
 	
 
-
+	countStatuses();
+	loadJobs(reloadedJobs)
 }
 function schSubmitted(e){
 	if(e.id=="schSkip"){
@@ -965,11 +1555,16 @@ function openLoginWindow(){
 		document.getElementById("btnLogin").innerHTML='Log In'
 	 	document.getElementById("btnAdmin").style.display = "none";
 		document.getElementById("trashButton").style.display = "none";
+		document.getElementById('btnContacts').style.display = 'none';
 		document.getElementById('addNewJob').style.display="none";
-		document.getElementById('login-message').innerHTML=""
+		document.getElementById('login-message').innerHTML="&nbsp;"
 		document.getElementById('contentArea').innerHTML = openContent
 		
 	 }
+}
+
+function deleteCompletedJobs(){
+	alert('howdy')
 }
 function deleteCompleted(){
 	//alert(document.getElementById(wpuBucket[0]).childNodes[0].id)
@@ -1021,29 +1616,15 @@ function deleteCompleted(){
 
 }
 function deleteDrop(ev) {
-	let deactivate = ev.dataTransfer.getData("Text").substr(4,17)
+	let deactivate = ev.dataTransfer.getData("Text").substr(4)
+	let data = ev.dataTransfer.getData("Text");
+	
+	
 	try {
-		//alert(ev.dataTransfer.getData("Text").substr(4,17))
-		ipc.send('deactivate', deactivate)
 		
-		// // 	//alert("Deleting Job...");
-		
-		// // var deleteMe = xmlDoc.getElementsByTagName("workflow")[0].childNodes[loc];
-		// // //alert("pvar deleteMe");
-		// // var thisCust=deleteMe.getAttribute('custName');
-		// // //alert("var thisCust");
-		// // xmlDoc.getElementsByTagName("workflow")[0].removeChild(deleteMe);
-		// // //alert("removeChild")
-		// // xmlDoc.save("fs.xml");
-		// // //alert("save");
-		// // //ev.parentNode.removeChild(ev);
-		// // clearPage();
-		// // //alert("clearPage")
-		// // reloadPage();
-		// // //alert("reloadpage");
-		
-		
-		
+		let updatedJobs = ipc.sendSync('deactivate', deactivate)
+		document.getElementById(data).remove()	
+
 	} catch(e) {
 		logError(e,thisCust);
 		
@@ -1114,7 +1695,7 @@ function WriteToFile(fileName) {
 // 	var ForReading = 1;
 // 	var f1 = fso.OpenTextFile("data/"+fileName+".txt", 1);
 // 	var text = f1.ReadAll();
-// 	//document.getElementById("notesArea").innerHTML = text;
+// 	document.getElementById("notesArea").innerHTML = text;
 // 	f1.close();
 // 	return text;
 // }
@@ -1128,7 +1709,12 @@ function openBox(e,event) {
 			var count = 0;
 		//alert(e.firstChild.id);
 		switch(e.id) {
-			case "WPU":
+			case "compBox":
+				$(document).on('click', function(event) {
+					if (!$(event.target).closest('#wpuBox').length && !$(event.target).closest('#compBox').length) {
+					  document.getElementById('wpuBox').style.display = 'none'
+					}
+				  });
 					
 				switch(document.getElementById("wpuBox").style.display) {
 					case "none":
@@ -1151,6 +1737,7 @@ function openBox(e,event) {
 				}
 				break;
 			case "SCH":
+				
 				switch(document.getElementById("schBox").style.display) {
 					case "none":
 					case "":
@@ -1197,6 +1784,9 @@ function openBox(e,event) {
 				}
 				break;
 				case "viewCal":
+
+					
+
 						switch(document.getElementById("calendar-container").style.display) {
 							case "none":
 							case "":								
@@ -1219,6 +1809,13 @@ function openBox(e,event) {
 						}
 						break;
 				case "viewAll":
+
+					$(document).on('click', function(event) {
+						
+						if (!$(event.target).closest('#schBox').length && event.target.id != 'viewAll') {
+						  document.getElementById('schBox').style.display = 'none'
+						}
+					  });
 						switch(document.getElementById("schBox").style.display) {
 							case "none":
 							case "":								
@@ -1230,10 +1827,11 @@ function openBox(e,event) {
 								break;
 						}
 						break;
+				
 			default:
 				break;
 		}
-
+		
 	
 
 }
@@ -1418,23 +2016,69 @@ function fillSCH(){
 
 //test filling page with new json object
 function placeElement(args){
-	//alert(args.shopLocation)
-	let placement = args.shopLocation == "new" ? findOpenSpace(args) : makeJobDiv(args)
+	//console.log('placeElement() fired')
+	let placement = args.shop_location == null || args.shop_location == '' ? findOpenSpace(args) : makeJobDiv2(args)
+	//console.log(placement)
+	//console.log(args)
 	if(placement !=null) {
-		document.getElementById(args.shopLocation).innerHTML = placement
+		document.getElementById(args.shop_location).innerHTML = placement
 	}
-	if(args.cash){document.getElementById('jica'+args.id).style.display = 'inline-block'};
-	if(args.waiting){document.getElementById('jiw'+args.id).style.display = 'inline-block'};
-	if(args.parts){document.getElementById('jip'+args.id).style.display = 'inline-block'};
-	if(args.approval){document.getElementById('jia'+args.id).style.display = 'inline-block'};
-	if(args.comeback){document.getElementById('jico'+args.id).style.display = 'inline-block'};
-	if(args.checked){document.getElementById('jich'+args.id).style.display = 'inline-block'};
-	//countStatuses();
+	if(args.cash_customer==1){document.getElementById('jica'+args.job_ID).style.display = 'inline-block'};
+	if(args.waiting_customer===1){document.getElementById('jiw'+args.job_ID).style.display = 'inline-block'};
+	if(args.parts_needed==1){document.getElementById('jip'+args.job_ID).style.display = 'inline-block'};
+	if(args.approval_needed==1){document.getElementById('jia'+args.job_ID).style.display = 'inline-block'};
+	if(args.comeback_customer==1){document.getElementById('jico'+args.job_ID).style.display = 'inline-block'};
+	if(args.checked==1){document.getElementById('jich'+args.job_ID).style.display = 'inline-block'};
+	
 }
 function findOpenSpace(args){
-	//let ns = args2
-	let jt=args.jobType
+	let usedLocation = []
+	for(member in allJobs){
+		usedLocation.push(allJobs[member].shop_location)
+	}
+	//console.log(usedLocation)
+	let jt=args.job_type
 	let js=args.status
+	//console.log(js)
+	let newBucket = []
+	let bucket = []
+	let hasKids = true
+	let springBucket = ["wfw0", "wfw1", "wfw2", "wfw3", "wfw4", "wfw5", "wfw6", "wfw7", "wfw8", "wfw9", "wfw10", "wfw11"];
+    let checkallBucket = ["wfw12", "wfw13", "wfw14", "wfw15", "wfw16", "wfw17", "wfw18", "wfw19", "wfw20", "wfw21", "wfw22", "wfw23"];
+	let alignmentBucket = ["wfw24", "wfw25", "wfw26", "wfw27", "wfw28", "wfw29", "wfw30", "wfw31", "wfw32", "wfw33", "wfw34", "wfw35"];
+	let kingpinBucket = ["wfw36", "wfw37", "wfw38", "wfw39", "wfw40", "wfw41", "wfw42", "wfw43", "wfw44", "wfw45", "wfw46", "wfw47"];
+	let frameBucket =["wfw48", "wfw49", "wfw50", "wfw51", "wfw52", "wfw53", "wfw54", "wfw55", "wfw56", "wfw57", "wfw58", "wfw59"];
+	let wpuBucket =["wpu0","wpu1","wpu2","wpu3","wpu4","wpu5","wpu6","wpu7","wpu8","wpu9","wpu10","wpu11","wpu12","wpu13","wpu14","wpu15","wpu16","wpu17","wpu18","wpu19"];
+	let schBucket =["sch0","sch1","sch2","sch3","sch4","sch5","sch6","sch7","sch8","sch9","sch10","sch11","sch12","sch13","sch14","sch15","sch16","sch17","sch18","sch19"];
+	//alert(js)
+	if(js != "sch" && js!= "wpu" && js != 'SCH'){
+	newBucket = jt == "Spring" ? springBucket : (jt == "Alignment") ? alignmentBucket :(jt == "Frame") ? frameBucket : (jt=="King Pin") ? kingpinBucket : checkallBucket 
+	}else{
+		js == "sch" || js == "SCH" ? newBucket =schBucket : newBucket = wpuBucket
+	}
+
+	bucket = newBucket
+	
+	
+	for(let i=0;i<bucket.length;i++){
+		//console.log(bucket[i])
+		if(usedLocation.indexOf(bucket[i])<0){
+			
+			args.shop_location = bucket[i]
+			break;
+		}
+		
+		
+	}
+	
+	ipc.send('edit-location',args)
+	return makeJobDiv2(args)
+}
+function findSpot(args){
+	//let ns = args2
+	let jt=args.job_type
+	let js=args.status
+	let spot
 	console.log(js)
 	let newBucket = []
 	let bucket = []
@@ -1447,10 +2091,10 @@ function findOpenSpace(args){
 	let wpuBucket =["wpu0","wpu1","wpu2","wpu3","wpu4","wpu5","wpu6","wpu7","wpu8","wpu9","wpu10","wpu11","wpu12","wpu13","wpu14","wpu15","wpu16","wpu17","wpu18","wpu19"];
 	let schBucket =["sch0","sch1","sch2","sch3","sch4","sch5","sch6","sch7","sch8","sch9","sch10","sch11","sch12","sch13","sch14","sch15","sch16","sch17","sch18","sch19"];
 	//alert(js)
-	if(js != "sch" && js!= "wpu"){
+	if(js != "sch" && js!= "wpu" && js != 'SCH'){
 	newBucket = jt == "Spring" ? springBucket : (jt == "Alignment") ? alignmentBucket :(jt == "Frame") ? frameBucket : (jt=="King Pin") ? kingpinBucket : checkallBucket 
 	}else{
-		js == "sch" ? newBucket =schBucket : newBucket = wpuBucket
+		js == "sch" || js == "SCH" ? newBucket =schBucket : newBucket = wpuBucket
 	}
 
 	bucket = newBucket
@@ -1459,8 +2103,8 @@ function findOpenSpace(args){
 		
 		hasKids = document.getElementById(bucket[i]).hasChildNodes();
 		if(!hasKids){
-			alert(args.shopLocation+ " "+bucket[i])
-			args.shopLocation = bucket[i];
+			//alert(args.shopLocation+ " "+bucket[i])
+			spot = bucket[i];
 			
 			
 			break;
@@ -1468,15 +2112,44 @@ function findOpenSpace(args){
 		}
 
 	}
-	ipc.send('edit',args)
-	return makeJobDiv(args)
+
+	
+	return spot
 }
 function makeJobDiv(args){
 	//remove whitespace from jobType so that it can be used for css class
 	//console.log(args.jobType)
 	let str = args.jobType.replace(/\s+/g, '');
-
+	let gc = ipc.sendSync('get-contact', args.jobContact, args.customerName)
+	//console.log(gc.lastName)
 	//create job block
+	let con = ''
+	/**
+	 * insert method to read and fill contactMethod to be placed in con variable below
+	 * 
+	 * 
+	 * let contactMethod
+	 */
+	let cmArrayPosition = ""
+	let cmType = ""
+	let cm = ""
+	cmType = (args.contactMethod != undefined) ? args.contactMethod.substring(0,5) : ""
+	
+	cmArrayPosition = (args.contactMethod != undefined) ? args.contactMethod.substring(args.contactMethod.indexOf("-") + 1) : "contact not entered"
+	cm = (args.contactMethod != undefined)? args.contactMethod : "contact not entered"
+	
+	let fn = (gc.firstname)? gc.firstname : ""
+	let ln = (gc.lastname)? gc.lastname : ""
+	if(typeof gc === 'object' && args.contactMethod!=undefined){
+		con = `${fn} ${ln} - ${cm}<br/>`
+		
+		console.log('from typeof in makeJobDiv '+gc)
+	}else{
+		console.log(typeof gc)
+		con = `${cm}</br>`
+	}
+	//Contact: ${gc[0].contacts[0].firstname} ${gc[0].contacts[0].lastname} <br/>
+	
 	const smallJobContainer = `<div class='vehicle' 
 	oncontextmenu='getEditVehicle(this);return false;' 
 	id='drag${args.id}' 
@@ -1486,13 +2159,14 @@ function makeJobDiv(args){
 	ondrop='drop(event)'>
 	<span class='tooltip' 
 	id='tt${args.id}'>
-	Job Type: <b>${args.jobType}</b><br/>
-	Date In: ${args.dateIn}<br/>
-	Scheduled Date: ${args.scheduledDate}<br/>
-	Customer: ${args.customerName}<br/>
-	Unit: ${args.unit}<br/>
-	Notes: ${args.notes}<br/>
-	Est Cost: $${args.estimatedCost == undefined && args.estimatedCost =="" ? "test": args.estimatedCost}<br/>
+	<b>Job Type:</b> ${args.jobType}<br/>
+	<b>Date In:</b> ${args.dateIn}<br/>
+	<b>Scheduled Date:</b> ${args.scheduledDate}<br/>
+	<b>Customer:</b> ${args.customerName}<br/>
+	<b>Unit:</b> ${args.unit}<br/>
+	<b>Notes:</b> ${args.notes}<br/>
+	<b>Contact:</b> ${con}
+	<b>Est Cost:</b> $${args.estimatedCost == undefined && args.estimatedCost =="" ? "test": args.estimatedCost}<br/>
 	</span>
 	<span class='info' 
 	id='${args.id}info'>
@@ -1510,8 +2184,92 @@ function makeJobDiv(args){
 	<span class='jobCat jobCat${str}' 
 	id='${args.id}Cat'></span>
 	</div>`;
+	
 	return smallJobContainer
 						
+}
+function makeJobDiv2(args){
+	//console.log('makeJobDiv2() fired')
+	//remove whitespace from jobType so that it can be used for css class
+	//console.log('job type from makediv2'+args.job_type)
+	let str = args.job_type.replace(/\s+/g, '');
+	let objContact
+	let contactName 
+	let contactItem
+	let customerName
+	//let gc = ipc.sendSync('get-contact', args.jobContact, args.customerName)
+	//console.log('args = '+args.number_ID)
+	//if contact provided
+	if(args.number_ID != null && args.number_ID != '' && args.number_ID != 'null'){
+		objContact = ipc.sendSync('db-get-contact-name','phone', args.number_ID )
+		contactName = `${objContact.first_name} ${objContact.last_name}`
+	}else if(args.email_ID != null && args.email_ID != ''){
+		objContact = ipc.sendSync('db-get-contact-name','email', args.email_ID )
+		contactName = `${objContact.first_name} ${objContact.last_name}`
+	}else{
+		contactName = 'No Contact'
+	} 
+							
+	
+	customerName = (args.customer_ID != null) ? ipc.sendSync('db-get-customer-name', args.customer_ID): 'no name'
+	let dIn =(args.date_in == null) ? '': '<b>Date In:</b>'+ args.date_in+'<br/>'
+	let ec = (args.estimated_cost == undefined || args.estimated_cost =='') ? '': '<b>Est Cost:</b> $'+args.estimated_cost+'</br>'
+	let u = (args.unit == null || args.unit == '')?'': '<b>Unit: </b>'+args.unit+'</br>'
+	let sd = (args.date_scheduled != null) ? '<b>Scheduled Date: </b>' +args.date_scheduled+' '+args.time_of_day+'<br/>': ''
+	
+	let toolTipClass = (arrLastRow.includes(args.shop_location))?'tooltipLast':(arrPenultimateRow.includes(args.shop_location))?'toolTipBottom':'tooltip'
+	
+	
+	let n = (args.notes != null) ? '<b>Notes: </b>'+args.notes+'</br>' : '' 
+	let it = (typeof objContact != "undefined") 
+		? (objContact.item.includes('@')) 
+			? '<b>Email: </b>'+objContact.item + '</br>'
+			: '<b>Phone: </b>'+objContact.item + '</br>'
+		:'';
+	const smallJobContainer = `<div class='vehicle' 
+	oncontextmenu='getEditVehicle(this, pullJob(${args.job_ID}));return false;' 
+	id='drag${args.job_ID}' 
+	draggable='true' 
+	ondragstart='drag(event)'
+	ondragover='allowDrop(event)'
+	ondrop='drop(event)'>
+	
+	<span class=${toolTipClass} 
+	id='tt${args.job_ID}'>
+	<b>Job Type:</b> ${args.job_type}<br/>
+	${dIn}
+	${sd}
+	${u}	
+	<b>Contact:</b> ${contactName}</br>
+	${it}
+	${ec}
+	${n}
+	</span>
+	<div id='context-Menu-${args.job_ID}' class='context-Menu'>
+	
+	</div>
+	<div id = 'submenu-${args.job_ID}' class = 'context-submenu'>
+	</div>
+	<span class='info' 
+	id='${args.job_ID}info'>
+	<span class='customerName'>${customerName}</span><br/>
+	<span class='unitNumber' id = 'jobIndicatorContainer${args.job_ID}'>
+	<span id = 'jica${args.job_ID}' class='jobIndicator jobIndicatorCash'></span>
+	<span id = 'jiw${args.job_ID}' class='jobIndicator jobIndicatorWaiting'></span>
+	<span id = 'jip${args.job_ID}' class='jobIndicator jobIndicatorParts'></span>
+	<span id = 'jia${args.job_ID}' class='jobIndicator jobIndicatorApproval'></span>
+	<span id = 'jico${args.job_ID}' class='jobIndicator jobIndicatorComeback'></span>
+	<span id = 'jich${args.job_ID}' class='jobIndicator jobIndicatorChecked'></span>
+	</span></br>
+	<span class='notes'>${(args.notes!=null)?args.notes:""}</span>
+	</span>
+	<span class='jobCat jobCat${str}' 
+	id='${args.job_ID}Cat'></span>
+	</div>`;
+	
+	return smallJobContainer
+		
+
 }
 function findLocation(txtJobType){
 	var txtJobType=txtJobType;
@@ -1749,18 +2507,7 @@ function clearWFW() {
 	//alert("total slots "+wfwTotalSlots);
 	for ( i = 0; i < 59; i++) {
 		document.getElementById('wfw' + i).innerHTML = "";
-	}
-	// for ( i = vehicles.WFW.length; i > 0; i--) {
-	// 	vehicles.WFW.pop();
-	// 	//alert(vehicles.WFW.length);
-	// }
-
-	// for ( i = 59; i < wfwTotalSlots; i++) {
-
-	// 	Remove("wfw" + i);
-	// 	//document.getElementById("wfw"+i).outerHTML="";
-
-	// }
+	}	
 
 }
 
@@ -1768,19 +2515,14 @@ function clearWIP() {
 	for ( i = 0; i < 12; i++) {
 		document.getElementById('wip' + i).innerHTML = "";
 	}
-	// for ( i = vehicles.WIP.length; i > 0; i--) {
-	// 	vehicles.WIP.pop();
-	// 	//alert(vehicles.WIP.length);
-	// }
+	
 }
+
 function clearWPU() {
 	for ( i = 0; i < 20; i++) {
 		document.getElementById('wpu' + i).innerHTML = "";
 	}
-	// for ( i = vehicles.WPU.length; i > 0; i--) {
-	// 	vehicles.WPU.pop();
-		
-	// }
+	
 }
 
 
@@ -1790,18 +2532,7 @@ function clearSCH() {
 	for ( i = 0; i < 20; i++) {
 		document.getElementById('sch' + i).innerHTML = "";
 	}
-	// for ( i = vehicles.SCH.length; i > 0; i--) {
-	// 	vehicles.SCH.pop();
-	// 	//alert(vehicles.WPU.length);
-	// }
-	// for ( i = newBucket.length; i > 0; i--) {
-	// 	newBucket.pop();
-	// 	//alert(vehicles.WPU.length);
-	// }
-	// for ( i = oldBucket.length; i > 0; i--) {
-	// 	oldBucket.pop();
-	// 	//alert(vehicles.WPU.length);
-	// }
+	
 
 }
 
@@ -1830,26 +2561,56 @@ function refresh() {
 
 
 ipc.on('show-admin-elements', (event, args)=>{
+	admin = true;
 	document.getElementById('contentArea').innerHTML = accessGrantedContent
-	refresh()
+	//console.log('admin content'+document.getElementById('contentArea').innerHTML)
+	//refresh()
 	document.getElementById("btnLogin").innerHTML='Log Out'
 	document.getElementById('login-message').innerHTML=`Welcome ${args.user_name}!`
-	
-	document.getElementById("btnAdmin").style.display = "inline-block";
-	document.getElementById("trashButton").style.display = "inline-block";
-	
-	//document.getElementById("contentArea").style.display = "block";
+	document.getElementById('topCounts').style.display = 'block';
+	//document.getElementById("btnAdmin").style.display = "inline-block";
+	document.getElementById('btnContacts').style.display = 'inline-block';
+	//document.getElementById("trashButton").style.display = "inline-block";
+	//document.getElementById('t').style.display = 'inline-block';
 	document.getElementById("addNewJob").style.display = "block";
+	countStatuses()
+	//document.getElementById("contentArea").style.display = "block";
+	
+	toggleAdminElements(admin)
+	loadJobs(allJobs)
+		document.getElementById('whiteBoardContent').innerHTML = ipc.sendSync('get-whiteboard','read')
+	
+	
 })
+function toggleAdminElements(admin){
+	if(admin){
+		document.getElementById("btnAdmin").style.display = "inline-block";
+		document.getElementById('t').style.display = 'inline-block';
+		document.getElementById("trashButton").style.display = "inline-block";
+	}else{
+		document.getElementById("btnAdmin").style.display = "none";
+		document.getElementById('t').style.display = 'none';
+		document.getElementById("trashButton").style.display = "none";
+	}
+}
 ipc.on('show-user-elements', (event, args)=>{
-	document.getElementById('contentArea').innerHTML = accessGrantedContent
-	refresh()
+	admin = false
+	document.getElementById('contentArea').innerHTML = accessGrantedContent	
+	
+	document.getElementById('topCounts').style.display = 'block';
+	document.getElementById('btnContacts').style.display = 'inline-block';
 	document.getElementById("btnLogin").innerHTML='Log Out'
-	document.getElementById('login-message').innerHTML=`Welcome ${args.user_name}!`
-	
-	
-	//document.getElementById("contentArea").style.display = "block";
+	document.getElementById('login-message').innerHTML=`Welcome ${args.user_name}!`	
 	document.getElementById("addNewJob").style.display = "block";
+	countStatuses()
+	toggleAdminElements(admin)
+	loadJobs(allJobs)
+	document.getElementById('whiteBoardContent').innerHTML = ipc.sendSync('get-whiteboard','read')
+})
+
+ipc.on('whiteboard-updated', (event,args)=>{
+	console.log('whiteboard-updated')
+	document.getElementById('whiteBoardContent').innerText = ipc.sendSync('get-whiteboard','read')
 })
 function openAddBox(e) {
 	//alert(document.getElementById("add").style.display);
@@ -2012,6 +2773,12 @@ function getJobID(){
 function getCustomers(){
 	ipc.send('get-customers')
 }
+function pullJob(id){
+	let d = ipc.sendSync('pull-job',id)
+	return d
+}
+
+
 
 // function addNewVehicle() {
 // 	//alert($("input[type='radio'][name='ampm2']:checked").val());
@@ -2491,105 +3258,266 @@ function setNewLocation() {
 }
 
 function getEditVehicle(e,x) {
-	
-	let jsonId = e.id.substr(4,17);
-	jobToEdit={}
-	
-	if(e==null){
-		c = x; 
-	 }else{e.childNodes[1].style.backgroundColor = '#F5FCC7';
-	}
-	
-	openAddBox(e);
-	
-	let arrJobToEdit = ipc.sendSync('getVehicle', jsonId)
-	console.log("in render after calling getVehicle on main")
-	jobToEdit = arrJobToEdit[0]	
-	//var f = document.getElementById("my-form").innerHTML;
-	//var eForm = document.getElementById("my-form");	
-	document.getElementById("customer").value = jobToEdit.customerName;		
-	document.getElementById("cash").checked = jobToEdit.cash ? true : false
-	document.getElementById("waiting").checked = jobToEdit.waiting ? true : false
-	document.getElementById("comeback").checked = jobToEdit.comeback ? true : false
-	document.getElementById("parts").checked = jobToEdit.parts ? true : false	
-	document.getElementById("approval").checked = jobToEdit.approval ? true : false
-	document.getElementById("checked").checked = jobToEdit.checked ? true : false
-	document.getElementById("noShow").checked = jobToEdit.noShow ? true : false
-	document.getElementById("unit").value = jobToEdit.unit;
-	document.getElementById("make").value = jobToEdit.notes;
-	document.getElementById("cost").value = jobToEdit.estimatedCost;	
-	document.getElementById("dateInPicker").value = jobToEdit.dateIn;
-	document.getElementById("datepicker2").value = jobToEdit.scheduledDate == undefined ? '': jobToEdit.scheduledDate;
-	(jobToEdit.ampm == 'am') ? $("#radAM").prop("checked", true) : jobToEdit.ampm =="pm" ? $("#radPM").prop("checked", true): $("#radPM").prop("checked", false) && $("#radAM").prop("checked", false)
-	
-	//Initialize the jquery datepickers
-	$(function() {
-		$("#datepicker2").datepicker({
-			dateFormat : "m/d/yy"
-		});
-		//$("#datepicker2").datepicker('setDate', todayIs());
-	});
-	$(function() {
-		$("#dateInPicker").datepicker({
-			dateFormat : "m/d/yy"
-		});
-		$("#dateInPicker").datepicker('setDate', todayIs());
-	});
-	/*
-	$(function() {
-		$("#datepicker").datepicker({
-			dateFormat : "mm/dd/yy"
-		});
-		$("#datepicker").datepicker('setDate', '+0');
-	});
-	*/
-	
-	document.getElementById("formHeader").innerHTML = `Edit ${jobToEdit.customerName}'s ${jobToEdit.jobType} Job`;
-	switch(jobToEdit.jobType) {
-		case "frame":
-		case "Frame":
-			document.getElementById('frameOption').setAttribute("selected", "selected");
-			document.getElementById("formHeader").style.color = "red";
-			
-			break;
-		case "spring":
-		case "Spring":
-			document.getElementById('springOption').setAttribute("selected", "selected");
-			document.getElementById("formHeader").style.color = "blue";
-			break;
-		case "alignment":
-		case "Alignment":
-			document.getElementById('alignmentOption').setAttribute("selected", "selected");
-			document.getElementById("formHeader").style.color = "purple";
-			break;
-		case "kingPin":
-		case "King Pin":
-			document.getElementById('kingPinOption').setAttribute("selected", "selected");
-			document.getElementById("formHeader").style.color = "green";
-			break;
-		case "Check All":
-			document.getElementById('checkAllOption').setAttribute("selected", "selected");
-			document.getElementById("formHeader").style.color = "orange";
-			break;
-		default:
-			break;
-	}
-	
-	
-	if(e!=null)	boxToChange = e.childNodes[1].id;
-	/*
-	isOpen = false;
-	clearTimeout(closeTimer);
-		try {
-
-			document.getElementById(boxToChange).style.backgroundColor = "white";
-		} catch(e) {
-			document.getElementById(ns).childNodes[0].style.backgroundColor = "blue";
+	console.log(document.getElementById(e.id.substr(4)+"Cat").className)
+	//console.log(x[0].customer_ID)
+	let thisMenu = document.getElementById('context-Menu-'+e.id.substr(4))
+	//console.log(allJobs.length)
+	let status
+	for(member in allJobs){
+		if(document.getElementById('context-Menu-'+allJobs[member].job_ID)){
+			document.getElementById('context-Menu-'+allJobs[member].job_ID).style.display = 'none'
 		}
-	*/
+		if(allJobs[member].job_ID == e.id.substr(4)){			
+			status = allJobs[member].status
+		}
+	}
+	
+		//create context menu
+		let menuBox = document.getElementById('context-Menu-'+e.id.substr(4))
+		
+		
+		let item1Box = document.createElement('span')
+		let item2Box = document.createElement('span')
+		let item3Box = document.createElement('span')
+		let item4Box = document.createElement('span')
+		let item1Text 
+		let item2Text 
+		let item3Text 
+		let item4Text
+
+		//console.log(JSON.stringify(allJobs.length)+ 'from context menu')
+		menuBox.style.display ='none'
+		menuBox.innerHTML=""
+		
+		if(status=='sch'){
+			item1Text = document.createTextNode('EDIT')
+			item1Box.appendChild(item1Text)
+			item1Box.setAttribute('class','item')
+			item1Box.setAttribute('id','edit'+e.id.substr(4))
+			item1Box.addEventListener('click',(event)=>{
+				menuBox.style.display = 'none'
+				document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+				ipc.send('open-edit',x, 'context-menu')
+			})
+
+			item2Text = document.createTextNode('NO-SHOW')
+			item2Box.appendChild(item2Text)
+			item2Box.setAttribute('class','item')
+			item2Box.setAttribute('id','noshow'+e.id.substr(4))
+			item2Box.addEventListener('click',(event)=>{
+				menuBox.style.display = 'none'
+				document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+				
+				objNoshow = new Object()
+				objNoshow.job_ID = x[0].job_ID
+				objNoshow.no_show = 1
+				objNoshow.active = 0
+				ipc.send('update-job',objNoshow)
+				e.remove()
+			})
+
+			item3Text = document.createTextNode('SEND TO LOT')			
+			item3Box.appendChild(item3Text)
+			item3Box.setAttribute('class','item')
+			item3Box.setAttribute('id','send'+e.id.substr(4))
+			item3Box.addEventListener('click',(event)=>{
+				menuBox.style.display = 'none'
+				document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+				
+				objLot = new Object()
+				objLot.job_ID = x[0].job_ID
+				objLot.shop_location = ''
+				objLot.status = 'wfw'
+				ipc.send('update-job',objLot)
+				e.remove()
+			})
+			item4Text = document.createTextNode('CANCEL')			
+			item4Box.appendChild(item4Text)
+			item4Box.setAttribute('class','item')
+			item4Box.setAttribute('id','send'+e.id.substr(4))
+			item4Box.addEventListener('click',(event)=>{
+				menuBox.style.display = 'none'
+				document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+				//alert(e.id.substr(4))
+				ipc.send('delete-scheduled',e.id.substr(4))
+				e.remove()
+			})
+			menuBox.appendChild(item1Box)
+			menuBox.appendChild(item2Box)
+			menuBox.appendChild(item3Box)
+			menuBox.appendChild(item4Box)
+			setTimeout(() => {
+				if($(`#context-Menu-${e.id.substr(4)}:hover`).length == 0){
+				menuBox.style.display = 'none'
+				document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+				}
+			}, 7000);
+			$(`#context-Menu-${e.id.substr(4)}`).mouseleave(function (){
+				setTimeout(() => {
+					if($(`#context-Menu-${e.id.substr(4)}:hover`).length == 0){
+					menuBox.style.display = 'none'
+					document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+					}
+				}, 7000);
+			})
+
+		}else{
+			item1Text = document.createTextNode('EDIT')
+			item1Box.appendChild(item1Text)
+			item1Box.setAttribute('class','item')
+			item1Box.setAttribute('id','edit'+e.id.substr(4))
+			item1Box.addEventListener('click',(event)=>{
+				menuBox.style.display = 'none'
+				document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+				ipc.send('open-edit', x, 'context-menu')
+			})
+
+			item2Text = document.createTextNode('CHECKED')
+			item2Box.appendChild(item2Text)
+			item2Box.setAttribute('class','item')
+			item2Box.setAttribute('id','checked'+e.id.substr(4))
+			item2Box.addEventListener('click',(event)=>{
+				menuBox.style.display = 'none'
+				document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+				let objChecked = new Object()
+				
+				objChecked.job_ID = x[0].job_ID
+				objChecked.checked = 1
+				ipc.send('update-job', objChecked,'context-menu')
+				
+			})
+			item3Text = document.createTextNode('SCHEDULE')
+			item3Box.appendChild(item3Text)
+			item3Box.setAttribute('class','item')
+			item3Box.setAttribute('id','schedule'+e.id.substr(4))
+			item3Box.addEventListener('click',(event)=>{
+				
+				event.target.parentNode.nextElementSibling.style.display = 'block'
+				let sub_content = `<div class= 'popupHeader'>CONFIRM OR CHANGE SCHEDULED DATE</div><br/>
+				<div class='popuprow'><label> Scheduled Date:&nbsp;&nbsp;</label>
+				<input type="text" id="datepicker" class = "popup"></div>
+				<br/>
+				<div class='popuprow'>
+					<div class= 'halfrow'>
+                        <label>AM</label>
+                        <input type='radio' id="radAM" tabindex='6'name='ampm2' value='am'>
+                        <label>PM</label>
+                        <input type='radio' id="radPM" tabindex='7' name='ampm2' value='pm'>
+						
+                    </div>
+					<div class='popupButton' onclick= 'moveToScheduled(this, ${false})' >MOVE</div><div class='popupButton' onclick='cancelScheduleAdd(this)'>CANCEL</div>
+				</div>
+					
+					 `
+					 event.target.parentNode.nextElementSibling.innerHTML = sub_content;
+					  		
+					for(member in allJobs){
+						if (allJobs[member].job_ID == event.target.id.substr(8)){
+							popupDate = allJobs[member].date_scheduled;
+							
+							(allJobs[member].time_of_day == 'am')? document.getElementById('radAM').checked = true : document.getElementById('radAM').checked = false;
+    						(allJobs[member].time_of_day == 'pm')? document.getElementById('radPM').checked = true : document.getElementById('radPM').checked = false;
+						}
+
+					}	
+					
+					 
+					 $('.popup').datepicker().datepicker('setDate', popupDate );
+					 $('#datepicker').datepicker({
+						onSelect: function () {
+							$('#datepicker').text(this.value);
+						}
+					 });
+					 
+				})
+				item4Text = document.createTextNode('COMPLETED')			
+				item4Box.appendChild(item4Text)
+				item4Box.setAttribute('class','item')
+				item4Box.setAttribute('id','send'+e.id.substr(4))
+				item4Box.addEventListener('click',(event)=>{
+					menuBox.style.display = 'none'
+					document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+					
+					let objCompleted = new Object()				
+					objCompleted.job_ID = x[0].job_ID					
+					objCompleted.shop_location = ''
+					objCompleted.status= 'wpu'
+					ipc.send('update-job', objCompleted,'context-menu')
+					e.remove()
+				})	
+			
+			menuBox.appendChild(item1Box)
+			menuBox.appendChild(item2Box)
+			menuBox.appendChild(item3Box)
+			menuBox.appendChild(item4Box)
+			
+			setTimeout(() => {
+				if($(`#context-Menu-${e.id.substr(4)}:hover`).length == 0){
+				menuBox.style.display = 'none'
+				document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+				}
+			}, 7000);
+			$(`#context-Menu-${e.id.substr(4)}`).mouseleave(function (){
+				setTimeout(() => {
+					if($(`#context-Menu-${e.id.substr(4)}:hover`).length == 0){
+					menuBox.style.display = 'none'
+					document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+					}
+				}, 7000);
+			})
+		}
+		
+			
+			
+		
+		
+	
+	
+	
+	
+	//hide tooltip and menu
+	document.getElementById(e.childNodes[1].id).style.visibility = "hidden";
+	thisMenu.style.display = 'block'
+
+	//hide if clicking outside of element
+  	document.onclick = function(ev){
+		 
+    	if(ev.target.id !== thisMenu.id && ev.target.parentNode.id !== thisMenu.id){	
+      		thisMenu.style.display = 'none';
+			  if(document.getElementById(e.childNodes[1].id)!= null && document.getElementById(e.childNodes[1].id) != undefined){
+		 			document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+			  }
+    	}
+  	};
+	
 
 	
 
+}
+function cancelScheduleAdd(el){
+	el.parentNode.parentNode.style.display='none'
+
+}
+function moveToScheduled(e, drop){
+	const radAM = document.getElementById('radAM')
+	const radPM = document.getElementById('radPM')
+	const d = new Object()
+	d.job_ID = e.parentNode.parentNode.id.substr(8)
+	d.status = 'sch'
+	d.designation = 'Scheduled'
+	if(drop == false){
+		d.shop_location = ''
+	}
+	
+	d.date_scheduled = $('.popup').datepicker().val();
+	d.julian_date = jDate(d.date_scheduled);
+	(radAM.checked) ? d.time_of_day = 'am' 
+		: (radPM.checked) ? d.time_of_day = 'pm'
+			: d.time_of_day = '';
+	
+	ipc.send('update-job', d, 'move')
+	//e.parentNode.parentNode.remove()
+	e.parentNode.parentNode.parentNode.remove()
 }
 function editJob(){
 	
@@ -2910,6 +3838,9 @@ function oninput(){
 }
 function createOpenContent(){
 	const content = new Splash()
-	console.log(content.greeting)
+	//console.log(content.greeting)
 	return content.getGreeting()
+}
+function deleteCompleted(){
+	alert('hello')
 }

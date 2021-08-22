@@ -29,11 +29,12 @@
                 <legend>
                     Required Job Info
                 </legend>
+                
                 <span class="visibleInput" id="customerNameWrapper">
                     
                     <label>Customer Name:&nbsp;</label>
                     
-                    <input id="txtCustomerName" tabindex="1" list="lstCustomer" onfocus='fillCustomerDataList()'onchange="openInput(event,this,'unitWrapper')" type="text" style="z-index:20000;"/>
+                    <input id="txtCustomerName" tabindex="1" list="lstCustomer" onfocus="fillCustomerDataList()" type="text" style="z-index:20000;"/>
                     
                     <datalist id="lstCustomer" class="classic">
                         
@@ -50,10 +51,9 @@
                     
                     
                    
-                    <div id="contactsList">
-                    </div>  
+                    
                 </span>
-                <span class="hiddenInput" id="unitWrapper">
+                <span class="visibleInput" id="unitWrapper">
                     <label>Unit#:&nbsp;</label>
                     <input id="txtUnit" tabindex="3" onkeyup= "openInput(event,this,'jobTypeWrapper')" type="text"/>
                 </span>
@@ -79,7 +79,7 @@
                 
                 
 
-                <span class="hiddenInput" id="jobTypeWrapper">
+                <span class="visibleInput" id="jobTypeWrapper">
                     <label>Job Type: &nbsp;</label>
                     <select id="selJobType" class='classic' tabindex="8" onchange="openInput(event,this,'cbWrapper','notesFieldset')">
                         <option value="None"></option>
@@ -138,7 +138,7 @@
                 <span id="formButtons" class="hiddenInput">
                     <input id="frmCancel" type="button" tabindex="19" value="Cancel" onclick="cancelAdd()"/>
                     <input id="frmReset" type="reset" tabindex="18" value="Reset"/>
-                    <input id="frmSubmit" type="button" tabindex="17" value="Add Job"onclick="addNewVehicle()"/>
+                    <input id="frmSubmit" type="button" tabindex="17" value="Add Job"onclick="testing()"/>
                 </span>
             
         </form>

@@ -65,7 +65,7 @@ function checkForInputData(e){
 function fillPrint(e) {
 	thisTotal = e.id;
 	
-	//alert(e.value);
+	//alert(e.value + " "+e.id);
 	//iframe.open();
 	switch(thisTotal) {
 		case "datepickerReport":

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="823"
+   height="623"
+   viewBox="0 0 217.75208 164.83542"
+   version="1.1"
+   id="svg3300"
+   inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"
+   sodipodi:docname="bgTest2.svg">
+  <defs
+     id="defs3294">
+    <rect
+       x="28.33057"
+       y="47.841245"
+       width="182.37278"
+       height="24.321527"
+       id="rect3865" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.98994949"
+     inkscape:cx="378.68871"
+     inkscape:cy="215.15178"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     inkscape:document-rotation="0"
+     showgrid="true"
+     units="px"
+     inkscape:pagecheckerboard="true"
+     inkscape:window-width="1431"
+     inkscape:window-height="1208"
+     inkscape:window-x="128"
+     inkscape:window-y="45"
+     inkscape:window-maximized="0">
+    <inkscape:grid
+       type="xygrid"
+       id="grid3873" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata3297">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <text
+       xml:space="preserve"
+       id="text3863"
+       style="font-style:normal;font-weight:normal;font-size:19.05px;line-height:1.25;font-family:sans-serif;white-space:pre;shape-inside:url(#rect3865);fill:#d2e4f9;fill-opacity:1;stroke:none;"
+       transform="translate(-7.9375,94.116071)"><tspan
+         x="28.330078"
+         y="65.221689"><tspan
+           style="shape-inside:url(#rect3865)">Pending Alignment</tspan></tspan></text>
+    <rect
+       style="fill:#5e81ad;fill-opacity:1;stroke:#000000;stroke-width:0.105784"
+       id="rect3875"
+       width="217.0844"
+       height="0.84274405"
+       x="-0.11047289"
+       y="138.00006" />
+  </g>
+</svg>
