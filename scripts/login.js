@@ -44,11 +44,7 @@ setTimeout(()=>{
         }else{
             verifyUsername(unEl)
         }
-        // if (pwEl == ""){
-        //     ma.innerHTML = ma.innerHTML.concat ("\n Please enter password!<br/>")
-        // }else{
-        //    verify(pwEl, 'pw')
-        // }
+        
 }
         function verifyUsername(args1){
             const electron1  = require('electron')
@@ -64,7 +60,7 @@ setTimeout(()=>{
                 for(let member in users){
                     //console.log(users[member].user_name)
                     if(users[member].user_name == args1){ 
-                        userID = users[member].id 
+                        userID = users[member].user_id 
                                         
                         matchedUsername = true
                         if(!matchedPassword) {verifyPassword(users[member])}

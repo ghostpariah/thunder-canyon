@@ -1,3 +1,4 @@
+
 const elect = require('electron')
 const { remote } = require('electron')
 
@@ -8,6 +9,7 @@ const urlUser = require('url')
 
 
 function createUser(){
+    console.log('createUser triggered')
     let userData = new Object()
     let unEl = document.getElementById('user').value;
     let pwEl = document.getElementById('password').value;

@@ -28,7 +28,7 @@ setTimeout(()=>{
 			$("#datepicker").datepicker({
 				dateFormat : "mm/dd/yy"
 			});
-			
+			$('#txtCustomerName').focus()
 	
 },200)
 
@@ -531,7 +531,7 @@ function todayIs() {
 	return today;
 }
 
-function testing (){
+function addJob (){
 	//alias input fields for easier programming
 	let txtCN = document.getElementById('txtCustomerName')
 	let txtCon = document.getElementById('txtContacts')
@@ -579,6 +579,7 @@ function testing (){
 		objNewJob.time_of_day = ($('input[type=radio]:checked').size() > 0)?$('input[name=ampm2]:checked').val(): 'am';
 		objNewJob.status = "sch"
 		objNewJob.julian_date = jDate(document.getElementById('datepicker').value)
+		objNewJob.date_called = todayIs()
 	}
 	(txtUnit.value.trim().length) ? objNewJob.unit = txtUnit.value : '';	
 	objNewJob.active = 1

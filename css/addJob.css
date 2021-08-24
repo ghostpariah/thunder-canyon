@@ -148,6 +148,7 @@ select {
 .visibleInput{
 	display:block;
 	float:right;
+  
 	margin:5px;
 	clear: both;
 	
@@ -156,6 +157,7 @@ select {
     display: block;	
 	margin:5px;
 	clear: both;	
+  width:500px;
 }
 .hiddenInput{
         display:none;
@@ -191,7 +193,7 @@ select {
     text-align: center;
 }
 input[type="text"], select{
-    width: 180px;
+    width: 200px;
     box-sizing: content-box;
     -webkit-box-sizing: content-box;
 }

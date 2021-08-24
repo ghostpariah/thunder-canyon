@@ -39,15 +39,18 @@ let allJobs
 window.onload = () =>{
 	 
 	allJobs = ipc.sendSync('pull_jobs')
+	console.log(allJobs)
+
+	//ipc.send('login-success',allJobs)
 	/*
 	for (var member in allJobs){ 
 		placeElement(allJobs[member]);			
 	}
 	*/
 	accessGrantedContent = document.getElementById('contentArea').innerHTML
-	//console.log(accessGrantedContent)
+	
 	document.getElementById('contentArea').innerHTML = openContent;
-	//document.getElementById('ALLcounts').innerHTML = '99'
+	
 	
 	
 	
@@ -125,7 +128,7 @@ ipc.on('count', (event,args)=>{
  })
  ipc.on('reload',(event,args)=>{
 	 console.log("from reload"+args)
-	clearPage()    	
+	//clearPage()    	
 	
 	loadJobs(args)
 	countStatuses()	 
@@ -387,7 +390,7 @@ function loadPage(page) {
 	*/
 	//pullData();
 	
-	clearPage();
+	//clearPage();
 	countJobTypes();
 	fillBuckets();
 	fillPage();
@@ -418,13 +421,16 @@ function reloadPage() {
 }
  function saveWhiteBoard(wb){
 	ipc.send('get-whiteboard', 'write',document.getElementById('whiteBoardContent').innerText)
-	setTimeout(() => {
-		document.getElementById('whiteBoardContent').innerHTML = ipc.sendSync('get-whiteboard', 'read')
 	
+	setTimeout(() => {
+		if(window){
+			document.getElementById('whiteBoardContent').innerHTML = ipc.sendSync('get-whiteboard', 'read')
+		}
 	}, 50);
-	 console.log('get out a here!')
-	 //console.log(ipc.sendSync('get-whiteboard')+whiteBoard.id)
- }
+	 
+}
+	 
+ 
  function loadJobs(args){
 	fillScheduleGlimpse(args)
 	createCompleted(args)
@@ -970,7 +976,16 @@ function toggleAdminMenu() {
 	
 	let objMenuItems =
 	[{
-		'text': 'Create User'
+		'text': 'Create User',
+		'submenu': [{
+			text : 'Create User'
+		},
+		{
+			text : 'Delete User'
+		},
+		{
+			text : 'Change Passowrd'
+		}]
 	},
 	{
 		'text': 'Reports',
@@ -1329,9 +1344,11 @@ function drop(ev) {
 	
 	let oldStatus = document.getElementById(data).parentNode.id.substr(0, 3).toLowerCase(); 
 	
-	let newLocation = ev.target.id;
+	let newLocation 
 	
-	let cellOccupied = document.getElementById(newLocation).hasChildNodes()	
+	console.log(ev.target)
+	
+	let cellOccupied = (document.getElementById(ev.target.id))?document.getElementById(ev.target.id).hasChildNodes():true;	
 	//console.log(data + ' '+id+' newLocation:'+newLocation+ ' '+cellOccupied)
 	ev.stopPropagation();
 	ev.preventDefault();
@@ -1376,10 +1393,11 @@ function drop(ev) {
 	}
 	else{
 		newStatus = ns.substr(0, 3).toLowerCase();
+		newLocation = ev.target.id
 		objMoving.status = newStatus;
 		objMoving.shop_location = newLocation
 		objMoving.designation = 'On the Lot'
-		
+		document.getElementById(newLocation).appendChild(document.getElementById(data))
 		
 
 		// determine whether the job is being dragged from scheduled to on the lot
@@ -1392,14 +1410,8 @@ function drop(ev) {
 					objMoving.date_in = allJobs[member].date_in
 				}
 			}
-		}
-		
-
-		
-		
-		
-		
-	}
+		}		
+	
 		
 		
 		objMoving.job_ID = id
@@ -1414,7 +1426,7 @@ function drop(ev) {
 				placeElement(editedJob[member])
 			}
 		}
-		document.getElementById(newLocation).appendChild(document.getElementById(data))
+		
 		/**
 		 * determine if it is being dragged into sch in order to create 
 		 * schedule date edit popup
@@ -1507,6 +1519,7 @@ function drop(ev) {
 
 	countStatuses();
 	loadJobs(reloadedJobs)
+	}
 }
 function schSubmitted(e){
 	if(e.id=="schSkip"){
@@ -1554,7 +1567,7 @@ function openLoginWindow(){
 		 loggedIn= false
 		document.getElementById("btnLogin").innerHTML='Log In'
 	 	document.getElementById("btnAdmin").style.display = "none";
-		document.getElementById("trashButton").style.display = "none";
+		document.getElementById("t").style.display = "none";
 		document.getElementById('btnContacts').style.display = 'none';
 		document.getElementById('addNewJob').style.display="none";
 		document.getElementById('login-message').innerHTML="&nbsp;"
@@ -2212,11 +2225,12 @@ function makeJobDiv2(args){
 							
 	
 	customerName = (args.customer_ID != null) ? ipc.sendSync('db-get-customer-name', args.customer_ID): 'no name'
+	let cuN = '<b>'+customerName.toUpperCase()+'</b><br/>'
 	let dIn =(args.date_in == null) ? '': '<b>Date In:</b>'+ args.date_in+'<br/>'
 	let ec = (args.estimated_cost == undefined || args.estimated_cost =='') ? '': '<b>Est Cost:</b> $'+args.estimated_cost+'</br>'
 	let u = (args.unit == null || args.unit == '')?'': '<b>Unit: </b>'+args.unit+'</br>'
-	let sd = (args.date_scheduled != null) ? '<b>Scheduled Date: </b>' +args.date_scheduled+' '+args.time_of_day+'<br/>': ''
-	
+	let sd = (args.date_scheduled != null) ? '<b>Sched. Date: </b>' +args.date_scheduled+' '+args.time_of_day+'<br/>': ''
+	let dc = (args.date_called != null) ? `<b>Date Called: </b>` + args.date_called+'<br/>':''
 	let toolTipClass = (arrLastRow.includes(args.shop_location))?'tooltipLast':(arrPenultimateRow.includes(args.shop_location))?'toolTipBottom':'tooltip'
 	
 	
@@ -2236,9 +2250,11 @@ function makeJobDiv2(args){
 	
 	<span class=${toolTipClass} 
 	id='tt${args.job_ID}'>
+	${cuN}
 	<b>Job Type:</b> ${args.job_type}<br/>
 	${dIn}
 	${sd}
+	${dc}
 	${u}	
 	<b>Contact:</b> ${contactName}</br>
 	${it}
@@ -2540,9 +2556,7 @@ function clearSCH() {
 
 
 
-function clearXML() {
-	xmlVehicles = "";
-}
+
 
 function clearPage() {
 	clearWFW();
@@ -2586,11 +2600,11 @@ function toggleAdminElements(admin){
 	if(admin){
 		document.getElementById("btnAdmin").style.display = "inline-block";
 		document.getElementById('t').style.display = 'inline-block';
-		document.getElementById("trashButton").style.display = "inline-block";
+		
 	}else{
 		document.getElementById("btnAdmin").style.display = "none";
 		document.getElementById('t').style.display = 'none';
-		document.getElementById("trashButton").style.display = "none";
+		
 	}
 }
 ipc.on('show-user-elements', (event, args)=>{
