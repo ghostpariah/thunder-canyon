@@ -5,9 +5,55 @@ const { remote } = require('electron')
 const ipcUser = elect.ipcRenderer
 const pathUser = require('path')
 const urlUser = require('url')
+let users
 
+window.onload = () =>{
+    users = ipcUser.sendSync('get-users')
+    //alert(users)
+    fillSections(users)
+}
+function fillSections(users){
+    //document.getElementById('editUserWrapper').innerHTML = JSON.stringify(users)
+    let res = document.getElementById('selResetUser')
+    let del = document.getElementById('selDeleteUser')
+    var length = $('#selResetUser').children('option').length;
+    for(i=length-1;i>0;i--){
+        res.remove(i)
+        del.remove(i)
+    }
+    for(member in users){
+        let opt = document.createElement('option')
+        let name = document.createTextNode(users[member].user_name)
+        opt.setAttribute('id','re'+users[member].user_ID)
+        opt.appendChild(name)
+        document.getElementById('selResetUser').appendChild(opt)
+    }
+    for(member in users){
+        let opt = document.createElement('option')
+        let name = document.createTextNode(users[member].user_name)
+        opt.setAttribute('id', 'de'+users[member].user_ID)
+        opt.appendChild(name)
+        document.getElementById('selDeleteUser').appendChild(opt)
+    }
+    // document.getElementById('-message-area').innerHTML=JSON.stringify(users)
+}
+function displaySection(args){
+    document.getElementById('createUserWrapper').style.display = 'none'
+    document.getElementById('editUserWrapper').style.display = 'none'
+    document.getElementById('deleteUserWrapper').style.display = 'none'
+    if(args){
+        document.getElementById(args.id+'Wrapper').style.display = 'block'
+    }
+}
+function deleteUser(args){
+    let selected = $('#selDeleteUser :selected');
+    let id=(selected.attr('id').substr(2))
+    users = ipcUser.sendSync('delete-user', id)	
+    fillSections(users)
+}
+function resetUser(args){
 
-
+}
 function createUser(){
     console.log('createUser triggered')
     let userData = new Object()
@@ -39,7 +85,9 @@ function createUser(){
   
     console.log(ma.innerHTML)
     if(ma.innerHTML==""){
-        ipcUser.send('create-user', userData)
+        users = ipcUser.sendSync('create-user', userData)
+        fillSections(users)
+        displaySection()
        // window.close()
        
     }

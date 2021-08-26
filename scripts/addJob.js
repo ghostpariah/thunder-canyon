@@ -15,7 +15,7 @@ let chosenLastname = "lastname"
 let con_ID
 let newContactID
 let conMeth
-
+let currentUser
 let phoneNumberCount
 //const contactContent = document.getElementById('custNameWrapper')
 let txtCust
@@ -31,7 +31,10 @@ setTimeout(()=>{
 			$('#txtCustomerName').focus()
 	
 },200)
-
+ipc.on('user-data',(event,args)=>{
+	currentUser = args
+	console.log(currentUser.user_ID)
+})
 ipc.on('refresh',(event,args,args2)=>{
 	clearContacts()
 	if(args = "go"){
@@ -584,6 +587,7 @@ function addJob (){
 	(txtUnit.value.trim().length) ? objNewJob.unit = txtUnit.value : '';	
 	objNewJob.active = 1
 	objNewJob.cancelled = 0
+	objNewJob.user_ID = currentUser.user_ID
 	objNewJob.job_type = jt.options[jt.selectedIndex].value;
 	(document.getElementById('cbApproval').checked) ? objNewJob.approval_needed = 1 : objNewJob.approval_needed = 0;
 	(document.getElementById('cbParts').checked) ? objNewJob.parts_needed = 1 : objNewJob.parts_needed = 0;
@@ -643,7 +647,7 @@ function contactIsBeingAdded(){
 
 function addNewVehicle() {
 	
-	
+/*	
 	var originOptions = document.getElementById("selOrigin");
 	var selectedOrigin = originOptions.options[originOptions.selectedIndex].text;
 	var newStatus;
@@ -655,43 +659,7 @@ function addNewVehicle() {
 	var selected = $('#txtContacts :selected');
 	var item;
 
-	// if(isNewCompany){
-	// 	let newCompany = new Object()
-	// 	newCompany.companyName = company.toUpperCase()
-	// 	newCompany.jobs =[]
-	// 	//newCompany.jobs.push({'jobID': Number(ipc.sendSync('getID'))})
-	// 	let newContact = new Object()
-		
-		
-	// 	if(newCompanyContact){
-	// 		newCompany.contacts = []
-	// 		newCompany.contacts.push({})
-	// 		if(newCompanyContact.firstname){
-	// 			newCompany.contacts[0].firstname = newCompanyContact.firstname
-	// 			//newCompany.contacts.push({'firstname': newCompanyContact.firstname})
-	// 		}
-	// 		if(newCompanyContact.lastname){
-	// 			newCompany.contacts[0].lastname = newCompanyContact.lastname
-	// 		}
-	// 		if(newCompanyContact.phoneNumber){
-	// 			newCompany.contacts[0].phoneNumbers= []
-	// 			newCompany.contacts[0].phoneNumbers.push({'number': newCompanyContact.phoneNumber})
-	// 		}
-	// 		if(newCompanyContact.email){
-	// 			newCompany.contacts[0].emails =[]
-	// 			newCompany.contacts[0].emails.push({'email': newCompanyContact.email})
-	// 		}
-	// 		newContactID = dt.getTime()
-	// 		newCompany.contacts[0].contactID = newContactID
-	// 	}
-				
-		
-	// 	ipc.send('add-new-company',newCompany)		
-	// }else{
-    //     let IDtoAdd = Number(ipc.sendSync('getID'))
-    //     let companyID = Number(ipc.sendSync('get-company',company))
-    //     ipc.send('add-job-to-company', companyID, IDtoAdd)		
-	// }
+	
 	switch(selectedOrigin) {
 		case "On the Lot":
 			newStatus = "wfw";
@@ -743,7 +711,7 @@ function addNewVehicle() {
 	ipc.send('addNew',objNewVehicle)	
 	
 	
-	
+*/	
 	
 }
 function openInput(e, active, inputID1, inputID2) {

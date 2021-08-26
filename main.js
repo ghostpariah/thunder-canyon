@@ -175,7 +175,7 @@ function createDatabase(file){
         })
         dboUsers.close()
   })
-
+  //TODO: if user exists add option to make user active again
   ipcMain.on('check-for-user', (event, args)=>{
       console.log('check-user called')
     let dboUser = new sqlite3.Database(testDB, (err)=>{
@@ -204,7 +204,7 @@ function createDatabase(file){
   })
 
   ipcMain.on('create-user',(event,args)=>{
-      console.log('create-user called')
+      //console.log('create-user called')
     let dboUser = new sqlite3.Database(testDB, (err)=>{
         if(err){
             console.error(err.message)
@@ -212,15 +212,30 @@ function createDatabase(file){
     }) 
     let data = [args.user_name,args.role,1, args.password]
     let sql = 'INSERT INTO users(user_name,role,active,password) VALUES(?,?,?,?)'
-
+    let sql2 = `SELECT *FROM users WHERE active=1`
+    dboUser.serialize(()=>{
     dboUser.run(sql, data, function(err) {
         if (err) {
           return console.log(err.message);
         }
         // get the last insert id
         console.log(`A row has been inserted with rowid ${this.lastID}`);
-      });
+      })
+      .all(sql2,function (err,row){
+        if(err){
+            console.log('first select'+err.message)
+            return err
+        }else{
+            console.log(row)
+            //console.log('second passed arg= '+id)
+            //console.log(`Row(s) updated: ${this.changes}`);
+            
+            event.returnValue = row
+        }
+    })   
+
       dboUser.close()
+    })
   })
 
   ipcMain.on('get-whiteboard', (event, args1, args2)=>{
@@ -379,7 +394,7 @@ ipcMain.on('db-contact-add', (event,args)=>{
             }else{
                 
                 v=0
-                sql = 'SELECT * FROM phone_numbers WHERE phone_ID=?'
+                sql = 'SELECT * FROM phone_numbers WHERE phone_ID=? AND active=1'
             }
             dboContacts.run(sql,v, function(err){
                 if(err){
@@ -400,7 +415,7 @@ ipcMain.on('db-contact-add', (event,args)=>{
                 sql = `INSERT INTO emails(${p}) VALUES(${columnPlaceholders})`;    
                 }else{
                     v=0
-                    sql = 'SELECT * FROM emails WHERE email_ID =?'
+                    sql = 'SELECT * FROM emails WHERE email_ID =? AND active=1'
                 }
                 dboContacts.run(sql,v, function(err){
                     if(err){
@@ -794,7 +809,7 @@ ipcMain.on('db-get-contact-name',(event, args1, args2)=>{
                 let w
                 let it
                 
-                if(cmTable == 'emails'){
+                if(cmTable == 'emails' && row1[0].e_contact_ID != 'null'){
                     w = row1[0].e_contact_ID
                     it = row1[0].email
                 }else if(cmTable == 'phone_numbers'){
@@ -842,7 +857,7 @@ function getContacts(comp){
         
     })
     //make sql query for dboContacts
-    let sql = `SELECT * FROM customers`
+    let sql = `SELECT * FROM customers WHERE active=1`
     dboContacts.all(sql,[], function (err, row){
         if(err){
             return err
@@ -1024,7 +1039,7 @@ function createReportWindow(){
         
     
 }
-function createAddJobWindow(){
+function createAddJobWindow(args){
     addJobWin = new BrowserWindow({
             parent: win,
             modal: true,            
@@ -1052,8 +1067,12 @@ function createAddJobWindow(){
             //attachDatePicker()
             
         })
+        addJobWin.webContents.once('did-finish-load',()=>{
+            addJobWin.webContents.send('user-data', args)            
+        })
         //addJobWin.webContents.openDevTools()
-        addJobWin.webContents.focus()         
+        addJobWin.webContents.focus()  
+               
         addJobWin.on('closed', ()=>{
             addJobWin = null
         })
@@ -1064,8 +1083,8 @@ function createCreateUserWindow(){
         cuWin = new BrowserWindow({
         parent: win,
         modal: true,
-        width:425,
-        height: 300,
+        width:525,
+        height: 650,//w425 h300
         autoHideMenuBar: true,
         show: false,
         icon: path.join(__dirname, './images/icon.png'),
@@ -1207,7 +1226,7 @@ ipcMain.on('close-add-window', (event,args)=>{
     addJobWin.close()
 })
 ipcMain.on('open-add-job',(event, args)=>{
-    createAddJobWindow()
+    createAddJobWindow(args)
 })
 ipcMain.on('edit', (event, args)=>{    
     
@@ -1227,6 +1246,60 @@ ipcMain.on('write', (event, args)=>{
     console.log('writing to file')
    
 });
+ipcMain.on('get-users', (event,args)=>{
+    let dboUsers = new sqlite3.Database(testDB, (err)=>{
+        if(err){
+            console.error(err.message)
+        }
+        
+    })
+
+    let sql = `SELECT * FROM users WHERE active=1`
+    dboUsers.all(sql,[], (err, row)=>{
+        if(err){
+            return err
+        }else{
+            
+            event.returnValue = row
+        }
+    })
+})
+
+ 
+ 
+ipcMain.on('delete-user', (event,args)=>{
+    let dboUsers = new sqlite3.Database(testDB, (err)=>{
+        if(err){
+            console.error(err.message)
+        }
+        
+    }) 
+    dboUsers.serialize(()=>{
+
+    
+        let sql = `UPDATE users SET active = 0 WHERE user_ID = ?`
+        let sql2 = `SELECT * FROM users WHERE active = 1`
+    
+        dboUsers.run(sql,[args], function (err, row){
+            if(err){
+                return err
+            }else{
+                
+                
+            }
+    
+    
+        })
+        .all(sql2,[], function (err,row2){
+            if(err){
+                return err
+            }else{
+                
+                event.returnValue = row2
+            }
+        })
+    })
+})
 ipcMain.on('addNew', (event, args)=>{
     //console.log(args)
     if (db.valid('vehicles',location)) {
@@ -1586,7 +1659,7 @@ ipcMain.on('add-new-customer', (event,args)=>{
         
     })
     sql = `INSERT INTO customers(customer_name) VALUES (?)`
-    dboCustomer.run(sql,args, function(err){
+    dboCustomer.run(sql,args.toUpperCase(), function(err){
         if(err){
             console.log(err.message)
         }
@@ -1964,7 +2037,7 @@ ipcMain.on('get-contacts', (event, args)=>{
         SELECT * FROM contacts, phone_numbers WHERE p_contact_ID = contacts.contact_ID
         UNION
         SELECT * FROM contacts, emails WHERE e_contact_ID = contacts.contact_ID`
-        let sql1 = `SELECT * FROM contacts WHERE customer_ID=${args}`
+        let sql1 = `SELECT * FROM contacts WHERE customer_ID=${args} AND active=1`
         console.log("before select query")
             dboContacts.all(sql1,[], function (err, row){
                 if(err){
@@ -1974,7 +2047,7 @@ ipcMain.on('get-contacts', (event, args)=>{
                     console.log("contacts table query result: "+JSON.stringify(row) +row.length)
                     if(row.length>0){
                     for(let member in row){
-                    let sql2 = `SELECT * FROM phone_numbers WHERE EXISTS (SELECT p_contact_ID FROM phone_numbers) AND p_contact_ID = ${row[member].contact_ID}`
+                    let sql2 = `SELECT * FROM phone_numbers WHERE EXISTS (SELECT p_contact_ID FROM phone_numbers) AND p_contact_ID = ${row[member].contact_ID} AND active=1`
                         dboContacts.all(sql2,[], function (err, row2){
                             if(err){
                                 console.log(err)
@@ -1982,7 +2055,7 @@ ipcMain.on('get-contacts', (event, args)=>{
                             }else{
                                 //console.log("phone# query results "+JSON.stringify(row2))
                             
-                                let sql3 = `SELECT * FROM emails WHERE EXISTS (SELECT e_contact_ID FROM emails) AND e_contact_ID = ${row[member].contact_ID}`
+                                let sql3 = `SELECT * FROM emails WHERE EXISTS (SELECT e_contact_ID FROM emails) AND e_contact_ID = ${row[member].contact_ID} AND active=1`
                                 dboContacts.all(sql3,[], function (err, row3){
                                     if(err){
                                         console.log(err)
@@ -2107,6 +2180,7 @@ ipcMain.on('add-phone', (event,args)=>{
     let objAdd = new Object()
     objAdd.p_contact_ID = args.contact_ID
     objAdd.number = args.text
+    objAdd.active = args.active
      //assign an array of key/column names for sql statement from the javascript object
      let p = Object.keys(objAdd)
 
@@ -2169,6 +2243,9 @@ ipcMain.on('add-email', (event,args)=>{
     
          
 })
+
+//FIXME: add active column to database and change this from delete to update active column
+
 ipcMain.on('delete-item', (event,args)=>{
     let dboDelPhone = new sqlite3.Database(testDB, (err)=>{
         if(err){
@@ -2180,15 +2257,16 @@ ipcMain.on('delete-item', (event,args)=>{
     let id
     console.log(args.method)
     if(args.method == 'p'){
-        sql = `DELETE FROM phone_numbers WHERE phone_ID=?`
+        //sql = `DELETE FROM phone_numbers WHERE phone_ID=?`
+        sql = `UPDATE phone_numbers SET active=0 WHERE phone_ID=?`
     }
     if(args.method == 'e'){
-        sql = `DELETE FROM emails WHERE email_ID=?`
+        sql = `UPDATE emails SET active=0 WHERE email_ID=?`
     }
     if(args.method =='c'){
-        sql = `DELETE FROM contacts WHERE contact_ID=?`
-        sql2 = `DELETE FROM phone_numbers WHERE p_contact_ID=?`
-        sql3 = `DELETE FROM emails WHERE e_contact_ID=?`
+        sql = `UPDATE contacts SET active=0 WHERE contact_ID=?`
+        sql2 = `UPDATE phone_numbers SET active=0 WHERE p_contact_ID=?`
+        sql3 = `UPDATE emails SET active=0 WHERE e_contact_ID=?`
         id = args.contact_ID
 
         dboDelPhone.run(sql2, id, function(err) {

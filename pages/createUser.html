@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create User</title>
+    <title>User Administration</title>
     
     <link rel="stylesheet" type="text/css" media="all" href="../scripts/jquery-ui-1.11.4.custom/jquery-ui.css">
     <link rel="stylesheet" type="text/css" media="all" href="../css/users.css">
@@ -23,21 +23,56 @@
 	<script>if (window.module) module = window.module;</script>
 </head>
 <body>
-    <h3>Create New User</h3>
-    <div id="-message-area"></div>
-    <form>
-    <label class="-user-label">User Name:</label>
-    <input class="-user-input-text" id="user"><br>
-    <label class="-user-label">Password:</label>
-    <input class="-user-input-text" id="password"><br>
-    <label class="-user-label">Role:</label>
-    <select id='role' class="-user-input-text">
-        <option disabled selected value></option>
-        <option id='userOption' value='option1'>user</option>
-		<option id='adminOption' value='option2'>admin</option>
-		
-    </select>
-    <input class="-user-submit" type="button" value="submit" onclick="createUser()"/>
-    </form>
+    <div id="buttonBox" class="buttonBox">
+        <div id="createUser" class ="buttons" onclick="displaySection(this);">Create User</div>
+        <div id="editUser" class ="buttons" onclick="displaySection(this);">Reset Password</div>
+        <div id="deleteUser" class ="buttons" onclick="displaySection(this);">Delete User</div>
+    </div>
+    <div id="createUserWrapper" class='wrapper'>
+        <h3>Create New User</h3>
+        <div id="-message-area"></div>
+    
+        <form>
+            <label class="-user-label">User Name:</label>
+            <input class="-user-input-text" id="user"><br>
+            <label class="-user-label">Password:</label>
+            <input class="-user-input-text" id="password"><br>
+            <label class="-user-label">Role:</label>
+            <select id='role' class="-user-input-text">
+                <option disabled selected value></option>
+                <option id='userOption' value='option1'>user</option>
+                <option id='adminOption' value='option2'>admin</option>		
+            </select>
+            <input class="-user-submit" type="button" value="submit" onclick="createUser()"/>
+        </form>
+    </div>
+    <div id="editUserWrapper" class='wrapper'>
+        <h3>Reset Password</h3>
+        <div id="-message-area"></div>
+    
+        <form>
+            <label class="-user-label">User:</label>
+            
+            <select id='selResetUser' class="-user-input-text">
+                <option disabled selected value></option>
+               	
+            </select>
+            <input class="-user-submit" type="button" value="reset" onclick="resetUser()"/>
+        </form>
+    </div>
+    <div id="deleteUserWrapper" class='wrapper'>
+        <h3>Delete User</h3>
+        <div id="-message-area"></div>
+    
+        <form>
+            <label class="-user-label">User:</label>
+            
+            <select id='selDeleteUser' class="-user-input-text">
+                <option disabled selected value></option>
+               	
+            </select>
+            <input class="-user-submit" type="button" value="delete" onclick="deleteUser()"/>
+        </form>
+    </div>
 </body>
 </html>

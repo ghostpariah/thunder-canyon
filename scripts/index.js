@@ -35,6 +35,7 @@ let openContent = createOpenContent();
 let accessGrantedContent
 const scope = document.querySelector('body')
 let allJobs
+let currentUser
 
 window.onload = () =>{
 	 
@@ -477,11 +478,20 @@ function reloadPage() {
 		wpuJobContainer.appendChild(div)
 	}
  }
+ //function to group same date schedulled items for glimpse
+ function groupByKey(array, key) {
+	return array
+	  .reduce((hash, obj) => {
+		if(obj[key] === undefined) return hash; 
+		return Object.assign(hash, { [obj[key]]:( hash[obj[key]] || [] ).concat(obj)})
+	  }, {})
+ }
 function fillScheduleGlimpse(args){
 	//console.log('glimpse called')
 	arrScheduledStatus = new Array()
 	let wrapper = document.getElementById('ucWrapper')
 	let schJobContainer = document.getElementById('schJobContainer')
+	let objCustomerNames = ipc.sendSync('get-customer-names')
 	if(wrapper.hasChildNodes()){
 		for(i=2;i<wrapper.childNodes.length;i++){
 			wrapper.childNodes[i].remove()
@@ -545,10 +555,90 @@ function fillScheduleGlimpse(args){
 		}
 		return result;
 	  })
-
-
+	let arrSD = groupByKey(x,'date_scheduled')
+	//console.log(arrSD.length)
 	
-	for(i=0;i<11;i++){
+	let k = Object.keys(arrSD)
+	let v = Object.values(arrSD)
+	console.log(v.length)
+	//console.log(JSON.stringify(arrSD,"","\t"))
+	let glimpse
+	let head
+	let tDate
+	let data
+	//j<theAmount of days that will fit
+	for(j=0;j<k.length;j++){
+		glimpse = document.createElement('div')
+		glimpse.setAttribute('class', 'upcomingBox')
+		head = document.createElement('div')
+		let date = new Date(k[j])
+		let days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+		let day = days[date.getDay()]
+		hText = document.createTextNode(day + ' '+k[j])
+		head.setAttribute('class', 'glimpseHead')	
+		head.appendChild(hText)
+		glimpse.appendChild(head)
+		for(i=0;i<v[j].length;i++){
+			console.log(k[j]+' '+v[j][i].job_ID)
+			data = document.createElement('div')
+			data.setAttribute('class', 'glimpseData')
+			let schedItem = document.createElement('div')
+			schedItem.setAttribute('class', 'glimpseItem')
+			let jobType = document.createElement('div')
+			let color
+			jobType.setAttribute('class', 'colorBlock')
+			switch(v[j][i].job_type){
+				case 'Spring':
+					color = '#5e81ad';
+					break;
+				case 'Check All':
+					color = '#ff9e0c';
+					break;
+				case 'Alignment':
+					color = '#ad5ea8';
+					break;
+				case 'King Pin':
+					color = '#5ead63';
+					break;
+				case 'Frame':
+					color = '#ff2d00';
+					break;
+				default:
+					break;
+			}
+
+			jobType.setAttribute('style','background-color:'+color)
+			let n 
+			let name = document.createElement('div')
+			name.setAttribute('class','glimpseCustomer')
+			let tJT = document.createTextNode(v[j][i].time_of_day);
+			for(member in objCustomerNames){
+				if(objCustomerNames[member].customer_ID == v[j][i].customer_ID){
+					n=objCustomerNames[member].customer_name
+				}
+			}
+			let tName = document.createTextNode(n.toUpperCase())
+			
+			jobType.appendChild(tJT)			
+			schedItem.appendChild(jobType)
+			name.appendChild(tName)
+			schedItem.appendChild(name)
+			data.appendChild(schedItem)
+			glimpse.appendChild(data)
+			
+			
+			
+		}
+		
+		wrapper.appendChild(glimpse)
+	}
+			
+	
+		//console.log(arrSD[member].length)
+	
+	//console.log(JSON.stringify(arrSD,"","\t"))
+	/*
+	for(i=0;i<2;i++){
 		if(x[i] != undefined){
 		let glimpse = document.createElement('div')
 		glimpse.setAttribute('class', 'upcomingBox')
@@ -607,7 +697,7 @@ function fillScheduleGlimpse(args){
 				break;
 		}
 	}
-	}
+	}*/
 	//console.log(JSON.stringify(x))
 
 }
@@ -1509,7 +1599,7 @@ function drop(ev) {
 		$(this).find('.toolTipBottom').fadeOut(50);
 	});
 	$('.vehicle').on('mouseenter',function() {
-		$(this).find('.tooltipLast').fadeIn(50);
+		$(this).find('.tooltipLast').fadeIn(50);		
 	});
 	
 	$('.vehicle').on('mouseleave',function() {
@@ -1953,7 +2043,8 @@ function initializeForm() {
 }
 
 function addNewJob() {
-	ipc.send('open-add-job')
+	ipc.send('open-add-job', currentUser)
+	console.log(currentUser.user_ID)
 	//fillCustomerDataList()
 	//document.getElementById("addBlock").style.display = "block";
 	//document.getElementById("selOrigin").focus();
@@ -2575,6 +2666,8 @@ function refresh() {
 
 
 ipc.on('show-admin-elements', (event, args)=>{
+	currentUser = args
+	//alert(args.user_ID)
 	admin = true;
 	document.getElementById('contentArea').innerHTML = accessGrantedContent
 	//console.log('admin content'+document.getElementById('contentArea').innerHTML)
@@ -3405,7 +3498,7 @@ function getEditVehicle(e,x) {
 			item3Box.setAttribute('class','item')
 			item3Box.setAttribute('id','schedule'+e.id.substr(4))
 			item3Box.addEventListener('click',(event)=>{
-				
+				document.getElementById(e.childNodes[1].id).style.display='none';
 				event.target.parentNode.nextElementSibling.style.display = 'block'
 				let sub_content = `<div class= 'popupHeader'>CONFIRM OR CHANGE SCHEDULED DATE</div><br/>
 				<div class='popuprow'><label> Scheduled Date:&nbsp;&nbsp;</label>
@@ -3510,6 +3603,15 @@ function getEditVehicle(e,x) {
 }
 function cancelScheduleAdd(el){
 	el.parentNode.parentNode.style.display='none'
+	document.getElementById('tt'+el.parentNode.parentNode.id.substr(8)).style.display='none';
+	console.log
+	$(`#drag${el.parentNode.parentNode.id.substr(8)}`)
+	.on('mouseenter', function(){		
+		document.getElementById(`tt${this.id.substr(4)}`).style.display ='block'		
+	})
+	.on('mouseleave', function(){		
+		document.getElementById(`tt${this.id.substr(4)}`).style.display ='none'		
+	})
 
 }
 function moveToScheduled(e, drop){

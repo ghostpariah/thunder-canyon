@@ -153,7 +153,7 @@ body {
 	padding-top: 5px;
 	text-align: center;
 	vertical-align: middle;
-	font-family: 'Arial Narrow';
+	font-family: Arial, Helvetica, sans-serif;
 	font-size:13px;
 	/*
 	border-left:2px solid #cecece;
@@ -198,7 +198,7 @@ body {
 #left {
 	width: 52%;
 	float: left;
-	
+	height:640px;
 	margin-top: 5px;
 }
 #middle {
@@ -301,28 +301,45 @@ margin-right: px;
 	background-color: #ad5e82;
 	float:left;
 }
+.glimpseHead{
+	width:100%;
+	background: #4d3394;
+	color: white;
+	
+}
+.glimpseItem{
+	margin: 3px;
+	padding: 2px;
+	float:left;
+	width:100%;
+	text-align: left;
+}
 .glimpseData{
-	width:90%;
-	height:100%;
+	width:100%;
+	
 	background:seashell;
-	font-family: 'Arial Narrow';
+	/* font-family: 'Arial Narrow'; */
 	float:left;
 	color:black;
 	text-align: center;
 	
+	
 }
 .colorBlock{
-	width:10%;
-	height:100%;
-	
+	font-size: 11px;
+	font-family:Arial, Helvetica, sans-serif;
+	border-radius: 25%;
+	color: white;
 	float:left;
+	padding:3px;
 }
 .glimpseCustomer{
-	width:100%;
+	width:85%;
 	float:left;
-	font-size: 15px;
+	font-size: 13px;
 	font-weight:bold;
-	color: #5e81ad;
+	color: black;
+	margin-left: 3px;
 }
 .glimpseDate{
 	width:100%;
@@ -581,7 +598,7 @@ div.lineItem:first-child{
 	padding: 2px 5px 7px 5px;
 	background-color:#335f94;
 	color:white;	
-	font-family: "Arial Narrow";
+	font-family:Arial, Helvetica, sans-serif;
 	cursor:pointer;
 }
 .legendButton:hover{
@@ -683,7 +700,7 @@ div.lineItem:first-child{
 .header {
 	width: 100%;
 	float: left;
-	font-family: "Arial Narrow";
+	font-family: Arial, Helvetica, sans-serif;
 	font-size: 18px;
 	font-weight: 550;
 	background-color: #5e81ad;
@@ -763,6 +780,7 @@ div.lineItem:first-child{
 
 .vehicle {
 	width: 100%;
+	
 	float: left;
 	background: white;
 	height: inherit;
@@ -791,7 +809,7 @@ div.lineItem:first-child{
 .info {
 	width: 90%;
 	float: left;
-	font-family: "Arial Narrow";
+	font-family: Arial, Helvetica, sans-serif;
 	text-align: center;
 	font-size: 12px;
 	background-repeat: no-repeat;
@@ -799,10 +817,11 @@ div.lineItem:first-child{
 	overflow: hidden;
   text-overflow: ellipsis;
 }
-.customerName{
-	font-size: 13px;
-	font-weight: bold;
-	text-transform: uppercase;
+.customerName {
+	
+	font-weight: 600;
+	
+	font-size: 12px;
 }
 
 .jobCat {
@@ -923,7 +942,7 @@ input {
 	/* margin-top: -400px; */
 	
 	max-width: 250px;
-	display: block;
+	display: inline-block;
 	z-index:4;
 }
 #wpuBoxHeader{
@@ -979,6 +998,7 @@ input {
 	overflow: auto;
 	overflow-x: auto;
 	
+	
 }
 .toolTipBottom {
 	display: none; /* NEW */
@@ -994,7 +1014,7 @@ input {
 	position: absolute;
 	z-index: 100000 !important;
 	max-width: 250px;
-	width: 200px;
+	width: 250px;
 	height: auto;
 	font-family: "Arial Narrow";
 	font-size: 16px;
@@ -1007,15 +1027,17 @@ input {
 	display: none; /* NEW */
 	background: white;
 	border: 1px solid black;
-	
-	margin-left: 115px;
+	/* margin-top: -50px; */
+	clear: both;
 	margin-top: -50px;
+	
+	
 	box-shadow: 5px 10px 18px #888888;
 	padding-left: 10px;
-	position: absolute;
-	z-index: 1000 !important;
+	position:absolute;
+	z-index: 10000 !important;
 	max-width: 250px;
-	width: 200px;
+	width: 250px;
 	height: auto;
 	font-family:"Arial Narrow";
 	font-size: 16px;
@@ -1118,7 +1140,8 @@ input {
 .upcomingBox{
 	margin:2px 0 0 2px;
 	width:97%;
-	height: 40px;
+	
+	/* height: 40px; */
 	border: 1px solid black;
 	float:left;
 }
@@ -1139,6 +1162,9 @@ input {
 	border: 1px solid #5e81ad;
 	float:left;
 	margin-left: 5px;
+	overflow-y: auto;
+	overflow-x: hidden;
+	font-family:Arial, Helvetica, sans-serif;
 }
 .viewButton{
 	float:left;
@@ -1254,7 +1280,7 @@ input {
 	display:none;
 	z-index: 10000;
 	width:300px;
-	height: 100px;
+	height: 120px;
 	background: #1b1a1a;
 	margin-left: 150px;
 	margin-top: -60px;

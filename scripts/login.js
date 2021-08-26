@@ -3,7 +3,7 @@
 //const ipc = remote.ipcRenderer
 //const pathLogin = require('path')
 //const urlLogin = require('url')
-
+let userID
 
 setTimeout(()=>{
     $('#user').trigger('click')
@@ -55,7 +55,7 @@ setTimeout(()=>{
             ma.innerHTML=""
             //alert(arg)
             let users = ipc.sendSync('get-users')
-            let userID=""           
+            userID =''          
                 
                 for(let member in users){
                     //console.log(users[member].user_name)
