@@ -24,7 +24,8 @@ const cbWaiting = document.getElementById('cbWaiting')
 const cbNoShow = document.getElementById('cbNoShow')
 const txtNotes = document.getElementById('txtNotes')
 let launcher
-
+//TODO: program currrent user being sent to here and then passed on with edit to main
+let currentUser
 window.onload = ()=>{
     
     
@@ -39,10 +40,11 @@ setTimeout(()=>{
 /**
  * handle communication from main
  */
-ipcEdit.on('edit-data', (event,args, args2)=>{
+ipcEdit.on('edit-data', (event,args, args2, args3)=>{
     console.log(args)
     editData =  args
 	launcher = args2
+	currentUser = args3
     setTimeout(() => {
         loadData(editData)
     }, 400);
@@ -383,16 +385,18 @@ function updateJob (){
 	let jt = document.getElementById('selJobType')
 
 	let objNewJob = new Object()
-	
+	let objChangeLog = new Object()
 	
 	
 	//build job object
 	objNewJob.job_ID = editData[0].job_ID
+	
     
 	if(txtCon.options[txtCon.selectedIndex].getAttribute("method")=="phone"){
         if(txtCon.options[txtCon.selectedIndex].id != editData[0].number_ID){
-			objNewJob.number_ID = txtCon.options[txtCon.selectedIndex].id
+			objNewJob.number_ID = txtCon.options[txtCon.selectedIndex].id			
 			objNewJob.email_ID = null
+			objChangeLog.number_ID = txtCon.options[txtCon.selectedIndex].id
 		}       
 		
 	}
@@ -400,35 +404,40 @@ function updateJob (){
         if(txtCon.options[txtCon.selectedIndex].id != editData[0].email_ID){
 			objNewJob.email_ID = txtCon.options[txtCon.selectedIndex].id
 			objNewJob.number_ID = null
+			objChangeLog.email_ID = txtCon.options[txtCon.selectedIndex].id
 		}      
 		
 	}
     if(editData[0].notes == null && txtNotes.value != null && txtNotes.value != ''){
         objNewJob.notes = txtNotes.value
+		objChangeLog.notes = txtNotes.value
     }
     if(editData[0].notes != null){
-        (editData[0].notes.localeCompare(txtNotes.value)!=0) 
-        ? objNewJob.notes = txtNotes.value
-        : '';
+        if(editData[0].notes.localeCompare(txtNotes.value)!=0){
+			objNewJob.notes = txtNotes.value
+			objChangeLog.notes = txtNotes.value
+		}
+       
     }
     
     
-	(Boolean(document.getElementById('cbCash').checked)!=Boolean(editData[0].cash_customer))
-    ? (document.getElementById('cbCash').checked == true)
-		? objNewJob.cash_customer = 1
-		: objNewJob.cash_customer = 0
-    : console.log('no change to cash');
-
+	if(Boolean(document.getElementById('cbCash').checked)!=Boolean(editData[0].cash_customer)){
+    	(document.getElementById('cbCash').checked == true)
+			? objNewJob.cash_customer = 1
+			: objNewJob.cash_customer = 0
+		objChangeLog.cash_customer = document.getElementById('cbCash').checked
+	}
     if(editData[0].estimated_cost!=null){
-        (editData[0].estimated_cost.localeCompare(txtCost.value)!=0)
-        ? objNewJob.estimated_cost = txtCost.value
-        : '';
+        if(editData[0].estimated_cost.localeCompare(txtCost.value)!=0){
+          objNewJob.estimated_cost = txtCost.value
+		  objChangeLog.estimated_cost = txtCost.value
+		}
     }
     
-    (editData[0].designation.localeCompare(designation.options[designation.selectedIndex].value)!=0)
-    ? objNewJob.designation = designation.options[designation.selectedIndex].value	
-    : console.log('not changed');
-    
+    if(editData[0].designation.localeCompare(designation.options[designation.selectedIndex].value)!=0){
+     	objNewJob.designation = designation.options[designation.selectedIndex].value	
+		objChangeLog.designation = designation.options[designation.selectedIndex].value
+	}
     let s
 	if(designation.options[designation.selectedIndex].value == "On the Lot"){		
 		s = "wfw" 		
@@ -436,14 +445,17 @@ function updateJob (){
         s = "sch"
     }
 
-    (editData[0].status.localeCompare(s)!=0 && launcher == 'move')
-    ? objNewJob.status = s
-    :'';
+    if(editData[0].status.localeCompare(s)!=0 && launcher == 'move'){
+		objNewJob.status = s
+	}
+    
 
     if(editData[0].date_scheduled != null){
-        (editData[0].date_scheduled.localeCompare(document.getElementById('datepicker').value)!=0)
-        ? objNewJob.date_scheduled = document.getElementById('datepicker').value
-        :'';
+        if(editData[0].date_scheduled.localeCompare(document.getElementById('datepicker').value)!=0){
+          objNewJob.date_scheduled = document.getElementById('datepicker').value
+		  
+        
+		}
     }
     if(editData[0].julian_date != null){
         (editData[0].julian_date===jDate(document.getElementById('datepicker').value))
@@ -460,9 +472,14 @@ function updateJob (){
 		
 	
     if(txtUnit.value.trim().length){
-        (editData[0].unit.localeCompare(txtUnit.value)!=0)
-        ? objNewJob.unit = txtUnit.value
-        : '';
+		if(editData[0].unit!= null && editData[0].unit!= undefined){
+			(editData[0].unit.localeCompare(txtUnit.value)!=0)
+				? objNewJob.unit = txtUnit.value
+				: '';
+		}else{
+			objNewJob.unit = txtUnit.value
+		}
+        
     }
 	
 	(editData[0].job_type.localeCompare(jt.options[jt.selectedIndex].value)!=0)
@@ -507,7 +524,7 @@ function updateJob (){
 	
 	console.log('object length is '+Object.keys(objNewJob))
     if(Object.keys(objNewJob).length>1){
-	    ipcEdit.send('update-job',objNewJob)
+	    ipcEdit.send('update-job',objNewJob, currentUser)
     }else{
 		ipcEdit.send('close-window')
 	}

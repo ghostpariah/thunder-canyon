@@ -1,6 +1,6 @@
 body{
     background-color: #1b1a1a;
-    width: 525px;
+    width: 520px;
     color:white;
     font-family: 'Arial Narrow'
     
@@ -11,7 +11,7 @@ form{
 }
 #buttonBox{
     float:left;
-    width:100%;
+    width:95%;
     height: 50px;
 }
 .buttons{
@@ -32,11 +32,11 @@ form{
 .wrapper{
     float:left;
     display:none;
-    width:525px;
+    width:500px;
 }
 h3{
     text-align: center;
-    width:100%;
+    width:95%;
 }
 .-user-input-text{
     border:1px solid aliceblue;
@@ -71,7 +71,7 @@ h3{
 #-message-area{
     color:yellowgreen;
     text-align: center;
-    width: 100%;
+    width: 95%;
     font-size:1.25em;
 }
 #lsDiv{

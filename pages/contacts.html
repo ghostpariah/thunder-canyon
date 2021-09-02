@@ -716,6 +716,7 @@
         if (inpEmail.value != "") {
           data.email = inpEmail.value;
         }
+        data.active = 1
         data.customer_ID = conIPC.sendSync("get-customer-ID", inpCompany.value); //document.getElementById('currentContacts').firstChild.id.substr(4)
         let itemID = conIPC.sendSync("db-contact-add", data);
         console.log(pageLauncher);
@@ -899,6 +900,7 @@
                 }           
         }
         jobs.onCurrentJob = (count>0)?true:false;
+        jobs.jobCount = count
         //alert(count)
         return jobs
       }
@@ -936,14 +938,14 @@
 
           //determine whether an item is being added or edited
           if (at == "add") {
-            //TODO: processing of data if adding an item. determine if email or phone and process
+            
             let objAdd = new Object();
             objAdd.contact_ID = id;
             objAdd.text = saveButton.parentNode.firstChild.value;
             objAdd.active = 1
             conIPC.send(`add-${cm}`, objAdd);
           } else if (at == "edit") {
-            //TODO: determine if edit is email, phone, or contact name and process
+            
             let objEdit = new Object();
             objEdit.id = id;
             objEdit.text = saveButton.parentNode.firstChild.value;
@@ -1102,7 +1104,7 @@
            * If edit chosen open the edit job window. Add to each delete
           **/
           linkEl2.addEventListener("click", () => {
-            //alert("your mom delete")
+            
             toggleActionLinkVisibility("on");
             let p = event.target.parentNode.id;
             let gp = event.target.parentNode.parentNode.id;
@@ -1112,15 +1114,15 @@
 
             arrDel.method = p.substr(0, 1);
             arrDel.contact_ID = p.substr(1);
-            //console.log(arrDel);
+            console.log()
 
-            conIPC.send("delete-item", arrDel);
+            //conIPC.send("delete-item", arrDel);
             setTimeout(() => {
               pullContacts(gp.substr(4));
             }, 100);
           });
           wholeCompanyList.appendChild(li);
-          //li.appendChild(text)
+         
           li.appendChild(spanFirstName);
           li.appendChild(spanLastName);
           li.appendChild(linkEl1);
@@ -1146,7 +1148,7 @@
             `${cont[member].contact_ID}pnHeaderEditLink`
           );
           pnHeaderLinkBox.addEventListener("click", () => {
-            //TODO: create input to add new number
+            
             toggleActionLinkVisibility("on");
             //remove open created input for add
             if (document.getElementById("addCreatedListItem") != null) {
@@ -1166,7 +1168,7 @@
               newListItem,
               event.target.nextSibling
             );
-            //console.log(event.target.nextSibling.id)
+            
             event.target.nextSibling.firstChild.focus();
           });
           nUl.appendChild(pnHeaderLinkBox);
@@ -1250,26 +1252,43 @@
               toggleActionLinkVisibility("on");
               let p = event.target.parentNode.id;
               let gp = event.target.parentNode.parentNode.id;
-              let gggp =
-                event.target.parentNode.parentNode.parentNode.parentNode.id;
+              let gggp = event.target.parentNode.parentNode.parentNode.parentNode.id;
               let arrDel = new Object();
               arrDel.companyID = gggp.substr(4);
               arrDel.contactID = gp.substr(6);
               arrDel.method = p.substr(0, 1);
               arrDel.methodID = p.substr(1);
-              //console.log(arrDel);
-              //console.log(checkJobsForItem(arrDel))
+              
               let jobs = checkJobsForItem(arrDel)
-              console.log(JSON.stringify(jobs))
+              let a = new Array()
               let currentlyOnJob = jobs.onCurrentJob
               if(currentlyOnJob){
-                let x =confirm("Item is currently being used on an active job. Click 'OK' to edit the job or 'cancel' to cancel delete");
-                if(x){
-                    alert(x)
-                    conIPC.send('open-edit',jobs, 'contacts page')
+                let x
+                if(jobs.jobCount>1){
+                   x =confirm("Item is currently connected to active jobs. Click 'OK' to change job contact");
+                }else{
+                 x =confirm("Item is currently connected to an active job. Click 'OK' to change job contact");
+                }
+                if(x){  
+                    conIPC.send('reset-edit-window-count')
+                    if(jobs.jobCount==1){               
+                      conIPC.send('open-edit',jobs, 'contacts page')
+                    }else{
+                      
+                      let c = 0
+                      
+                      let newWindow = setInterval(() => {
+                        a.pop()
+                        a.push(jobs[c])
+                        conIPC.send('open-edit',a, 'contacts page')
+                        c++
+                        if(c==jobs.length){clearInterval(newWindow)}
+                      }, 200);
+                    }
+                    
                 }
               }else{
-                //let x =confirm("Item can be deleted.");
+                
                 conIPC.send("delete-item", arrDel);
               }
               
@@ -1308,7 +1327,7 @@
             `${cont[member].contact_ID}eHeaderEditLink`
           );
           eHeaderLinkBox.addEventListener("click", () => {
-            //TODO: create input to add new number
+            
             toggleActionLinkVisibility("on");
 
             //remove open created input for add
@@ -1406,18 +1425,35 @@
               arrDel.contactID = gp.substr(6);
               arrDel.method = p.substr(0, 1);
               arrDel.methodID = p.substr(1);
-              //console.log(arrDel);
-              console.log(checkJobsForItem(arrDel))
+              
               let jobs = checkJobsForItem(arrDel)
-              console.log(JSON.stringify(jobs))
+              let a = new Array()
               let currentlyOnJob = jobs.onCurrentJob
               if(currentlyOnJob){
-                let x =confirm("Item is currently being used on an active job. Click 'OK' to edit the job or 'cancel' to cancel delete");
-                if(x){
-                    conIPC.send('open-edit',jobs, 'contacts page')
+                let x
+                if(jobs.jobCount>1){
+                   x =confirm("Item is currently connected to active jobs. Click 'OK' to change job contact");
+                }else{
+                 x =confirm("Item is currently connected to an active job. Click 'OK' to change job contact");
+                }
+                if(x){  
+                    conIPC.send('reset-edit-window-count')
+                    if(jobs.jobCount==1){               
+                      conIPC.send('open-edit',jobs, 'contacts page')
+                    }else{                      
+                      let c = 0                      
+                      let newWindow = setInterval(() => {
+                        a.pop()
+                        a.push(jobs[c])
+                        conIPC.send('open-edit',a, 'contacts page')
+                        c++
+                        if(c==jobs.length){clearInterval(newWindow)}
+                      }, 200);
+                    }
+                    
                 }
               }else{
-                //let x =confirm("Item can be deleted.");
+                
                 conIPC.send("delete-item", arrDel);
               }
               setTimeout(() => {

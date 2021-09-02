@@ -598,7 +598,7 @@ function addJob (){
 	console.log(objNewJob)
 	//addNewVehicle()
 	//addNewJobToCustomer(company_ID)
-	ipc.send('add-job',objNewJob)
+	ipc.send('add-job',objNewJob,currentUser)
 
 
 }

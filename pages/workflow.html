@@ -62,7 +62,7 @@
                             </div>
                             <div id="wpuBox" class="waitingForParts">
                                     <div id="wpuBoxHeader" class="header">
-                                        <div id='t' ><img onclick='deleteCompletedJobs()' src="../images/trashCanIcon.svg" width="25" height="25"> </object></div>
+                                        <div id='t' ondrop="deleteDrop(event)" ondragover="allowDrop(event)"><img onclick='deleteCompletedJobs()' src="../images/trashCanIcon.svg" width="25" height="25"> </object></div>
                                         Completed Jobs
                                         <div class="closeButton" onclick="closeBox(event,this)">X</div>                                        
                                     </div>
@@ -268,10 +268,7 @@
 							<div class="job" id="wfw58" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
 							<div class="job" id="wfw59" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
 							</div>
-						<!--<div class="job" id="wfw48" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
-						<div class="job" id="wfw49" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
-						<div class="job" id="wfw50" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
-						-->
+						
 					</div>
 
 				</div>

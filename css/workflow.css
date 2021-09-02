@@ -26,18 +26,21 @@
 	}
   }
 */
-html, body {
+ html, body {
     height: 100%;
-}
+} 
 
 html {
     display: table;
     margin: auto;
+	
 }
 
 body {
     display: table-cell;
     vertical-align: middle;
+	overflow: visible;
+	
 }
 #wpuJobContainer{
 	padding-left: 7px;
@@ -951,7 +954,8 @@ input {
 #wpuBox{
 	box-shadow: 5px 10px 18px #888888;
 	top:350px;
-	left: 1200px;
+	left: 1100px;
+	border:1px solid #335f94;
 }
 #wpuBox .job{
 	width:150px;
@@ -1159,7 +1163,7 @@ input {
 .ucWrapper{
 	width:95%;
 	height:500px;
-	border: 1px solid #5e81ad;
+	/* border: 1px solid #5e81ad; */
 	float:left;
 	margin-left: 5px;
 	overflow-y: auto;
