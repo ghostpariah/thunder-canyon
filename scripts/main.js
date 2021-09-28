@@ -917,7 +917,7 @@ function createMainWindow(){
     win = new BrowserWindow({
         width: 1650,
         height: 900,        
-        icon: path.join(__dirname, '/images/logo.ico'),
+        icon: path.join(__dirname, '/images/icon.png'),
         
         
         webPreferences: {

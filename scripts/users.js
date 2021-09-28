@@ -51,6 +51,7 @@ function deleteUser(args){
     users = ipcUser.sendSync('delete-user', id)	
     fillSections(users)
 }
+//TODO: program a password reset
 function resetUser(args){
 
 }

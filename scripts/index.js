@@ -34,7 +34,8 @@ let accessGrantedContent
 
 let allJobs
 let currentUser
-
+let scheduledSpots
+let wpuSpots
 window.onload = () =>{
 	 
 	allJobs = ipc.sendSync('pull_jobs')
@@ -69,7 +70,8 @@ ipc.on('update', (event, args)=>{
 	 ipc.send('open-contacts', 'main page')//,undefined,undefined,undefined,undefined,undefined,'directButton')
  }
  function openCalendar(){
-	 ipc.send('open-calendar')
+	 
+	 ipc.send('open-calendar',currentUser)
 	 	
  }
  function jDate(ds){
@@ -147,7 +149,7 @@ var vehicles = {
 	POS : [],
 	NPU : []
 };
-const wpuBucket =["wpu0","wpu1","wpu2","wpu3","wpu4","wpu5","wpu6","wpu7","wpu8","wpu9","wpu10","wpu11","wpu12","wpu13","wpu14","wpu15","wpu16","wpu17","wpu18","wpu19"];
+//const wpuBucket =["wpu0","wpu1","wpu2","wpu3","wpu4","wpu5","wpu6","wpu7","wpu8","wpu9","wpu10","wpu11","wpu12","wpu13","wpu14","wpu15","wpu16","wpu17","wpu18","wpu19"];
 let companyList = []	
 var iframeReportData = [];
 //iframe for printing
@@ -308,11 +310,10 @@ function freshStyle(stylesheet){
 	}
 	//determine how many spots to create in container. Creating an extra two rows for flexibility
 	spotsNeeded = Math.ceil((arrCompleted.length/2)+2)*2
-	
+	wpuSpots = spotsNeeded
 	//remove any elements that are already in the wpu container
 	if(wpuJobContainer.hasChildNodes()){
-		console.log(wpuJobContainer.childNodes)
-		console.log('spotsNeeded is: '+spotsNeeded)
+		
 		while(wpuJobContainer.hasChildNodes()){
 			wpuJobContainer.childNodes[0].remove()
 		}
@@ -363,10 +364,9 @@ function fillScheduleGlimpse(args){
 	/**
 	 * create job containers for view all
 	 */
-	//console.log()
-	//console.log("rows is: "+ arrScheduledStatus.length % 5 )
+	
 	let spotsNeeded = Math.ceil((arrScheduledStatus.length/5)+2)*5
-	///console.log(spotsNeeded)
+	scheduledSpots = spotsNeeded
 	if(schJobContainer.hasChildNodes()){
 		console.log(schJobContainer.childNodes)
 		console.log('spotsNeeded is: '+spotsNeeded)
@@ -410,17 +410,17 @@ function fillScheduleGlimpse(args){
 		return result;
 	  })
 	let arrSD = groupByKey(x,'date_scheduled')
-	//console.log(arrSD.length)
+	
 	
 	let k = Object.keys(arrSD)
 	let v = Object.values(arrSD)
-	console.log(v.length)
-	//console.log(JSON.stringify(arrSD,"","\t"))
+	
+	
 	let glimpse
 	let head
 	let tDate
 	let data
-	//j<theAmount of days that will fit
+	
 	for(j=0;j<k.length;j++){
 		glimpse = document.createElement('div')
 		glimpse.setAttribute('class', 'upcomingBox')
@@ -433,7 +433,7 @@ function fillScheduleGlimpse(args){
 		head.appendChild(hText)
 		glimpse.appendChild(head)
 		for(i=0;i<v[j].length;i++){
-			console.log(k[j]+' '+v[j][i].job_ID)
+			
 			data = document.createElement('div')
 			data.setAttribute('class', 'glimpseData')
 			let schedItem = document.createElement('div')
@@ -563,7 +563,7 @@ function countStatuses(){
 	completedCount = 0
 	let shopCount = 0
 	countStatusesCalled+=1
-	console.log('countStatuses() has been called '+countStatusesCalled+ ' times')
+	
 	
 	for (let job in allJobs){ 
 		if(allJobs[job].status != 'sch'){totalCount+=1} 
@@ -1358,14 +1358,14 @@ function drop(ev) {
 	
 
 	countStatuses();
-	loadJobs(reloadedJobs)
+	//loadJobs(reloadedJobs)
 	}
 }
 
 
 
 function openLoginWindow(){
-	console.log(document.getElementById('btnLogin').innerHTML)
+	
 	if(!loggedIn){
 		
 		loggedIn = true
@@ -1575,10 +1575,14 @@ function submitted() {
 //test filling page with new json object
 function placeElement(args){
 	
-	let placement = args.shop_location == null || args.shop_location == '' ? findOpenSpace(args) : makeJobDiv2(args)
+	let placement = (args.shop_location != null && args.shop_location != '') ? makeJobDiv2(args) : findOpenSpace(args) 
 	
 	if(placement !=null) {
+		try{
 		document.getElementById(args.shop_location).innerHTML = placement
+		}catch(e){
+			console.log(e)
+		}
 	}
 	if(args.cash_customer==1){document.getElementById('jica'+args.job_ID).style.display = 'inline-block'};
 	if(args.waiting_customer===1){document.getElementById('jiw'+args.job_ID).style.display = 'inline-block'};
@@ -1589,6 +1593,7 @@ function placeElement(args){
 	
 }
 function findOpenSpace(args){
+	console.log('findOpen triggered')
 	let usedLocation = []
 	for(member in allJobs){
 		usedLocation.push(allJobs[member].shop_location)
@@ -1605,9 +1610,17 @@ function findOpenSpace(args){
 	let alignmentBucket = ["wfw24", "wfw25", "wfw26", "wfw27", "wfw28", "wfw29", "wfw30", "wfw31", "wfw32", "wfw33", "wfw34", "wfw35"];
 	let kingpinBucket = ["wfw36", "wfw37", "wfw38", "wfw39", "wfw40", "wfw41", "wfw42", "wfw43", "wfw44", "wfw45", "wfw46", "wfw47"];
 	let frameBucket =["wfw48", "wfw49", "wfw50", "wfw51", "wfw52", "wfw53", "wfw54", "wfw55", "wfw56", "wfw57", "wfw58", "wfw59"];
-	let wpuBucket =["wpu0","wpu1","wpu2","wpu3","wpu4","wpu5","wpu6","wpu7","wpu8","wpu9","wpu10","wpu11","wpu12","wpu13","wpu14","wpu15","wpu16","wpu17","wpu18","wpu19"];
-	let schBucket =["sch0","sch1","sch2","sch3","sch4","sch5","sch6","sch7","sch8","sch9","sch10","sch11","sch12","sch13","sch14","sch15","sch16","sch17","sch18","sch19"];
-	
+	//let wpuBucket =["wpu0","wpu1","wpu2","wpu3","wpu4","wpu5","wpu6","wpu7","wpu8","wpu9","wpu10","wpu11","wpu12","wpu13","wpu14","wpu15","wpu16","wpu17","wpu18","wpu19"];
+	//let schBucket =["sch0","sch1","sch2","sch3","sch4","sch5","sch6","sch7","sch8","sch9","sch10","sch11","sch12","sch13","sch14","sch15","sch16","sch17","sch18","sch19"];
+	let wpuBucket = []
+	let schBucket = []
+	for(i=0;i<scheduledSpots;i++){
+		schBucket.push(`sch${i}`)
+	}
+	for(i=0;i<wpuSpots;i++){
+		wpuBucket.push(`wpu${i}`)
+	}
+
 	if(js != "sch" && js!= "wpu" && js != 'SCH'){
 	newBucket = jt == "Spring" ? springBucket : (jt == "Alignment") ? alignmentBucket :(jt == "Frame") ? frameBucket : (jt=="King Pin") ? kingpinBucket : checkallBucket 
 	}else{
@@ -1619,12 +1632,10 @@ function findOpenSpace(args){
 	
 	for(let i=0;i<bucket.length;i++){
 		
-		if(usedLocation.indexOf(bucket[i])<0){
-			
+		if(usedLocation.indexOf(bucket[i])<0){			
 			args.shop_location = bucket[i]
 			break;
-		}
-		
+		}		
 		
 	}
 	
@@ -2273,7 +2284,7 @@ function getEditVehicle(e,x) {
 				objNoshow.job_ID = x[0].job_ID
 				objNoshow.no_show = 1
 				objNoshow.active = 0
-				ipc.send('update-job',objNoshow)
+				ipc.send('update-job',objNoshow, 'context-menu', currentUser)
 				e.remove()
 			})
 
@@ -2289,10 +2300,12 @@ function getEditVehicle(e,x) {
 				objLot.job_ID = x[0].job_ID
 				objLot.shop_location = ''
 				objLot.status = 'wfw'
-				ipc.send('update-job',objLot)
+				objLot.designation = 'On the Lot'
+				objLot.date_in = todayIs()
+				ipc.send('update-job',objLot, 'context-menu', currentUser)
 				e.remove()
 			})
-			item4Text = document.createTextNode('CANCEL')			
+			item4Text = document.createTextNode('CANCEL APPT')			
 			item4Box.appendChild(item4Text)
 			item4Box.setAttribute('class','item')
 			item4Box.setAttribute('id','send'+e.id.substr(4))
@@ -2300,7 +2313,12 @@ function getEditVehicle(e,x) {
 				menuBox.style.display = 'none'
 				document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
 				//alert(e.id.substr(4))
-				ipc.send('delete-scheduled',e.id.substr(4), currentUser)
+				objCancel = new Object()
+				objCancel.job_ID = x[0].job_ID
+				objCancel.cancelled = 1
+				objNoshow.active = 0
+				ipc.send('update-job',objCancel, "context-menu",currentUser)
+				
 				e.remove()
 			})
 			menuBox.appendChild(item1Box)

@@ -937,8 +937,7 @@
           }
 
           //determine whether an item is being added or edited
-          if (at == "add") {
-            
+          if (at == "add") {            
             let objAdd = new Object();
             objAdd.contact_ID = id;
             objAdd.text = saveButton.parentNode.firstChild.value;
@@ -1052,7 +1051,7 @@
           spanLastName.setAttribute("class", "contactName");
           let spanLastNameText =
             cont[member].last_name != null
-              ? document.createTextNode(cont[member].last_name)
+              ? document.createTextNode(cont[member].last_name+' hello')
               : document.createTextNode("");
           spanLastName.appendChild(spanLastNameText);
           let linkEl1 = document.createElement("span");
@@ -1116,7 +1115,7 @@
             arrDel.contact_ID = p.substr(1);
             console.log()
 
-            //conIPC.send("delete-item", arrDel);
+            
             setTimeout(() => {
               pullContacts(gp.substr(4));
             }, 100);
@@ -1242,12 +1241,7 @@
             let pnDeleteLinkText = document.createTextNode(" delete");
             pnDeleteLinkBox.appendChild(pnDeleteLinkText);
             pnDeleteLinkBox.setAttribute("class", "actionLink");
-            //FIXME: URGENT add a verification that the item is not included on a current job
-          /**
-           * an error was thrown when main.js was trying to pull contact info for the job
-           * when the email had been deleted by the user. Add popup that tells user to edit contact on the job or cancel delete
-           * If edit chosen open the edit job window. Add to each delete
-          **/
+            
             pnDeleteLinkBox.addEventListener("click", (event) => {
               toggleActionLinkVisibility("on");
               let p = event.target.parentNode.id;
@@ -1408,12 +1402,7 @@
             let eDeleteLinkText = document.createTextNode(" delete");
             eDeleteLinkBox.appendChild(eDeleteLinkText);
             eDeleteLinkBox.setAttribute("class", "actionLink");
-            //FIXME: URGENT add a verification that the item is not included on a current job
-          /**
-           * an error was thrown when main.js was trying to pull contact info for the job
-           * when the email had been deleted by the user. Add popup that tells user to edit contact on the job or cancel delete
-           * If edit chosen open the edit job window. Add to each delete
-          **/
+           
             eDeleteLinkBox.addEventListener("click", (event) => {
               toggleActionLinkVisibility("on");
               let p = event.target.parentNode.id;

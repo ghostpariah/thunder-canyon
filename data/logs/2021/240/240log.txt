@@ -1,4 +1,0 @@
-ACTION:Moved Job job_ID:29 User ID: undefined 
-ACTION:Moved Job job_ID:29 User ID: undefined 
-ACTION:Moved Job job_ID:29 User ID: [object Object] 
-ACTION:Moved Job job_ID:29 User ID: 1 

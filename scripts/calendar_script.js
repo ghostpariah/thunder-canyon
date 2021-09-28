@@ -7,38 +7,45 @@ let day = date.getDate();
 let month = date.getMonth() + 1;
 let year = date.getFullYear();
 //let today = month + "/" + day + "/" + year;
-    var d = new Date();
-    var month_name=['January','February','March','April','May','June','July','August','September','October','November','December'];
-    var monthIndex = d.getMonth();// 0-11
-    var thisYear = d.getFullYear();// xxxx
-    var today = d.getDate();
-    var thisMonth = month_name[monthIndex];
-    //var first_day = month_name[monthIndex]+" "+ 1 + " "+ thisYear;
-    //var firstDay = new Date(year, monthIndex).getDay();//use monthIndex+1 to get the next month etc
-    var nYear = new Date(new Date().setFullYear(new Date().getFullYear() + 1)); 
-    var lYear = new Date(new Date().setFullYear(new Date().getFullYear() - 1));   
-    var nextYear = nYear.getFullYear();
-    var lastYear = lYear.getFullYear();
-    var firstDay;
-    var selectedYear;
-    var totalBlocks;
-    var daysBefore;
-    var daysAfter;
-    var inc;
-    var dayOfYear={
-        January : 31,
-        February : 29,
-    };
-    var dayHolder=[];
+var d = new Date();
+var month_name=['January','February','March','April','May','June','July','August','September','October','November','December'];
+var monthIndex = d.getMonth();// 0-11
+var thisYear = d.getFullYear();// xxxx
+var today = d.getDate();
+var thisMonth = month_name[monthIndex];
+//var first_day = month_name[monthIndex]+" "+ 1 + " "+ thisYear;
+//var firstDay = new Date(year, monthIndex).getDay();//use monthIndex+1 to get the next month etc
+var nYear = new Date(new Date().setFullYear(new Date().getFullYear() + 1)); 
+var lYear = new Date(new Date().setFullYear(new Date().getFullYear() - 1));   
+var nextYear = nYear.getFullYear();
+var lastYear = lYear.getFullYear();
+var firstDay;
+var selectedYear;
+var totalBlocks;
+var daysBefore;
+var daysAfter;
+var inc;
+var dayOfYear={
+    January : 31,
+    February : 29,
+};
+var dayHolder=[];
+let currentUser
+//alert(firstDay);
+var daysInMonth= function (month,year){
     
-    //alert(firstDay);
-    var daysInMonth= function (month,year){
-        
-        return 32 -new Date(thisYear,month,32).getDate();
-    };
+    return 32 -new Date(thisYear,month,32).getDate();
+};
+calIPC.on('opened', (event,args)=>{
+    currentUser = args
+    
+})
 calIPC.on('load-calendar', (event,args)=>{
     resetCalendar();
     setCalendarMonth();    
+})
+calIPC.on('refresh', (event,args)=>{
+    calendarLoad()
 })
 function loadCalendar(){
     //resetCalendar()
@@ -49,11 +56,11 @@ function reloadCalender(){
     clearDays();
     clearDayBlocks();
     createDayBlocks();
-    fillDays();
+    fillDays(thisYear);
 }
 function calendarLoad(){
-    //clearDays(); 
-    //clearDayBlocks();
+    clearDays(); 
+    clearDayBlocks();
     createDayBlocks();
        
     setFirstDay(thisYear);
@@ -85,6 +92,14 @@ function setToday(){
         document.getElementById("dayNumber"+t).style.background='#803b3b'//"#fa9600";//rgb(78, 77, 77)";
         document.getElementById("dayNumber"+t).style.color="white";
     }
+}
+function todayIs() {
+	const objDate = new Date();
+	const day = objDate.getDate();
+	const month = objDate.getMonth() + 1;
+	const year = objDate.getFullYear();
+	const today = month + "/" + day + "/" + year;
+	return today;
 }
 function setFirstDay(y){
     var year = y;
@@ -143,7 +158,13 @@ function fillDays(y){
         }
         am.setAttribute("id","am"+cell);
         am.ondblclick = function(){
-            scheduleJob(this);
+            //alert('Month index = '+monthIndex+' Month is: '+m+' days in month = '+dim)
+            let objCalData = new Object()
+            objCalData.launcher = 'calendar'
+            objCalData.time_of_day = 'am'
+            objCalData.date_scheduled = `${monthIndex+1}/${this.parentNode.firstChild.innerHTML}/${year}`
+            calIPC.send('open-add-job', currentUser, objCalData)
+            //scheduleJob(this);
         };
         
         document.getElementById("dayBlock"+cell).appendChild(am);
@@ -155,7 +176,11 @@ function fillDays(y){
         }
         pm.setAttribute("id","pm"+cell);
         pm.ondblclick = function(){
-            scheduleJob(this);
+            let objCalData = new Object()
+            objCalData.launcher = 'calendar'
+            objCalData.time_of_day = 'pm'
+            objCalData.date_scheduled = `${monthIndex+1}/${this.parentNode.firstChild.innerHTML}/${year}`
+            calIPC.send('open-add-job', currentUser, objCalData)
         };
         document.getElementById("dayBlock"+cell).appendChild(pm);
         var j;
@@ -507,63 +532,56 @@ function makeDayBlocksVisible(){
     }
 }
 function createDayBlocks(){
-    //alert("createDayBlocks triggered");
+    
     totalBlocks = weekCount(selectedYear || thisYear, monthIndex+1)*7;
-    //alert(totalBlocks);
+    
     for(i=0;i<totalBlocks;i++){
-        //alert(i);
-        //var cell= i+firstDay;
+        
         var db = document.createElement('div');
         db.setAttribute("id","dayBlock"+i);
-        db.setAttribute("class","day-block");
-        // db.onmouseenter = function(event){
-        //     if(document.getElementById('jobWallet')){
-        //     $('#jobWallet').remove();
-        //     }
-        // };
-        db.onmouseover = function(event){
+        db.setAttribute("class","day-block");        
+        db.onmouseenter = function(event){
             event.stopPropagation();
-            if(this.childNodes.length>1){
-                for(i=0;i<this.childNodes.length;i++){
-                    if(this.childNodes[i].hasChildNodes()){
-                        //alert(this.id);
-                        for(j=1;j<this.childNodes[i].childNodes.length;j++){
-                            //alert(this.childNodes[i].childNodes.length);
-                            if(this.childNodes[i].childNodes[j].style.visibility=="visible"){
-                                if(document.getElementById("jobWallet")){
-                                       //$('#jobWallet').remove();
-                                }else{
-                                showJobs(this);
-                                makeCalenderJobContainers(this);
-                                //var bounding=this.getBoundingClientRect();
-                                }
-                                break;
-                            }
-                            
+
+            let validDay = (this.childNodes.length>1)? true: false;            
+            let children = this.childNodes
+
+            //if jobwallet already open somewhere, close it
+            if(document.getElementById("jobWallet")){
+                $('#jobWallet').remove();
+            }           
+            
+            //check if day has jobs
+            let hasJobs = function(){
+                let result
+                let count = 0
+                
+                if(validDay){
+                    for( var grandChild=children[1].firstChild; grandChild!==null; grandChild=grandChild.nextSibling){
+                        if (grandChild.style.visibility == 'visible'){
+                            count+=1
                         }
                     }
+                    for( var grandChild=children[2].firstChild; grandChild!==null; grandChild=grandChild.nextSibling){
+                        if (grandChild.style.visibility == 'visible'){
+                            count+=1
+                        }
+                    }
+                    result = (count>0) ? true : false
+                        
                 }
-                
-                //if(this.childNodes[1].hasChildNodes() && this.childNodes[2].hasChildNodes()){
-                //showJobs(this);
-                //}
-            }
-            };
-        db.onmouseout = function(event){
-            event.stopPropagation();
-            event.preventDefault();
-            if(document.getElementById('jobWallet')){
-                if(event.relatedTarget==null || event.relatedTarget.id != "jobWallet" && 
-                !event.target.parentNode.contains(event.relatedTarget)&& event.target.className != "calJobContainer"&&
-                !event.relatedTarget.parentNode.contains(event.target)){
-                   
-                    $('#jobWallet').remove();
-                }
+                return result
+            } 
+            
+            //show jobwallet tooltip if there are jobs for the day
+            if(hasJobs()){           
+                showJobs(this);
+                makeCalenderJobContainers(this);           
             }
         }
-        //db.setAttribute("data-Julian","");
+          
+        
         document.getElementById("calendar-days-container").appendChild(db);
-        //var bounding=document.getElementById("dayBlock"+i).getBoundingClientRect();
         
         var dn =document.createElement('div');
         dn.setAttribute("id","dayNumber"+i);
@@ -571,16 +589,13 @@ function createDayBlocks(){
         document.getElementById("dayBlock"+i).appendChild(dn);
         
         
-        //document.getElementById("dayBlock"+i).innerHTML=i+1;
+        
     }
-   // document.getElementById("dayBlock0").setAttribute("data-hello","I like fries");
-   // alert(document.getElementById("dayBlock0").getAttribute("data-hello"));
+  
 }
 function jDate(ds){
-    //console.log(ds)
 
-    var ds = ds;    
-    
+    var ds = ds;
     var dayScheduled = new Date(ds);
     var julian= Math.ceil((dayScheduled - new Date(dayScheduled.getFullYear(),0,0)) / 86400000);
     
@@ -595,7 +610,7 @@ function days_of_a_year(year)
 function isLeapYear(year) {
      return year % 400 === 0 || (year % 100 !== 0 && year % 4 === 0);
 }
-//var dayholder=[];
+
 function createDayHolders(){
     
     for(i=0;i<days_of_a_year(selectedYear)-1;i++){
@@ -635,27 +650,15 @@ function resetSCHcounts(){
     //alert(dayHolder[168].pm.kingpinCount);
 }
 function showJobs(e){
-    //alert(e.id);
-    
-    
-    var element = e;
-    
-    
-    var bounding=element.getBoundingClientRect();
-    //alert(bounding.top + " "+window.innerHeight);
 
-    var schJobWallet = document.createElement("div");
-    
-        schJobWallet.setAttribute("class","jobWallet");
-        //schJobWallet.style.top="-500px";
-        //schJobWallet.style.position = "absolute";
-       // schJobWallet.style.bottom="30px";
-    
+    var element = e;
+    var schJobWallet = document.createElement("div");    
+    schJobWallet.setAttribute("class","jobWallet");    
     schJobWallet.setAttribute("id","jobWallet");
     element.appendChild(schJobWallet);
-    //document.getElementById("jobWallet").style.top="-100px;"
-    //alert($("#jobWallet").position().top);
+    
 }
+
 var thisDaysSchJobs=[];
 function makeCalenderJobContainers(e){
     
@@ -707,18 +710,19 @@ function makeCalenderJobContainers(e){
         let jcNotes = thisDaysSchJobs[j].notes;        
         let jcUnitNumber = thisDaysSchJobs[j].unit;
         let jcWaiting = thisDaysSchJobs[j].waiting;
+        let jcJobID = thisDaysSchJobs[j].job_ID
        
     var jobContainer = document.createElement('div');
     jobContainer.setAttribute("id","jobContainer"+j);
     jobContainer.setAttribute("class", "calJobContainer");
-    //jobContainer.setAttribute("data-recordNumber", thisDaysSchJobs[j].id);
+    jobContainer.setAttribute("job-id", jcJobID);
     jobContainer.onclick = function (event){
         if(event.target.tagName.toLowerCase() === 'a'){
             
           } else {
             event.stopPropagation()
-        event.target.className = (event.target.className == 'explode')?event.target.className= 'calJobContainer':event.target.className = 'explode';
-       
+        //event.target.className = (event.target.className == 'explode')?event.target.className= 'calJobContainer':event.target.className = 'explode';
+            //alert(jcJobID)
           }
         
         
@@ -747,9 +751,14 @@ function makeCalenderJobContainers(e){
     */
 
     //job_type should be customer name. just used job_type to test
-    jobContainer.innerHTML=
-    "<a class='customerName'>"+thisDaysSchJobs[j].customer_name.toUpperCase()+
-    "</a><br/>" + "Unit #: "+thisDaysSchJobs[j].unit+"<br/>"+thisDaysSchJobs[j].notes;
+    let cuN = "<b class='customerName'>"+thisDaysSchJobs[j].customer_name.toUpperCase()+'</b><br/>'
+    let u = (thisDaysSchJobs[j].unit == null || thisDaysSchJobs[j].unit == '')?'': '<b>Unit: </b>'+thisDaysSchJobs[j].unit+'</br>'
+    let jcJT = thisDaysSchJobs[j].job_type.toUpperCase()
+    jobContainer.innerHTML=`${cuN}
+    ${u}
+    ${jcJT}`
+    // "<a class='customerName'>"+thisDaysSchJobs[j].customer_name.toUpperCase()+
+    // "</a><br/>" + "Unit #: "+thisDaysSchJobs[j].unit+"<br/>"+thisDaysSchJobs[j].job_type.toUpperCase();
     if(thisDaysSchJobs[j].waiting_customer=="-1"){
         jobContainer.innerHTML+="<br/>Customer will be waiting";
     }
@@ -796,23 +805,18 @@ function makeCalenderJobContainers(e){
         }else{
             document.getElementById("container0").appendChild(jobContainer);
         }
-        
-
-        
     
     }
-    var element = e;
-    var bounding=element.getBoundingClientRect();
-    var height = Math.floor($("#jobWallet").height());
-    //var shift = height*-1/1.5;
-    var shift = height*-1+1;
-    //if(bounding.top>window.innerHeight/2){
-        
-        document.getElementById("jobWallet").style.top = shift+"px";
-        
-   // }
+    var element = e;    
+    var height = Math.floor($("#jobWallet").height());    
+    let shift = Math.floor((height-40)-element.offsetTop)*-1
+    
+    if(height>element.offsetTop){       
+        document.getElementById("jobWallet").style.bottom = shift+"px";        
+    }
     
 }
+
 function clearCalendar(){
     var amContainers=document.getElementsByClassName("am");
     var pmContainers=document.getElementsByClassName("pm");
@@ -828,43 +832,72 @@ function openContextMenu(e){
     
     let callingElement = e;
 
-    var rn = callingElement.getAttribute("data-recordNumber");
+    var rn = callingElement.getAttribute("job-id");
+    let objJobInfo = calIPC.sendSync('get-job', rn);
     //alert(rn);
     cId=callingElement.id;
-    var existingCMs = document.getElementsByClassName("cal_cm");
+    
+    var existingCMs = document.getElementsByClassName("cm_list");
     if(existingCMs){
         for(var k in existingCMs){
             $("#"+existingCMs[k].id).remove();
         };
     }
-        //$("#"+cId+"_cm").remove();}
-    let cm = document.createElement('div');
-    cm.setAttribute("id", cId+"_cm");
-    cm.setAttribute("class","cal_cm");
+        
+
+    // let cm = document.createElement('div');
+    // cm.setAttribute("id", cId+"_cm");
+    //  cm.setAttribute("class","cal_cm");    
+    //  callingElement.appendChild(cm);
+
     
-    callingElement.appendChild(cm);
-    //document.getElementById(cId+"_cm").style.left="75px";
-    //document.getElementById(cId+"_cm").style.top="-25px";
     let cmList = document.createElement('ul');
     cmList.setAttribute("class","cm_list");
     cmList.setAttribute("id","cmList");
-    document.getElementById(cId+"_cm").appendChild(cmList);
-    let listItems =["send to lot","edit","no-show","completed"];
+    callingElement.appendChild(cmList)
+    //document.getElementById(cId+"_cm").appendChild(cmList);
+    let listItems =["EDIT","NO-SHOW","SEND TO LOT","CANCEL APPT"];
     for(i=0;i<listItems.length;i++){
         var cmListItem =document.createElement('li');
         cmListItem.setAttribute("id","cmListItem"+i);
         cmListItem.setAttribute("class","cmListItem"); 
         cmListItem.onclick= function(e){
             e.stopPropagation();
-            switch(e.target.id){
-                case "cmListItem0":
-                    sendTo("lot",rn);
+            //TODO: program event listeners for calendar right click menu
+            switch(e.target.innerHTML){
+                case "SEND TO LOT":
+                    
+                    objLot = new Object()
+                    objLot.job_ID = rn
+                    objLot.shop_location = ''
+                    objLot.status = 'wfw'
+                    objLot.designation = 'On the Lot'
+                    objLot.date_in = todayIs()
+                    calIPC.send('update-job',objLot, 'calendar', currentUser)
+
+                    
                     break;
-                case "cmListItem1":
-                    editCalenderJob(rn);
+                case "EDIT":
+                    
+                    calIPC.send('open-edit', objJobInfo, 'calendar', currentUser)
+                    //editCalenderJob(rn);
                     break;
-                case "cmListItem2":
-                    sendTo("completed",rn);
+                case "NO-SHOW":
+                    
+                    objNoshow = new Object()
+                    objNoshow.job_ID = rn
+                    objNoshow.no_show = 1
+                    objNoshow.active = 0
+                    calIPC.send('update-job',objNoshow, "calendar",currentUser)
+                    
+                    break;
+                case "CANCEL APPT":
+                    objCancel = new Object()
+                    objCancel.job_ID = rn
+                    objCancel.cancelled = 1
+                    objNoshow.active = 0
+                    calIPC.send('update-job',objCancel, "calendar",currentUser)
+                    
                     break;
                 default:
                     break;
@@ -880,112 +913,8 @@ function openContextMenu(e){
     }
 }
 
-function sendTo(where,rn){
-    var x;
-    var jo;
-    for(i=0;i<scheduledJobs.length;i++){
-        if(scheduledJobs[i].recordNumber == rn){
-            x=scheduledJobs[i].xmlPosition;
-            jo= scheduledJobs[i].jobCat; 
-           
-        }
-        else{}
-        
-    }
 
-    var vehicleToSend = xmlDoc.getElementsByTagName("workflow")[0].childNodes[x];
-    switch(where){
-        case "lot":
-            
-                let arrLocationBucket =[];
-                var z = 0;
-                    
-                    switch(jo) {
-                        case "Frame":
-                        case "frame":
-                            arrLocationBucket=frameBucket;                           
-                            break;
-    
-                        case "Spring":
-                        case "spring":
-                            arrLocationBucket = springBucket;                            
-                            break;
-    
-                        case "Alignment":
-                        case "alignment":
-                            arrLocationBucket = alignmentBucket;                            
-                            break;
-    
-                        case "King Pin":
-                        case "kingPin":
-                            arrLocationBucket = kingpinBucket;                           
-                            break;
-    
-                        case "Check All":
-                            arrLocationBucket = checkallBucket;                            
-                            break;
-    
-                        default:
-                            alert("error assigning job category");
-                            break;
-                    }
-                    for ( z = 0; z < 20; z++){
-                        var hasKids = document.getElementById(arrLocationBucket[z]).hasChildNodes();
-                        //alert(hasKids);
-                        if(!hasKids) {
-                            vehicleToSend.setAttribute("status","wfw");
-                            vehicleToSend.setAttribute("shopLocation",arrLocationBucket[z]);
-                            xmlDoc.save("fs.xml");
-                            break;
-                        }
-                    }
-            
-                
-        break;
-        case "completed":
-                
-                
-                for(i=0;i<20;i++){
-                    if(document.getElementById("wpu"+i).hasChildNodes()){
 
-                    }else{
-                        vehicleToSend.setAttribute("status","wpu"); 
-                        vehicleToSend.setAttribute("shopLocation","wpu"+i); 
-                        xmlDoc.save("fs.xml");
-                        break;
-                    }
-
-                }
-                
-                //vehicleToSend.setAttribute("origin","On The Lot");
-    
-                
-        break;
-        default:
-            break;
-    }
-    reloadPage();
-    setCalendarMonth();
-    //calendarLoad();
-    //alert("Send To "+where);
-}
-function editCalenderJob(c){
-    //alert(vehicles.SCH[1].recordNumber);
-    var x;
-    
-        for(i=0;i<scheduledJobs.length;i++){
-            if(scheduledJobs[i].recordNumber == c){
-                x=scheduledJobs[i].xmlPosition;
-            
-               
-            }
-            else{}
-            
-        }
-        
-    getEditVehicle(null,x);
-    //alert(x);
-}
 function scheduleJob(e){
     let el = e;
     let cn = el.className.toUpperCase();

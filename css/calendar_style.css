@@ -54,11 +54,11 @@ body{
     width:300px;
     position:absolute;
     color:whitesmoke;
-    left:30px;
+    left:120px;
     bottom: 40px;
-    float:left;
+    
     background-color: black;
-    z-index: 9999999;
+    z-index: 1;
     padding:0;
     /* border-radius: 8px; */
 }
@@ -132,6 +132,7 @@ body{
     border:1px solid #5e81ad;
     height:84px;
     background-color: #c9c9c9;
+    user-select: none;
     
 }
 #footer{
@@ -169,11 +170,12 @@ body{
 }
 .day-number{
     float:left;
-    width:100%;
+    width:calc(100% - 5px);
     height: 19px;
     text-align: right;
     border-bottom:1px solid #c9c9c9;
     font-weight: bold;
+    padding-right: 5px;
     /* font-family: Verdana, Geneva, Tahoma, sans-serif; */
     
 }
@@ -208,7 +210,7 @@ body{
 .calJobHeader{
     height:auto;
     width:97%;
-	float: left;
+	position:relative;
     /* font-family: "Arial Rounded MT Bold"; */
     font-size: 20px;
     margin: 2px;
@@ -218,13 +220,13 @@ body{
 	
 }
 .calJobContainer{
-    position:relative;
+    position:relative; 
     width:95%;
     border: 1px solid #cecece;
     background:whitesmoke;
     height: auto;/*44px;*/
     min-height: 44px;
-    float: left;
+    
     margin: 2px;
     /* border-radius: 3px; */
     font-family: "Arial Narrow";
@@ -233,7 +235,8 @@ body{
     text-align: center;
     font-weight: bold;
     cursor:pointer;
-    z-index:500;
+    
+   
     
 }
 .explode{
@@ -255,6 +258,7 @@ body{
     float:left;
   
     
+    
 }
 .customerName{
     font-size:14px;
@@ -265,8 +269,8 @@ body{
     width: 100px;
     height:auto;
     padding:0;
-    background-color: whitesmoke;
-    color: black;
+    background-color: #1b1a1a;
+    color: #5e81ad;
     text-align: left;
     
     left:120px;
@@ -289,19 +293,33 @@ body{
 .cmListItem{
     padding:0;
     list-style-type: none; 
-    cursor: pointer;   
+    cursor: pointer; 
+    margin: 3px 0 3px 0;  
     /* font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif; */
     
 }
 li.cmListItem:hover{
-    
-    text-decoration: underline;
+    background: #5e81ad;
+    color:#1b1a1a;
 }
 .cm_list{
-    padding:5px;
-    /* font-family: "Arial Rounded Bold MT"; */
-    font-size: 13px;
+    
+    font-family: 'Arial Narrow';
+    font-size: 16px;
     margin-top: 5px;
+    position: absolute;
+    border: 1px solid #5e81ad;
+    width: 125px;
+    height:auto;
+    padding:0;
+    background-color: #1b1a1a;
+    color: #5e81ad;
+    text-align: center;
+    font-weight:normal;
+    left:120px;
+    bottom:25px; 
+    z-index: 1000;
+    
 }
 .preview{
     

@@ -17,6 +17,8 @@ let newContactID
 let conMeth
 let currentUser
 let phoneNumberCount
+let launcher
+let launcherData
 //const contactContent = document.getElementById('custNameWrapper')
 let txtCust
 
@@ -27,13 +29,18 @@ setTimeout(()=>{
 		
 			$("#datepicker").datepicker({
 				dateFormat : "mm/dd/yy"
+				
 			});
 			$('#txtCustomerName').focus()
 	
 },200)
-ipc.on('user-data',(event,args)=>{
+ipc.on('user-data',(event,args, args2)=>{
 	currentUser = args
-	console.log(currentUser.user_ID)
+	launcherData = args2
+	launcher = args2.launcher
+	setData(launcherData)
+	
+	//console.log(currentUser.user_ID)
 })
 ipc.on('refresh',(event,args,args2)=>{
 	clearContacts()
@@ -58,6 +65,14 @@ ipc.on('refresh',(event,args,args2)=>{
 	
 })
 
+function setData(data){
+	document.getElementById('datepicker').value = data.date_scheduled
+	document.getElementById('rad'+data.time_of_day.toUpperCase()).checked = true
+	document.getElementById('selOrigin').value = 'Scheduled'
+	//openInput(document.getElementById('selOrigin'))
+	openInput(event,document.getElementById('selOrigin'),'customerNameWrapper','dateWrapper')
+	//document.getElementById("dateWrapper").className = "hiddenInput";
+}
 function pullContacts(comp){
 	//alert(typeof comp)
     if(typeof comp != undefined){
@@ -598,7 +613,7 @@ function addJob (){
 	console.log(objNewJob)
 	//addNewVehicle()
 	//addNewJobToCustomer(company_ID)
-	ipc.send('add-job',objNewJob,currentUser)
+	ipc.send('add-job',objNewJob,currentUser,launcher)
 
 
 }
@@ -627,13 +642,7 @@ function isNewCustomer(args){
 
 function addNewCompany(name){
 	let id = ipc.sendSync('add-new-customer', name)
-	// console.log('addNewCompany fired')
-	// let objCompany = new Object()
-	// objCompany.companyName = document.getElementById('txtCustomerName').value.toUpperCase();
-	// objCompany.contacts = []
-	// objCompany.jobs = []
-	// let id = ipc.sendSync('add-new-company', objCompany)
-	console.log('id returned from addNewCompany: '+id)
+	
 	return id
 }
 function contactIsBeingAdded(){
@@ -645,74 +654,12 @@ function contactIsBeingAdded(){
 	return b
 }
 
-function addNewVehicle() {
-	
-/*	
-	var originOptions = document.getElementById("selOrigin");
-	var selectedOrigin = originOptions.options[originOptions.selectedIndex].text;
-	var newStatus;
-	const objNewVehicle = new Object();
-	var m= monthIndex+1;
-	let company = document.getElementById('txtCustomerName').value;
-	let isNewCompany = isNewCustomer(company.toUpperCase())
-	let dt = new Date()
-	var selected = $('#txtContacts :selected');
-	var item;
-
-	
-	switch(selectedOrigin) {
-		case "On the Lot":
-			newStatus = "wfw";
-			break;
-		case "Scheduled":
-			newStatus = "sch";
-			break;		
-		default:
-			newStatus = "wfw";
-			break;
-	}
-	
-
-
-	objNewVehicle.customerName= company.toUpperCase()
-	objNewVehicle.unit= document.getElementById('txtUnit').value;
-	objNewVehicle.notes = document.getElementById('txtNotes').value;
-	objNewVehicle.estimatedCost = document.getElementById('txtCost').value;
-	objNewVehicle.dateIn = todayIs();
-	//newel.setAttribute("jobCat", jc);
-	objNewVehicle.status = newStatus;
-	objNewVehicle.cash = document.getElementById('cbCash').checked;
-	objNewVehicle.approval = document.getElementById('cbApproval').checked;
-	objNewVehicle.checked = document.getElementById('cbChecked').checked;
-	objNewVehicle.waiting = document.getElementById('cbWaiting').checked;
-	objNewVehicle.comeback = document.getElementById('cbComeback').checked;
-	objNewVehicle.parts = document.getElementById('cbParts').checked;
-	objNewVehicle.shopLocation = "new";
-	var jtOptions = document.getElementById("selJobType");
-	objNewVehicle.jobType = jtOptions.options[jtOptions.selectedIndex].text;
-	if(newStatus=="sch"){
-	objNewVehicle.scheduledDate = document.getElementById("datepicker").value;
-	objNewVehicle.julian = jDate(document.getElementById("datepicker").value);
-	}
-	objNewVehicle.origin = selectedOrigin;
-	objNewVehicle.active = true;
-	objNewVehicle.ampm = $("input[type='radio'][name='ampm2']:checked").val();
-	let conOps = document.getElementById("txtContacts")
-	if(isNewCompany){	
-		objNewVehicle.jobContact = newContactID
-	}else{
-		//let conOps = document.getElementById("txtContacts")
-		objNewVehicle.jobContact = Number(conOps.options[conOps.selectedIndex].parentElement.getAttribute('contactID'))
-		item = selected.text();
-		item = item.substring(item.indexOf("~") + 2);			
-		
-		objNewVehicle.contactMethod = item;
-	}
-	ipc.send('addNew',objNewVehicle)	
-	
-	
-*/	
-	
+function cancelAdd(){
+	window.close()
+}
+function reset(){
+	window.close()
+	ipc.send('open-add-job')
 }
 function openInput(e, active, inputID1, inputID2) {
 	
@@ -746,7 +693,7 @@ function openInput(e, active, inputID1, inputID2) {
 			switch(choice) {
 				
 				case "Scheduled":
-					document.getElementById(inputID2).className = "visibleFieldset";
+					document.getElementById(inputID2).className = "visibleInput";
 					break;
 				case "On the Lot":
 					//document.getElementById(inputID2).style.className = "hiddenInput";

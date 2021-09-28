@@ -41,7 +41,7 @@ setTimeout(()=>{
  * handle communication from main
  */
 ipcEdit.on('edit-data', (event,args, args2, args3)=>{
-    console.log(args)
+    console.log(typeof(args))
     editData =  args
 	launcher = args2
 	currentUser = args3
@@ -524,7 +524,7 @@ function updateJob (){
 	
 	console.log('object length is '+Object.keys(objNewJob))
     if(Object.keys(objNewJob).length>1){
-	    ipcEdit.send('update-job',objNewJob, currentUser)
+	    ipcEdit.send('update-job',objNewJob, launcher, currentUser)
     }else{
 		ipcEdit.send('close-window')
 	}
