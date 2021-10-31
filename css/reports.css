@@ -1,0 +1,19 @@
+body{
+    color:white;
+    background-color: black;
+    font-family:'Arial Narrow', Arial, Helvetica, sans-serif;
+}
+.ribbon{
+    width:100%;
+    height:40px;
+    float: left;
+    border:1px solid white;
+    margin-bottom:2px;
+}
+.mainOption{
+    width:100px;
+    float: left;
+    height: 35px;
+    color: yellow;
+    margin: 0 5 0 5;
+}

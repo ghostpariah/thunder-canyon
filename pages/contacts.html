@@ -1051,7 +1051,7 @@
           spanLastName.setAttribute("class", "contactName");
           let spanLastNameText =
             cont[member].last_name != null
-              ? document.createTextNode(cont[member].last_name+' hello')
+              ? document.createTextNode(cont[member].last_name)
               : document.createTextNode("");
           spanLastName.appendChild(spanLastNameText);
           let linkEl1 = document.createElement("span");

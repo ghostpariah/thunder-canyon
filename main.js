@@ -27,7 +27,7 @@ const strToday = `${m}/${d}/${y}`
 const dayOfYear = date =>
     Math.floor((date - new Date(date.getFullYear(),0 ,0)) / (1000 * 60 * 60 * 24));
 let today = dayOfYear(new Date()); 
-
+const appStartDay = today
 
 //console.log(`${m}/${d}/${y} ${today}`)
 const logArchive = path.join(__dirname, `data/logs/${y}/${today}/`)
@@ -46,7 +46,7 @@ let reportsWin
 let addJobWin
 let calendarWindow
 let cuWin
-
+var checkDate
 /*******
 ********
 onload operations
@@ -55,6 +55,16 @@ onload operations
 
 
 app.on('ready', ()=>{
+
+    // prompt restart if app was left open on previous day
+    //TODO: change increment to every hour instead of every 5 seconds
+    checkDate = setInterval(function (){
+        let currentDay = dayOfYear(new Date());
+        (appStartDay == currentDay) ? console.log(`app opened today ${currentDay}`) : restartApp();
+    }, 3600000)
+    
+    
+
     // ready the files. create folder for year and day if it doesn't exist and then
     // copy log files to the directory and empty the daily logs
 
@@ -62,7 +72,13 @@ app.on('ready', ()=>{
 
     // create activityLog and archive folders if activityLog doesn't exist (this
     // means the app is opened for the first time)
+
+
+    
+
     console.log(isLeapYear(y))
+
+    console.log('app started')
     fs.readdir(logLocation, function(err, data) {
         if (data.length == 0) {
             console.log("Directory is empty!");
@@ -244,6 +260,13 @@ app.on('activate', () => {
     createMainWindow()
     
 })
+
+function restartApp(){
+    console.log('restarting app');
+    clearInterval(checkDate);
+    app.relaunch();
+    app.quit();
+}
 function isLeapYear(year) {
     return year % 400 === 0 || (year % 100 !== 0 && year % 4 === 0);
 }
@@ -1072,7 +1095,7 @@ function createReportWindow(){
             
           })
           reportWin.loadURL(url.format({
-            pathname: path.join(__dirname, '/pages/report.html'),
+            pathname: path.join(__dirname, '/pages/reports.html'),
             protocol: 'file',
             slashes:true
         }))
