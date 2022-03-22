@@ -1,1 +1,1 @@
-create error logging and fine tune activity logging. Find a way to pull data using promises etc
+Call Vance

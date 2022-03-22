@@ -6,14 +6,134 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reports</title>
     <link rel="stylesheet" type="text/css" href="../css/reports.css">
+    
+    <link rel="stylesheet" type="text/css" media="all" href="../scripts/jquery-ui-1.11.4.custom/jquery-ui.css">
+    <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+    <script src="../scripts/jquery-1.11.3.min.js"></script>
+    <script src="../scripts/jquery-ui-1.11.4.custom/jquery-ui.min.js"></script>
+    <script src="../scripts/reports.js"></script>
+    
+    <script>if (window.module) module = window.module;</script>
+
 </head>
-<body>
+<body onload="loadModal()">
   <div class='ribbon'>
-      <span class='mainOption'>Activity</span>
-      <span class='mainOption'>End of Day</span>
-      <span class='mainOption'>No Show</span>
+       
+      <span id='option1' class='mainOption unchosen' onclick="toggleVisibility(this)">User Activity</span>
+      
+      <span id='option3' class='mainOption unchosen' onclick="toggleVisibility(this)">No Shows</span>
   </div>
-  <div class= 'ribbon'></div>
-  <div class= 'mainContainer'></div>
-</body>
+  <div id='ribbon1' class= 'ribbon hidden'>
+    <div class="ribbonAsset">
+      <label>User:</label>
+      <select>
+        <option disabled selected></option>
+        <option>All Users</option>
+      </select>
+    </div>
+
+    <!--
+    <div class="ribbonAsset">
+      <label>Search Type:</label>
+      <select>
+        <option disabled selected>----</option>
+        <option>single date</option>
+        <option>date range</option>
+      </select>
+    </div>
+    -->
+
+
+    <div id="dateRange" class="ribbonAsset">
+      <label>Start Date:</label><input type="text" id="reportStartDate">
+      <label>End Date  :</label><input type="text" id="reportEndDate">
+    </div>
+    
+  </div>
+  <div id='ribbon2' class= 'ribbon hidden'>
+    <div id="reportPrint" name="reportPrint" media="print">
+        <div id="reportHeader">
+            EOD Report
+        </div>
+
+        <div class="reportData">
+            Daily Sales
+        </div>
+        <div class="lineItem">
+            ACH<span class="reportTotal" id="totalCashCheck"></span>
+        </div>
+        <div class="lineItem">
+            --From<span class="reportTotal" id="from"></span>
+        </div>
+        <div class="lineItem">
+            Batch Total<span class="reportTotal" id="totalBatch"></span>
+        </div>
+        <div class="lineItem">
+            City of Columbus<span class="reportTotal" id="totalUPS"></span>
+        </div>
+        
+        <div class="lineItem" id="dt">
+            Daily Total<span class="reportTotal" id="totalDaily"></span>
+        </div>
+        <div class="reportData">
+            Monthly Sales
+        </div>
+        
+        <div class="lineItem" id="mt">
+            Monthly Total<span class="reportTotal" id="totalMonthly"></span>
+        </div>
+        <div class="lineItem">
+            &nbsp;
+        </div>
+        
+       
+
+    </div>
+    <div id="reportFormWrapper">
+        
+        <h2 style="text-align:center;">Report Data Entry</h2>
+        <form id="reportForm">
+            <label>Date</label>
+            <input type="text" id="datepickerReport" onchange="fillPrint(this)">
+            
+            
+            <label>ACH: </label>
+            <input type="text" id="inpCheck" value="0" onblur="fillPrint(this)" onfocus="checkForInputData(this)"/>
+            <br/>
+            <label>From: </label>
+            <input type="text" id="inpFrom" value="Customer Name" onblur="fillPrint(this)"onfocus="checkForInputData(this)"/>
+            <br/>
+            <label>Batch Total: </label>
+            <input type="text" id="inpBatch" value="0" onblur="fillPrint(this)" onfocus="checkForInputData(this)"/>
+            <br />
+            <label>City of Columbus: </label>
+            <input type="text" id="inpUPS" value="0"  onblur="backToZero(this)" onkeyup="fillPrint(this)" onfocus="checkForInputData(this)"/>
+            <br />
+            <!--
+            <label>Total Spent: </label>
+            <input type="text" id="inpSpent" value="0" onblur="fillPrint(this)"onfocus="this.value=''"/>
+            <br/>
+            
+            -->
+            <label>Daily Total: </label>
+            <input type="text" id="inpDaily" value="0" onblur="fillPrint(this)" onfocus="checkForInputData(this)"/>
+            <br/>
+            <label>Director Series Total: </label>
+            <input type="text" id="inpDirector" value="0" onblur="backToZero(this)" onkeyup="fillPrint(this)" onfocus="checkForInputData(this)"/>
+            <br/>
+            <!--
+            <label>Combined Monthly Total: </label>
+            <input type="text" id="inpMonthly" value="0" onblur="fillPrint(this)" onfocus="this.value=''"/>
+            <br/>
+            -->
+            <input type="button" onclick="printReport()" value="PRINT"/>
+        </form>
+    </div>
+  </div>
+  <div id='ribbon3' class= 'ribbon hidden'>
+    
+  </div>
+  <div id="reportResult" class= 'resultsContainer'>
+  </div>
+  </body>
 </html>

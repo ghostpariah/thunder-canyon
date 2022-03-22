@@ -2,7 +2,7 @@
   "name": "electronworkflow",
   "version": "1.0.0",
   "description": "app to manage workflow for Frame & Spring",
-  "main": "main.js",
+  "main": "scripts/main.js",
   "scripts": {
     "start": "electron .",
     "postinstall": "install-app-deps"

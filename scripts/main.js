@@ -15,8 +15,9 @@ const location = path.join(__dirname, 'data')
 
 const fileToOpen = path.join(__dirname, 'data','vehicles.json')
 const users = path.join(__dirname, 'data', 'users.json')
-const testDB = path.join(__dirname, 'data', 'workflow_app.db')
-const white_board = path.join(__dirname, 'data', 'whiteBoardContent.txt')
+const testDB = path.join(__dirname, '../data', 'workflow_app.db')
+const white_board = path.join(__dirname, '../data', 'whiteBoardContent.txt')
+
 
 
 const date = new Date()
@@ -27,14 +28,14 @@ const strToday = `${m}/${d}/${y}`
 const dayOfYear = date =>
     Math.floor((date - new Date(date.getFullYear(),0 ,0)) / (1000 * 60 * 60 * 24));
 let today = dayOfYear(new Date()); 
-
+const appStartDay = today
 
 //console.log(`${m}/${d}/${y} ${today}`)
-const logArchive = path.join(__dirname, `data/logs/${y}/${today}/`)
+const logArchive = path.join(__dirname, `../data/logs/${y}/${today}/`)
 
-const logLocation = path.join(__dirname, `data/logs/`)
-const broadcaster = path.join(__dirname, 'data/logs', `activityLog${today}.txt`)
-const errorLog = path.join(__dirname, 'data/logs', `errorLog${today}.txt`)
+const logLocation = path.join(__dirname, `../data/logs/`)
+const broadcaster = path.join(__dirname, '../data/logs', `activityLog${today}.txt`)
+const errorLog = path.join(__dirname, '../data/logs', `errorLog${today}.txt`)
 let objCompanyList
 let objList
 let win 
@@ -46,7 +47,7 @@ let reportsWin
 let addJobWin
 let calendarWindow
 let cuWin
-
+var checkDate
 /*******
 ********
 onload operations
@@ -55,6 +56,16 @@ onload operations
 
 
 app.on('ready', ()=>{
+
+    // prompt restart if app was left open on previous day
+    //TODO: change increment to every hour instead of every 5 seconds
+    checkDate = setInterval(function (){
+        let currentDay = dayOfYear(new Date());
+        (appStartDay == currentDay) ? console.log(`app opened today ${currentDay}`) : restartApp();
+    }, 3600000)
+    
+    
+
     // ready the files. create folder for year and day if it doesn't exist and then
     // copy log files to the directory and empty the daily logs
 
@@ -62,7 +73,13 @@ app.on('ready', ()=>{
 
     // create activityLog and archive folders if activityLog doesn't exist (this
     // means the app is opened for the first time)
+
+
+    
+
     console.log(isLeapYear(y))
+
+    console.log('app started')
     fs.readdir(logLocation, function(err, data) {
         if (data.length == 0) {
             console.log("Directory is empty!");
@@ -86,8 +103,9 @@ app.on('ready', ()=>{
             data.forEach(file => {
                 // if item is a file and not year directory i.e. 2021
                 if(file.length>4){
-                    doy = file.substr(file.indexOf('g')+1,3)
+                    doy = file.slice(file.indexOf('g')+1,file.indexOf('g')+3)
                     
+                    console.log(file)
                     console.log(doy)
                     if(file.includes(`activityLog${today}`)){
                         
@@ -98,7 +116,7 @@ app.on('ready', ()=>{
                     }
                     if(doy != today){
                      let lastDay = (isLeapYear(y)) ? 366 : 365   
-                        switch(file.substr(0,1)){
+                        switch(file.slice(0,1)){
                             case 'a':
                                 oldALogPath = path.join(__dirname, 'data/logs', `activityLog${doy}.txt`)
                                 if(doy == "365" || doy =="366"){
@@ -244,6 +262,13 @@ app.on('activate', () => {
     createMainWindow()
     
 })
+
+function restartApp(){
+    console.log('restarting app');
+    clearInterval(checkDate);
+    app.relaunch();
+    app.quit();
+}
 function isLeapYear(year) {
     return year % 400 === 0 || (year % 100 !== 0 && year % 4 === 0);
 }
@@ -917,7 +942,7 @@ function createMainWindow(){
     win = new BrowserWindow({
         width: 1650,
         height: 900,        
-        icon: path.join(__dirname, '/images/icon.png'),
+        icon: path.join(__dirname, '../images/logo.ico'),
         
         
         webPreferences: {
@@ -929,7 +954,7 @@ function createMainWindow(){
         }
     })
     win.loadURL(url.format({
-        pathname: path.join(__dirname, '/pages/workflow.html'),
+        pathname: path.join(__dirname, '../pages/workflow.html'),
         protocol: 'file',
         slashes:true
     }))
@@ -958,7 +983,7 @@ function createEditWindow(args, args2, args3){
         height: 950,
         autoHideMenuBar: true,
         modal: true,     
-        icon: path.join(__dirname, '/images/icon.png'),
+        icon: path.join(__dirname, '../images/icon.png'),
         
         webPreferences: {
             nodeIntegration: true,
@@ -989,7 +1014,7 @@ function createEditWindow(args, args2, args3){
     
     
     winEdit.loadURL(url.format({
-        pathname: path.join(__dirname, '/pages/edit.html'),
+        pathname: path.join(__dirname, '../pages/edit.html'),
         protocol: 'file',
         slashes:true
     }))
@@ -1026,7 +1051,7 @@ function createLoginWindow(){
         height: 250,
         autoHideMenuBar: true,
         modal: true,
-        icon: path.join(__dirname, '/images/icon.png'),
+        icon: path.join(__dirname, '../images/icon.png'),
         
         webPreferences: {
             nodeIntegration: true,
@@ -1036,7 +1061,7 @@ function createLoginWindow(){
         }
     })
     loginWin.loadURL(url.format({
-        pathname: path.join(__dirname, '/pages/login.html'),
+        pathname: path.join(__dirname, '../pages/login.html'),
         protocol: 'file',
         slashes:true
     }))
@@ -1072,7 +1097,7 @@ function createReportWindow(){
             
           })
           reportWin.loadURL(url.format({
-            pathname: path.join(__dirname, '/pages/report.html'),
+            pathname: path.join(__dirname, '../pages/reports.html'),
             protocol: 'file',
             slashes:true
         }))
@@ -1105,7 +1130,7 @@ function createAddJobWindow(args, launcher){
             
           })
           addJobWin.loadURL(url.format({
-            pathname: path.join(__dirname, '/pages/addJob.html'),
+            pathname: path.join(__dirname, '../pages/addJob.html'),
             protocol: 'file',
             slashes:true
         }))
@@ -1135,7 +1160,7 @@ function createCreateUserWindow(){
         height: 650,//w425 h300
         autoHideMenuBar: true,
         show: false,
-        icon: path.join(__dirname, './images/icon.png'),
+        icon: path.join(__dirname, '../images/icon.png'),
         webPreferences: {
             nodeIntegration: true,
             webSecurity: false,
@@ -1145,7 +1170,7 @@ function createCreateUserWindow(){
         
       })
       cuWin.loadURL(url.format({
-        pathname: path.join(__dirname, '/pages/createUser.html'),
+        pathname: path.join(__dirname, '../pages/createUser.html'),
         protocol: 'file',
         slashes:true
     }))
@@ -1173,7 +1198,7 @@ function createContactsWindow(args1, args2, args3, args4, args5,args6,args7){
             
           })
           contactWin.loadURL(url.format({
-            pathname: path.join(__dirname, '/pages/contacts.html'),
+            pathname: path.join(__dirname, '../pages/contacts.html'),
             protocol: 'file',
             slashes:true
         }))
@@ -1214,7 +1239,7 @@ function createCalendarWindow(args,args2){
             
           })
           calendarWin.loadURL(url.format({
-            pathname: path.join(__dirname, '/pages/calendar.html'),
+            pathname: path.join(__dirname, '../pages/calendar.html'),
             protocol: 'file',
             slashes:true
         }))
@@ -1993,6 +2018,17 @@ ipcMain.on('open-login-window', function(){
 ipcMain.on('open-report-window',(event,args)=>{
     createReportWindow()
 }) 
+
+ipcMain.on('pull-activity-log', (event, args1, args2)=>{
+    console.log(args1 + ' '+args2)
+    try{
+    let l= fs.readFileSync(`${logLocation}${args1}/${args2}/activityLog.txt`, 'UTF-8');
+    event.returnValue = l
+}catch(err){
+    console.log(err)
+    event.returnValue = "no file exists"
+}
+})
 
 /********
  * ******

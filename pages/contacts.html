@@ -585,6 +585,7 @@
                 : "NO OPTION";
               console.log("inside if within input triggered: " + cusID);
               //clearContacts()
+              contactContent.innerHTML = "";
               pullContacts(cusID);
               //this.blur()
             } else {
@@ -626,6 +627,7 @@
         var element = document.getElementById("lstCustomer");
         companyList = [];
         element.innerHTML = "";
+        
         customerList = conIPC.sendSync("get-customer-names");
         for (member in customerList) {
           companyList.push(customerList[member].customer_name);
@@ -1023,6 +1025,7 @@
         }
       }
       function fillContacts(cont) {
+        
         console.log(cont);
         contactContent.innerHTML = "";
         let wholeCompanyList = document.createElement("ul");
