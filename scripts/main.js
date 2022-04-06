@@ -1,24 +1,19 @@
 
 const electron = require('electron')
-const {app, BrowserWindow, ipcMain, Menu} = require('electron')
+const {app, BrowserWindow, ipcMain, Menu, MenuItem, globalShortcut} = require('electron')
 const path = require('path')
 const url = require('url')
 const fs = require('fs')
+
+require('@electron/remote/main').initialize()
+
 
 const { serialize } = require('v8')
 const { SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS } = require('constants')
 const { get } = require('https')
 const { resolve } = require('path')
+const { webContents } = require('electron/main')
 const sqlite3 = require('sqlite3').verbose()
- 
-const location = path.join(__dirname, 'data')
-
-const fileToOpen = path.join(__dirname, 'data','vehicles.json')
-const users = path.join(__dirname, 'data', 'users.json')
-const testDB = path.join(__dirname, '../data', 'workflow_app.db')
-const white_board = path.join(__dirname, '../data', 'whiteBoardContent.txt')
-
-
 
 const date = new Date()
 const m= date.getMonth()+1
@@ -30,42 +25,197 @@ const dayOfYear = date =>
 let today = dayOfYear(new Date()); 
 const appStartDay = today
 
-//console.log(`${m}/${d}/${y} ${today}`)
-const logArchive = path.join(__dirname, `../data/logs/${y}/${today}/`)
+const rootStorage = app.getPath('userData')
 
-const logLocation = path.join(__dirname, `../data/logs/`)
-const broadcaster = path.join(__dirname, '../data/logs', `activityLog${today}.txt`)
-const errorLog = path.join(__dirname, '../data/logs', `errorLog${today}.txt`)
-let objCompanyList
+const dataFolder = path.join(rootStorage, `/data/`)
+
+const workflowDB = path.join(rootStorage, '/data', 'workflow_app.db')
+//const workflowDB = path.join(__dirname, '../data', 'workflow_app.db')
+const white_board = path.join(rootStorage, '/data', 'whiteBoardContent.txt')
+//const white_board = path.join(__dirname, '../data', 'whiteBoardContent.txt')
+
+const logArchive = path.join(rootStorage, `/data/logs/${y}/${today}/`)
+//const logArchive = path.join(__dirname, `../data/logs/${y}/${today}/`)
+
+const logLocation = path.join(rootStorage, `/data/logs/`)
+//const logLocation = path.join(__dirname, `../data/logs/`)
+
+const broadcaster = path.join(rootStorage, '/data/logs', `activityLog${today}.txt`)
+//const broadcaster = path.join(__dirname, '../data/logs', `activityLog${today}.txt`)
+
+const errorLog = path.join(rootStorage, '/data/logs', `errorLog${today}.txt`)
+//const errorLog = path.join(__dirname, '../data/logs', `errorLog${today}.txt`)
+
+const dataFolder_t = path.join(rootStorage, `/mama/`)
+const test = path.join(rootStorage, `/mama/logs/`)
+
+const dbT = path.join(rootStorage, '/mama','test2.db')
+const white_board_t = path.join(rootStorage, '/mama', 'whiteBoardContent.txt')
+
+
 let objList
 let win 
 
 let fsWait = false;
 let loginWin
 let contactWin
-let reportsWin
+let reportWin
 let addJobWin
-let calendarWindow
+let calendarWin
 let cuWin
 var checkDate
-/*******
+
+
+/***********************
 ********
 onload operations
 **********
-**********/
+*************************/
 
 
+//if log folder doesn't exist
+if (!fs.existsSync(logLocation)){
+    //does data folder exist
+    if (!fs.existsSync(dataFolder)){
+        fs.mkdirSync(logLocation, { recursive: true });
+    }else{
+        fs.mkdirSync(logLocation, { recursive: false });
+    }
+
+    //creates database if it doesn't already exist
+    createDatabase(workflowDB)
+    
+    //create whiteboardContent.txt if it doesn't already exist
+    if (!fs.existsSync(white_board)){
+        fs.closeSync(fs.openSync(white_board,'w'))
+    }
+}
+
+//function to create database if it doesn't exist
+function createDatabase(file){
+    //build sql statements
+    let customersSQL = `CREATE TABLE "customers" (
+        "customer_ID"	INTEGER NOT NULL UNIQUE,
+        "customer_name"	TEXT NOT NULL,
+        PRIMARY KEY("customer_ID" AUTOINCREMENT)
+    )`
+    let contactsSQL = `CREATE TABLE "contacts" (
+        "contact_ID"	INTEGER NOT NULL UNIQUE,
+        "first_name"	TEXT NOT NULL,
+        "last_name"	TEXT,
+        "customer_ID"	INTEGER,
+        "active"	INTEGER NOT NULL DEFAULT 0,
+        PRIMARY KEY("contact_ID" AUTOINCREMENT),
+        FOREIGN KEY("customer_ID") REFERENCES "customers"("customer_ID") ON DELETE CASCADE ON UPDATE CASCADE
+    )`
+    let emailsSQL = `CREATE TABLE "emails" (
+        "email_ID"	INTEGER NOT NULL UNIQUE,
+        "email"	TEXT,
+        "e_contact_ID"	INTEGER,
+        "active"	INTEGER,
+        FOREIGN KEY("e_contact_ID") REFERENCES "contacts"("contact_ID") ON DELETE CASCADE ON UPDATE CASCADE,
+        PRIMARY KEY("email_ID" AUTOINCREMENT)
+    )`
+    let phoneNumbersSQL = `CREATE TABLE "phone_numbers" (
+        "phone_ID"	INTEGER NOT NULL UNIQUE,
+        "number"	TEXT,
+        "p_contact_ID"	INTEGER,
+        "active"	INTEGER,
+        FOREIGN KEY("p_contact_ID") REFERENCES "contacts"("contact_ID") ON DELETE CASCADE ON UPDATE CASCADE,
+        PRIMARY KEY("phone_ID" AUTOINCREMENT)
+    )`
+    let jobsSQL =`CREATE TABLE "jobs" (
+        "job_ID"	INTEGER NOT NULL UNIQUE,
+        "user_ID"	INTEGER,
+        "customer_ID"	INTEGER NOT NULL,
+        "contact_ID"	INTEGER,
+        "number_ID"	INTEGER,
+        "email_ID"	INTEGER,
+        "notes"	TEXT,
+        "estimated_cost"	NUMERIC,
+        "date_in"	TEXT,
+        "date_called"	TEXT,
+        "date_scheduled"	TEXT,
+        "time_of_day"	TEXT,
+        "julian_date"	INTEGER,
+        "designation"	TEXT,
+        "status"	TEXT,
+        "shop_location"	TEXT,
+        "unit"	TEXT,
+        "job_type"	TEXT,
+        "cash_customer"	INTEGER,
+        "approval_needed"	INTEGER,
+        "checked"	INTEGER,
+        "waiting_customer"	INTEGER,
+        "comeback_customer"	INTEGER,
+        "parts_needed"	INTEGER,
+        "active"	INTEGER,
+        "no_show"	INTEGER,
+        "cancelled"	INTEGER,
+        FOREIGN KEY("number_ID") REFERENCES "phone_numbers"("phone_ID") ON DELETE CASCADE ON UPDATE CASCADE,
+        FOREIGN KEY("email_ID") REFERENCES "emails"("email_ID") ON DELETE CASCADE ON UPDATE CASCADE,
+        FOREIGN KEY("contact_ID") REFERENCES "contacts"("contact_ID"),
+        FOREIGN KEY("customer_ID") REFERENCES "customers"("customer_ID"),
+        PRIMARY KEY("job_ID" AUTOINCREMENT)
+    )`
+    let usersSQL =`CREATE TABLE "users" (
+        "user_ID"	INTEGER NOT NULL UNIQUE,
+        "user_name"	TEXT NOT NULL,
+        "role"	TEXT NOT NULL,
+        "active"	INTEGER NOT NULL,
+        "password"	TEXT NOT NULL,
+        PRIMARY KEY("user_ID" AUTOINCREMENT)
+    )`
+    let createAdminSQL = `INSERT INTO users (user_name,role,active,password)
+    VALUES ('admin','admin',1,'password');`
+
+    var db = new sqlite3.Database(file, (err)=>{
+        if(err){
+            console.error(err.message)
+        }
+        
+    });
+    if(!fs.existsSync(file)){
+        console.log("creating database file");     
+    
+        db.serialize(function() {
+            db.run(customersSQL, function(createResult){
+                if(createResult) throw createResult;
+            });
+            db.run(contactsSQL, function(createResult){
+                if(createResult) throw createResult;
+            });
+            db.run(emailsSQL, function(createResult){
+                if(createResult) throw createResult;
+            });
+            db.run(phoneNumbersSQL, function(createResult){
+                if(createResult) throw createResult;
+            });
+            db.run(jobsSQL, function(createResult){
+                if(createResult) throw createResult;
+            });
+            db.run(usersSQL, function(createResult){
+                if(createResult) throw createResult;
+            });
+            db.run(createAdminSQL, function(createResult){
+                if(createResult) throw createResult;
+            });
+        })
+    }   
+    return db;
+}
 app.on('ready', ()=>{
 
     // prompt restart if app was left open on previous day
-    //TODO: change increment to every hour instead of every 5 seconds
+    
     checkDate = setInterval(function (){
         let currentDay = dayOfYear(new Date());
         (appStartDay == currentDay) ? console.log(`app opened today ${currentDay}`) : restartApp();
     }, 3600000)
     
     
-
+    
+    require('@electron/remote/main').enable(webContents)
     // ready the files. create folder for year and day if it doesn't exist and then
     // copy log files to the directory and empty the daily logs
 
@@ -77,7 +227,7 @@ app.on('ready', ()=>{
 
     
 
-    console.log(isLeapYear(y))
+    
 
     console.log('app started')
     fs.readdir(logLocation, function(err, data) {
@@ -118,21 +268,21 @@ app.on('ready', ()=>{
                      let lastDay = (isLeapYear(y)) ? 366 : 365   
                         switch(file.slice(0,1)){
                             case 'a':
-                                oldALogPath = path.join(__dirname, 'data/logs', `activityLog${doy}.txt`)
+                                oldALogPath = path.join(__dirname, '../data/logs', `activityLog${doy}.txt`)
                                 if(doy == "365" || doy =="366"){
                                     if (!fs.existsSync(`${logLocation}${y-1}/${doy}/`)){ 
                                         fs.mkdirSync(`${logLocation}${y-1}/${doy}/`, {
                                             recursive: true
                                         });  
                                     }
-                                    newALogPath = path.join(__dirname, `data/logs/${y-1}/${doy}/activityLog.txt`)                                                               
+                                    newALogPath = path.join(__dirname, `../data/logs/${y-1}/${doy}/activityLog.txt`)                                                               
                                 }else{
                                     if (!fs.existsSync(`${logLocation}${y}/${doy}/`)){ 
                                         fs.mkdirSync(`${logLocation}${y}/${doy}/`, {
                                             recursive: true
                                         });  
                                     }
-                                    newALogPath = path.join(__dirname, `data/logs/${y}/${doy}/activityLog.txt`)                                    
+                                    newALogPath = path.join(__dirname, `../data/logs/${y}/${doy}/activityLog.txt`)                                    
                                 }
                                 fs.rename(oldALogPath, newALogPath, function (err) {
                                     if (err) throw err
@@ -140,21 +290,21 @@ app.on('ready', ()=>{
                                 })
                                 break;
                             case 'e':
-                                oldELogPath = path.join(__dirname, 'data/logs', `errorLog${doy}.txt`)
+                                oldELogPath = path.join(__dirname, '../data/logs', `errorLog${doy}.txt`)
                                 if(doy == lastDay){
                                     if (!fs.existsSync(`${logLocation}${y-1}/${doy}/`)){ 
                                         fs.mkdirSync(`${logLocation}${y-1}/${doy}/`, {
                                             recursive: true
                                         });  
                                     }                                   
-                                    newELogPath = path.join(__dirname, `data/logs/${y-1}/${doy}/errorLog.txt`)                           
+                                    newELogPath = path.join(__dirname, `../data/logs/${y-1}/${doy}/errorLog.txt`)                           
                                 }else{
                                     if (!fs.existsSync(`${logLocation}${y}/${doy}/`)){ 
                                         fs.mkdirSync(`${logLocation}${y}/${doy}/`, {
                                             recursive: true
                                         });  
                                     }                                     
-                                    newELogPath = path.join(__dirname, `data/logs/${y}/${doy}/errorLog.txt`)
+                                    newELogPath = path.join(__dirname, `../data/logs/${y}/${doy}/errorLog.txt`)
                                 }
                                 fs.rename(oldELogPath, newELogPath, function (err) {
                                     if (err){ 
@@ -259,10 +409,320 @@ app.on('window-all-closed', ()=>{
     }
 })
 app.on('activate', () => {
+    checkForData()
     createMainWindow()
     
 })
 
+
+
+//watches for changes on whiteboard text file and reloads page with changed file
+fs.watch(white_board, (event, filename) => {
+    if (filename) {        
+      if (fsWait) return;    
+      fsWait = setTimeout(() => {
+        fsWait = false;      
+      }, 200);      
+      
+      setTimeout(function() {
+          win.webContents.send('whiteboard-updated')
+      }, 50);      
+    }
+    
+});
+
+
+/***********************************************************************
+ * 
+ * All IPC module communication with other windows
+ * 
+ ***********************************************************************/
+
+
+
+/************************************
+ * communication with main workflow page js index.js
+ ************************************/
+
+
+ ipcMain.on('get-whiteboard', (event, args1, args2)=>{
+    let d
+    
+    if(args1 == 'read'){
+        d= fs.readFileSync(white_board, 'UTF-8',function (err, data) {
+            if (err) console.log(err);
+            return data
+        });
+        event.returnValue = d
+        
+    }
+    if(args1 == 'write'){
+        fs.writeFile(white_board, args2, function (err) { 
+            if (err)
+                console.log(err);
+            else
+                console.log('Write operation complete.');
+                
+                
+        });
+        if(win){
+            win.webContents.send('whiteboard-updated')
+        }
+    }
+      // fs.close()
+  })
+
+  /**************
+   * communication involving job 
+   *************/
+
+  //pull information on a single job
+  ipcMain.on('pull-job',(event,args)=>{
+    let dboPullJob = new sqlite3.Database(workflowDB, (err)=>{
+        if(err){
+            console.error(err.message)
+        }
+        
+    })
+    let sql = `SELECT * FROM jobs WHERE job_ID = ?`
+    let id = args
+    dboPullJob.all(sql,[id],function (err,row){
+        if(err){
+            return err
+        }else{
+            
+            event.returnValue = row[0]
+        }
+        dboPullJob.close()
+    })
+    
+    
+})
+
+//pull information on all active jobs
+ipcMain.on('pull_jobs', (event,args)=>{
+    let dboPullJobs = new sqlite3.Database(workflowDB, (err)=>{
+        if(err){
+            console.error(err.message)
+        }
+        
+    })
+    let sql = `SELECT * FROM jobs WHERE active = 1 AND cancelled = 0`
+    dboPullJobs.all(sql,function (err,row){
+        if(err){
+            return err
+        }else{
+            
+            event.returnValue = row
+        }
+        dboPullJobs.close()
+    })
+    
+    
+})
+
+//update a single job
+ipcMain.on('update-job',(event, args, args2, args3, args4)=>{
+    console.log("args4 from update-job"+args4)
+    let k = Object.keys(args)
+    let v = Object.values(args)
+    let arrC = new Array()
+    let arrV = new Array()
+    let strColumns 
+    let strValues 
+    for(i=1;i<k.length;i++){
+            
+            arrC.push(`${k[i]}='${v[i]}'`)
+            arrV.push(v[i])
+    }
+    if(arrC.length > 1){
+    strColumns = arrC.join(',')
+    }else{
+        strColumns = arrC[0]
+    }
+    if(arrV.length > 1){
+    strValues = arrV.join(',')
+    }else{
+        strValues =arrV[0]
+    }
+   
+
+    let dboUpdate = new sqlite3.Database(workflowDB, (err)=>{
+        if(err){
+            console.error(err.message)
+        }
+        
+    })
+    let pull = `SELECT * FROM jobs WHERE active = 1 AND cancelled = 0`
+    let sql = `UPDATE jobs SET ${strColumns} WHERE job_ID = ${args.job_ID}`
+    
+    dboUpdate.serialize(()=>{
+        dboUpdate.run(sql, function(err,row) {
+            if (err) {
+                return console.error(err.message);
+            }
+            console.log(`Row(s) updated: ${this.changes}${row}`);
+
+            
+        })
+        .all(pull, [], (err,row)=>{
+            if(err){
+            return console.error(err.message);
+            }else{
+                args.user = args3
+                switch(args2){
+                    case 'context-menu' :
+                        
+                        
+                        break;
+                    case 'edit job':
+                        winEdit.close()
+                        break;
+                    case 'calendar':                        
+                        calendarWin.webContents.send('refresh')
+                        break;
+                    default:
+                        
+                        break;
+                }
+                args.customer_name = args4
+               // logActivity('edited',args, args4)
+               logActivity('edited',args)
+                win.webContents.send('update',row)
+                
+            }
+        }) 
+
+        dboUpdate.close()
+    });
+    
+})
+
+//change location of job when job is dropped in a different container
+ipcMain.on('edit-location-drop',(event,args,args2,args3)=>{
+    
+    let dboLocation = new sqlite3.Database(workflowDB, (err)=>{
+        if(err){
+            console.error(err.message)
+        }
+        
+    })
+    dboLocation.serialize(()=>{
+        
+        let p = Object.keys(args)
+
+        //assign an array of key/column values for sql statement from the javascript object
+        let v = Object.values(args)
+    
+        
+    
+        //building placeholder for SQL based on amount of items in object
+        let columnPlaceholders = p.join("=?, ")
+        columnPlaceholders = columnPlaceholders+'=?'
+        
+        let sql = `UPDATE jobs SET status=?, shop_location=?, designation=?, date_in=? WHERE job_ID= ?`;
+        
+        let sql1 = `UPDATE jobs
+                SET shop_location = ?,
+                status = ?
+                WHERE job_ID = ?`;
+        let sql2 = `SELECT * FROM jobs WHERE job_ID = ${args.job_ID}`
+        dboLocation.run(sql, v, function(err) {
+            if (err) {
+                return console.error(err.message);
+            }
+            args.user = args2
+            args.customer_name = args3
+            logActivity('moved',args)
+        }) 
+        
+        
+        .all(sql2,function (err,row){
+            if(err){
+                console.log('first select'+err.message)
+                return err
+            }else{                
+                
+                event.returnValue = row
+            }
+        })   
+        
+        dboLocation.close()
+         
+    })
+    
+})
+
+//handler to edit job loaction when placing a newly created job
+ipcMain.on('edit-location',(event,args)=>{
+    console.log(args.shop_location)
+    let dboLocation = new sqlite3.Database(workflowDB, (err)=>{
+        if(err){
+            console.error(err.message)
+        }
+        
+    })
+    let data = [args.shop_location, args.job_ID]
+    
+    let sql = `UPDATE jobs
+            SET shop_location = ?
+            WHERE job_ID = ?`;
+    dboLocation.run(sql, data, function(err) {
+        if (err) {
+            return console.error(err.message);
+        }
+        
+        console.log(`Row(s) updated: ${this.changes}`);
+
+        dboLocation.close()
+        });  
+        
+        
+})
+
+ipcMain.on('get-job', (event,args)=>{
+    let dboJob = new sqlite3.Database(workflowDB, (err)=>{
+        if(err){
+            console.error(err.message)
+        }
+        
+    })
+    let sql = `SELECT * FROM jobs WHERE job_ID = ${args}`
+    dboJob.all(sql,function (err,row){
+        if(err){
+            console.log('first select'+err.message)
+            return err
+        }else{
+            event.returnValue = row[0]
+        }
+        dboJob.close() 
+    })
+    
+      
+})
+ipcMain.on('db-get-customer-name',(event, args)=>{
+    
+    let dboCustomerName = new sqlite3.Database(workflowDB, (err)=>{
+        if(err){
+            console.error(err.message)
+        }
+        
+    })
+    
+    let sql = `SELECT customer_name FROM customers WHERE customer_ID = ?`
+    dboCustomerName.all(sql,[args],function (err,row){
+        if(err){
+            console.log('first select'+err.message)
+            return err
+        }else{
+            
+            event.returnValue = row[0].customer_name
+        }
+        dboCustomerName.close()
+    })
+    
+    
+})
 function restartApp(){
     console.log('restarting app');
     clearInterval(checkDate);
@@ -272,12 +732,37 @@ function restartApp(){
 function isLeapYear(year) {
     return year % 400 === 0 || (year % 100 !== 0 && year % 4 === 0);
 }
+
+async function getCustomerName(args){
+    
+    let dboCustomerName = new sqlite3.Database(workflowDB, (err)=>{
+        if(err){
+            console.error(err.message)
+        }
+        
+    })
+    
+    let sql = `SELECT customer_name FROM customers WHERE customer_ID = ?`
+    dboCustomerName.all(sql,[args],function (err,row){
+        if(err){
+            console.log('first select'+err.message)
+            return err
+        }else{
+            console.log('returned info from getCustomerName() '+row[0]+" "+row[0].customer_name)
+            return row[0]?.customer_name
+        }
+        dboCustomerName.close()
+    })
+    
+    
+}
     
     //TODO: change name of file and function to logging references like (logChange()).
     //use fs.createWriteStream
     
-    async function logActivity(args1, args2){
-
+    async function logActivity(args1, args2, args3){
+        //console.log(`customer name is ${await getCustomerName(args2?.customer_ID)}`)
+        let jobCustomer
         const log = fs.createWriteStream(broadcaster, { flags: 'a' });      
         
         let action = args1
@@ -286,39 +771,71 @@ function isLeapYear(year) {
         let v = Object.values(args2)
         let change =""
         let timeStamp = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
-       
+
+
+        let lt 
+        if(args2.shop_location != undefined && args2.shop_location != ""){
+            lt = args2.shop_location.substring(0,3)
+        }else{
+            if(args2.status == 'wfw') lt = 'wfw';
+            if(args2.status == 'sch') lt = 'sch';
+        }
         
+        let place
+        switch(lt){
+            case 'wfw':
+                place = 'the lot'
+            break;
+            case 'wip':
+                place = 'the shop'
+            break;
+            case 'sch':
+                place = 'scheduled'
+            break;
+            default:
+                
+            break;
+        }
        
        
-        
+        console.log('within logActivity '+args2)
             
-       
+        
+        
         switch(action){
             case 'moved':
-                logEvent = `USERID:${args2.user.user_ID} USERNAME:${args2.user.user_name} ACTION:Moved JOBID:${args2.job_ID} TO LOCATION:${args2.shop_location} AT:${timeStamp}\n`
+                logEvent = `${args2.user.user_name} moved ${args2.customer_name} jobID-${args2.job_ID} to ${place} at ${timeStamp}\n`
+                
+                //logEvent = `USERNAME:[${args2.user.user_name}] ACTION:[Moved] JOB:name-[${args2.customer_name}] jobID-[${args2.job_ID}] TO LOCATION:[${args2.shop_location}] AT:[${timeStamp}]\n`
                 break;
             case 'added':
                 for(i=0;i<k.length;i++){
-                    if(k[i] != 'job_ID' && k[i]!= 'user_ID' && k[i]!= 'user' && k[i]!= 'customer_ID'){
+                    if(k[i] != 'job_ID' && k[i]!= 'user_ID' && k[i]!= 'user' && k[i]!= 'customer_ID' && k[i]!= 'customer_name'){
                         
-                        change+= `${k[i]}:${v[i]}, `
+                        change+= `${k[i]}:[${v[i]}], `
                     }
                 }
-                logEvent = `USERID:${args2.user.user_ID} USERNAME:${args2.user.user_name} CUSTOMERID:${args2.customer_ID} ACTION:Added  JOBID:${args2.job_ID} ${change} AT:${timeStamp}\n`
+                let g = await pullName(args2.customer_ID) 
+                console.log("args2.customer_ID = "+args2.customer_ID)
+                //console.log(`g = ${await g()}`)
+                //logEvent="error"
+                logEvent = `${args2.user.user_name} added ${args2.customer_name} job ID:${args2.job_ID} to ${place} at ${timeStamp}\n`
+                //logEvent = `USERNAME:[${args2.user.user_name}] CUSTOMERID:[${args2.customer_ID}] ACTION:[Added]  JOBID:[${args2.job_ID}] ${change} AT:[${timeStamp}]\n`
                 break;
             case 'edited':
                 for(i=0;i<k.length;i++){
-                    if(k[i] != 'job_ID' && k[i]!= 'user_ID' && k[i]!= 'user'){
+                    if(k[i] != 'job_ID' && k[i]!= 'user_ID' && k[i]!= 'user' && k[i]!= 'customer_ID' && k[i]!= 'customer_name'){
                         
-                        change+= `CHANGED:${k[i]} TO:${v[i]}, `
+                        change+= `${k[i]} to ${v[i]}, `
                     }
                 }
-                logEvent = `USERID:${args2.user.user_ID} USERNAME:${args2.user.user_name} ACTION:Edited JOBID:${args2.job_ID} ${change} AT:${timeStamp}\n`
+                logEvent = `${args2.user.user_name} edited ${args2.customer_name} jobID-${args2.job_ID} and changed [${change}] at ${timeStamp}\n`
                 break;
             case 'delete':
-                logEvent = `USERID:${args2.user.user_ID} USERNAME:${args2.user.user_name} ACTION:Deactivated JOBID:${args2.job_ID} AT:${timeStamp}\n`
+                logEvent = `${args2.user.user_name}Deactivated ${args2.job_ID} at ${timeStamp}\n`
                 break;
                 default:
+                    logEvent = "error"
                     break;
         }
        
@@ -328,11 +845,15 @@ function isLeapYear(year) {
     
        
     }
+    async function pullName(id){
+        let result = await getCustomerName(id)
+        return result
+    }
     async function getUserName(args){
         
         let result = 'b'
         
-        let dboUsers = new sqlite3.Database(testDB, (err)=>{
+        let dboUsers = new sqlite3.Database(workflowDB, (err)=>{
             if(err){
                 console.error(err.message)
             }        
@@ -392,14 +913,86 @@ function isLeapYear(year) {
   /**
    * user maintenance
    */
-  ipcMain.on('get-users', (event, args)=>{
+
+   ipcMain.on('edit-users',(event,args,args2,args3)=>{
+
+    let userID = args.id
+    delete args.id
+
+    console.log(args)
+    console.log(userID)
+
+    let k = Object.keys(args)
+    let v = Object.values(args)
+    let arrC = new Array()
+    let arrV = new Array()
+    let strColumns 
+    let strValues 
+    for(i=0;i<k.length;i++){
+            
+            arrC.push(`${k[i]}='${v[i]}'`)
+            arrV.push(v[i])
+    }
+    if(arrC.length > 1){
+    strColumns = arrC.join(',')
+    }else{
+        strColumns = arrC[0]
+    }
+    if(arrV.length > 1){
+    strValues = arrV.join(',')
+    }else{
+        strValues =arrV[0]
+    }
+    
+    let dboLocation = new sqlite3.Database(workflowDB, (err)=>{
+        if(err){
+            console.error(err.message)
+        }
+        
+    })
+   
+        
+    
+
+    console.log(strColumns)
+
+    // //building placeholder for SQL based on amount of items in object
+    // let columnPlaceholders = p.join("=?, ")
+    // columnPlaceholders = columnPlaceholders+'=?'
+    
+    let sql = `UPDATE users SET ${strColumns} WHERE user_ID= ${userID}`;
+    
+    
+    dboLocation.run(sql, function(err) {
+        if (err) {
+            return console.error(err.message);
+        }
+        cuWin.webContents.send('user-updated')
+    }) 
+    
+    
+    
+    
+    dboLocation.close()
+         
+    
+    
+})
+  ipcMain.on('get-users', (event, from)=>{
       
-    let dboUsers = new sqlite3.Database(testDB, (err)=>{
+    let dboUsers = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
         }        
     })
-    let sql = `SELECT * FROM users WHERE active = 1`
+    let sql
+    if(from=='login'){
+    sql = `SELECT * FROM users WHERE active = 1 OR active = 'true'`
+    }
+    if(from=='useradmin'){
+        sql = `SELECT * FROM users`
+    }
+
         dboUsers.all(sql, [],function(err, row){
             if(err){
                 console.log(err.message)
@@ -410,10 +1003,14 @@ function isLeapYear(year) {
         })
         dboUsers.close()
   })
+
+
+
+
   //TODO: if user exists add option to make user active again
   ipcMain.on('check-for-user', (event, args)=>{
       
-    let dboUser = new sqlite3.Database(testDB, (err)=>{
+    let dboUser = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
         } 
@@ -440,14 +1037,14 @@ function isLeapYear(year) {
 
   ipcMain.on('create-user',(event,args)=>{
       
-    let dboUser = new sqlite3.Database(testDB, (err)=>{
+    let dboUser = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
         } 
     }) 
     let data = [args.user_name,args.role,1, args.password]
     let sql = 'INSERT INTO users(user_name,role,active,password) VALUES(?,?,?,?)'
-    let sql2 = `SELECT *FROM users WHERE active=1`
+    let sql2 = `SELECT *FROM users`
     dboUser.serialize(()=>{
     dboUser.run(sql, data, function(err) {
         if (err) {
@@ -472,36 +1069,40 @@ function isLeapYear(year) {
     dboUser.close()
   })
 
-  ipcMain.on('get-whiteboard', (event, args1, args2)=>{
-    let d
+  
+
+  ipcMain.on('get-no-shows', (event, args)=>{
+      
+    let dboNoShow = new sqlite3.Database(workflowDB, (err)=>{
+        if(err){
+            console.error(err.message)
+        } 
+    })
     
-    if(args1 == 'read'){
-        d= fs.readFileSync(white_board, 'UTF-8',function (err, data) {
-            if (err) console.log(err);
-            return data
-        });
-        event.returnValue = d
-        
-    }
-    if(args1 == 'write'){
-        fs.writeFile(white_board, args2, function (err) { 
-            if (err)
-                console.log(err);
-            else
-                console.log('Write operation complete.');
-                
-                
-        });
-        if(win){
-            win.webContents.send('whiteboard-updated')
+    let sql = `SELECT * FROM jobs WHERE no_show = 1`
+    dboNoShow.all(sql, function(err, row){
+        if(err){
+            console.log(err.message)
+            return err
         }
-    }
-      // fs.close()
+        
+        
+            event.returnValue = row
+        
+                    
+                    
+    })
+    dboNoShow.close()
+
   })
+
 ipcMain.on('add-job', (event,args, args2, args3)=>{
     let objData =args
+    let cn = args.customer_name;
 
-    let dboAddJob = new sqlite3.Database(testDB, (err)=>{
+    delete objData.customer_name
+
+    let dboAddJob = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
         }
@@ -526,7 +1127,7 @@ ipcMain.on('add-job', (event,args, args2, args3)=>{
             console.log(err.message)
         }else{
             
-            let dboRefresh = new sqlite3.Database(testDB, (err)=>{
+            let dboRefresh = new sqlite3.Database(workflowDB, (err)=>{
                 if(err){
                     console.error(err.message)
                 }
@@ -540,9 +1141,9 @@ ipcMain.on('add-job', (event,args, args2, args3)=>{
                 }
                 
             
-                //console.log(`${this.changes} items inserted at row: ${this.lastID}`)
+               
                 
-                //win.webContents.send('reload', row)
+                
                 dboAddJob.close()
                 dboRefresh.close()
                 addJobWin.close()
@@ -552,6 +1153,7 @@ ipcMain.on('add-job', (event,args, args2, args3)=>{
             if(args3 == 'calendar'){
                 calendarWin.webContents.send('refresh')
             }
+            args.customer_name = cn
             logActivity('added',args)
             console.log(`${this.changes} items inserted at row: ${this.lastID}`)
     }
@@ -564,7 +1166,7 @@ ipcMain.on('add-job', (event,args, args2, args3)=>{
 
 ipcMain.on('db-contact-add', (event,args)=>{
     
-    let dboContacts = new sqlite3.Database(testDB, (err)=>{
+    let dboContacts = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
         }
@@ -658,151 +1260,12 @@ ipcMain.on('db-contact-add', (event,args)=>{
     
 })
 
-//watches for changes on JSON file and reloads page with changed file
- fs.watch(white_board, (event, filename) => {
-    if (filename) {        
-      if (fsWait) return;    
-      fsWait = setTimeout(() => {
-        fsWait = false;      
-      }, 200);      
-      
-      setTimeout(function() {
-          win.webContents.send('whiteboard-updated')
-      }, 50);      
-    }
-    
-});
-
-//TODO: set up logging on database actions and watch for change to log
-/**
- * write to broadcast.txt on every dtabase change action. At the end of day look for year folder, create if not there
- * and save broadcast.txt as julian date.txt (238.txt) in folder and then clear broadcast. Secondary methos is to change 
- * name of broadcast and then create new broadcast.txt file.
- * On change reload jobs. Maybe change all reloads of page to rely on this instead
- 
- */
 
 
-ipcMain.on('pull-job',(event,args)=>{
-    let dboPullJob = new sqlite3.Database(testDB, (err)=>{
-        if(err){
-            console.error(err.message)
-        }
-        
-    })
-    let sql = `SELECT * FROM jobs WHERE job_ID = ?`
-    let id = args
-    dboPullJob.all(sql,[id],function (err,row){
-        if(err){
-            return err
-        }else{
-            
-            event.returnValue = row
-        }
-        dboPullJob.close()
-    })
-    
-    
-})
-ipcMain.on('pull_jobs', (event,args)=>{
-    let dboPullJobs = new sqlite3.Database(testDB, (err)=>{
-        if(err){
-            console.error(err.message)
-        }
-        
-    })
-    let sql = `SELECT * FROM jobs WHERE active = 1 AND cancelled = 0`
-    dboPullJobs.all(sql,function (err,row){
-        if(err){
-            return err
-        }else{
-            
-            event.returnValue = row
-        }
-        dboPullJobs.close()
-    })
-    
-    
-})
 
 
-ipcMain.on('edit-location-drop',(event,args,args2)=>{
-    
-    let dboLocation = new sqlite3.Database(testDB, (err)=>{
-        if(err){
-            console.error(err.message)
-        }
-        
-    })
-    dboLocation.serialize(()=>{
-        
-        let p = Object.keys(args)
 
-        //assign an array of key/column values for sql statement from the javascript object
-        let v = Object.values(args)
-    
-        
-    
-        //building placeholder for SQL based on amount of items in object
-        let columnPlaceholders = p.join("=?, ")
-        columnPlaceholders = columnPlaceholders+'=?'
-        
-        let sql = `UPDATE jobs SET status=?, shop_location=?, designation=?, date_in=? WHERE job_ID= ?`;
-        
-        let sql1 = `UPDATE jobs
-                SET shop_location = ?,
-                status = ?
-                WHERE job_ID = ?`;
-        let sql2 = `SELECT * FROM jobs WHERE job_ID = ${args.job_ID}`
-        dboLocation.run(sql, v, function(err) {
-            if (err) {
-                return console.error(err.message);
-            }
-            args.user = args2
-            logActivity('moved',args)
-        }) 
-        
-        
-        .all(sql2,function (err,row){
-            if(err){
-                console.log('first select'+err.message)
-                return err
-            }else{                
-                
-                event.returnValue = row
-            }
-        })   
-        
-        dboLocation.close()
-         
-    })
-    
-})
-ipcMain.on('edit-location',(event,args)=>{
-    console.log(args.shop_location)
-    let dboLocation = new sqlite3.Database(testDB, (err)=>{
-        if(err){
-            console.error(err.message)
-        }
-        
-    })
-    let data = [args.shop_location, args.job_ID]
-    
-    let sql = `UPDATE jobs
-            SET shop_location = ?
-            WHERE job_ID = ?`;
-    dboLocation.run(sql, data, function(err) {
-        if (err) {
-            return console.error(err.message);
-        }
-        
-        console.log(`Row(s) updated: ${this.changes}`);
 
-        dboLocation.close()
-        });  
-        
-        
-})
 
 
 /*******
@@ -810,51 +1273,56 @@ ipcMain.on('edit-location',(event,args)=>{
  *******/
 
 
-ipcMain.on('get-job', (event,args)=>{
-    let dboJob = new sqlite3.Database(testDB, (err)=>{
+
+ipcMain.on('db-get-contact',(event, args)=>{
+    
+    let dboContact = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
         }
         
     })
-    let sql = `SELECT * FROM jobs WHERE job_ID = ${args}`
-    dboJob.all(sql,function (err,row){
+    
+    let sql = `SELECT * FROM contacts WHERE contact_ID = ?`
+    dboContact.all(sql,[args],function (err,row){
         if(err){
             console.log('first select'+err.message)
             return err
         }else{
-            event.returnValue = row
+            
+            event.returnValue = row[0]
         }
-        dboJob.close() 
+        dboContact.close()
     })
     
-      
+    
 })
-ipcMain.on('db-get-customer-name',(event, args)=>{
+ipcMain.on('db-get-phone',(event, args)=>{
     
-    let dboCustomerName = new sqlite3.Database(testDB, (err)=>{
+    let dboPhone = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
         }
         
     })
     
-    let sql = `SELECT customer_name FROM customers WHERE customer_ID = ?`
-    dboCustomerName.all(sql,[args],function (err,row){
+    let sql = `SELECT * FROM phone_numbers WHERE phone_ID = ?`
+    dboPhone.all(sql,[args],function (err,row){
         if(err){
             console.log('first select'+err.message)
             return err
         }else{
-            event.returnValue = row[0].customer_name
+            
+            event.returnValue = row[0]
         }
-        dboCustomerName.close()
+        dboPhone.close()
     })
     
     
 })
 ipcMain.on('db-get-contact-name',(event, args1, args2)=>{
     
-    let dboContactID = new sqlite3.Database(testDB, (err)=>{
+    let dboContactID = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
         }
@@ -884,7 +1352,7 @@ ipcMain.on('db-get-contact-name',(event, args1, args2)=>{
                 console.log('first select'+err.message)
                 return err
             }else{
-                let dboContactName = new sqlite3.Database(testDB, (err)=>{
+                let dboContactName = new sqlite3.Database(workflowDB, (err)=>{
                     if(err){
                         console.error(err.message)
                     }
@@ -943,6 +1411,8 @@ function createMainWindow(){
         width: 1650,
         height: 900,        
         icon: path.join(__dirname, '../images/logo.ico'),
+        autoHideMenuBar: true,
+        
         
         
         webPreferences: {
@@ -1081,6 +1551,7 @@ function createLoginWindow(){
     
 }
 function createReportWindow(){
+    
     reportWin = new BrowserWindow({
             parent: win,
             modal: true,
@@ -1091,7 +1562,8 @@ function createReportWindow(){
             webPreferences: {
                 nodeIntegration: true,
                 webSecurity: false,
-                contextIsolation: false
+                contextIsolation: false,
+                enableRemoteModule: true
     
             }
             
@@ -1102,14 +1574,13 @@ function createReportWindow(){
             slashes:true
         }))
         reportWin.once('ready-to-show', () => {
-            //reportWin.show()
-            //attachDatePicker()
+            
             
           })
 
           reportWin.webContents.focus()
          
-        
+          require("@electron/remote/main").enable(reportWin.webContents)
     
 }
 function createAddJobWindow(args, launcher){
@@ -1280,7 +1751,7 @@ ipcMain.on('delete-scheduled', (event,args,args2)=>{
     let objChange = new Object()
     objChange.job_ID = args
     objChange.user = args2
-    let db = new sqlite3.Database(testDB, (err) => {
+    let db = new sqlite3.Database(workflowDB, (err) => {
         if (err) {
           console.error(err.message);
         }
@@ -1323,32 +1794,32 @@ ipcMain.on('open-edit',(event,args, args2,args3)=>{
     createEditWindow(args, args2,args3)
 })
 
-ipcMain.on('get-users', (event,args)=>{
-    let dboUsers = new sqlite3.Database(testDB, (err)=>{
-        if(err){
-            console.error(err.message)
-        }
+// ipcMain.on('get-users', (event,args)=>{
+//     let dboUsers = new sqlite3.Database(workflowDB, (err)=>{
+//         if(err){
+//             console.error(err.message)
+//         }
         
-    })
+//     })
 
-    let sql = `SELECT * FROM users WHERE active=1`
-    dboUsers.all(sql,[], (err, row)=>{
-        if(err){
-            return err
-        }else{
+//     let sql = `SELECT * FROM users WHERE active=1`
+//     dboUsers.all(sql,[], (err, row)=>{
+//         if(err){
+//             return err
+//         }else{
             
-            event.returnValue = row
-        }
-        dboUsers.close()
-    })
+//             event.returnValue = row
+//         }
+//         dboUsers.close()
+//     })
     
     
-})
+// })
 
  
  
 ipcMain.on('delete-user', (event,args)=>{
-    let dboUsers = new sqlite3.Database(testDB, (err)=>{
+    let dboUsers = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
         }
@@ -1383,31 +1854,11 @@ ipcMain.on('delete-user', (event,args)=>{
     
     
 })
-// ipcMain.on('addNew', (event, args)=>{
-   
-//     if (db.valid('vehicles',location)) {
-//         db.insertTableContent('vehicles', location, args, (succ, msg) => {
-//             });
-//       }
-//      win.webContents.send('count') 
-     
-//      addJobWin.hide()
-//      addJobWin = null
-// });
+
 ipcMain.on('reloadPage', (event) =>{
    
     event.sender.send('reload', objList)
 })
-
-
-
-
-
-
-
-
-
-
 
 
 ipcMain.on('deactivate', (event,args, args2)=>{
@@ -1415,7 +1866,7 @@ ipcMain.on('deactivate', (event,args, args2)=>{
     objChange.job_ID = args
     objChange.user = args2
 
-    let dboDeactivate = new sqlite3.Database(testDB, (err)=>{
+    let dboDeactivate = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
         }
@@ -1460,11 +1911,7 @@ ipcMain.on('deactivate', (event,args, args2)=>{
 
 
 
-/********
- * ******
- * communications regarding contacts
- * ******
- ********/
+
 
 
 
@@ -1472,7 +1919,7 @@ ipcMain.on('deactivate', (event,args, args2)=>{
 
 
 ipcMain.on('add-new-customer', (event,args)=>{
-    let dboCustomer = new sqlite3.Database(testDB, (err)=>{
+    let dboCustomer = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
         }
@@ -1491,12 +1938,6 @@ ipcMain.on('add-new-customer', (event,args)=>{
 
 
 
-// ipcMain.on('get-company-id', (event, args)=>{
-
-//     let compID = getID(args)    
-//     event.returnValue = compID    
-        
-// })
 
 
 
@@ -1506,7 +1947,7 @@ ipcMain.on('add-new-customer', (event,args)=>{
 /*used to pull names for dropdown datalist of names when adding jobs or contacts*/
 ipcMain.on('get-customer-names', (event,args)=>{
     //create database object that autoconnects to database
-    let dboCustomers = new sqlite3.Database(testDB, (err)=>{
+    let dboCustomers = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
         }
@@ -1544,7 +1985,7 @@ let dbCallBack = (data)=>{
     return data[0].customer_ID
 }
 ipcMain.on('get-customer-ID', (event,args)=>{
-    let dboCustomers = new sqlite3.Database(testDB, (err)=>{
+    let dboCustomers = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
         }
@@ -1575,11 +2016,16 @@ ipcMain.on('get-customer-ID', (event,args)=>{
     
 })
 
+/****************************
+ * communications regarding contacts
+ ***************************/
+
+
 ipcMain.on('open-contacts', (event,args1,args2, args3, args4, args5, args6, args7)=>{
     //test to see which page launched the contacts page
     //right now the options are 'add job page' from addJob.js and 'main page' from index.js
     if(args1 == 'add job page'){
-        let dboCustomers = new sqlite3.Database(testDB, (err)=>{
+        let dboCustomers = new sqlite3.Database(workflowDB, (err)=>{
             if(err){
                 console.error(err.message)
             }
@@ -1611,79 +2057,7 @@ ipcMain.on('open-contacts', (event,args1,args2, args3, args4, args5, args6, args
     
 })
 
-ipcMain.on('update-job',(event,args,args2, args3)=>{
-    let k = Object.keys(args)
-    let v = Object.values(args)
-    let arrC = new Array()
-    let arrV = new Array()
-    let strColumns 
-    let strValues 
-    for(i=1;i<k.length;i++){
-            
-            arrC.push(`${k[i]}='${v[i]}'`)
-            arrV.push(v[i])
-    }
-    if(arrC.length > 1){
-    strColumns = arrC.join(',')
-    }else{
-        strColumns = arrC[0]
-    }
-    if(arrV.length > 1){
-    strValues = arrV.join(',')
-    }else{
-        strValues =arrV[0]
-    }
-   
 
-    let dboUpdate = new sqlite3.Database(testDB, (err)=>{
-        if(err){
-            console.error(err.message)
-        }
-        
-    })
-    let pull = `SELECT * FROM jobs WHERE active = 1 AND cancelled = 0`
-    let sql = `UPDATE jobs SET ${strColumns} WHERE job_ID = ${args.job_ID}`
-    
-    dboUpdate.serialize(()=>{
-        dboUpdate.run(sql, function(err,row) {
-            if (err) {
-                return console.error(err.message);
-            }
-            console.log(`Row(s) updated: ${this.changes}${row}`);
-
-            
-        })
-        .all(pull, [], (err,row)=>{
-            if(err){
-            return console.error(err.message);
-            }else{
-                args.user = args3
-                switch(args2){
-                    case 'context-menu' :
-                        
-                        
-                        break;
-                    case 'edit job':
-                        winEdit.close()
-                        break;
-                    case 'calendar':                        
-                        calendarWin.webContents.send('refresh')
-                        break;
-                    default:
-                        
-                        break;
-                }
-                logActivity('edited',args)
-                
-                win.webContents.send('update',row)
-                
-            }
-        }) 
-
-        dboUpdate.close()
-    });
-    
-})
 ipcMain.on('move', (event, args)=>{
     
     switch(event.sender.getTtitle()){
@@ -1705,7 +2079,7 @@ ipcMain.on('get-contacts', (event, args)=>{
     
     let insertCount = 0
     if(args != undefined){
-        let dboContacts = new sqlite3.Database(testDB, (err)=>{
+        let dboContacts = new sqlite3.Database(workflowDB, (err)=>{
             if(err){
                 console.error(err.message)
             }
@@ -1792,7 +2166,7 @@ ipcMain.on('get-contacts', (event, args)=>{
    
 })
 ipcMain.on('edit-phone', (event,args)=>{
-    let dboPhone = new sqlite3.Database(testDB, (err)=>{
+    let dboPhone = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
         }
@@ -1814,7 +2188,7 @@ ipcMain.on('edit-phone', (event,args)=>{
 })
 
 ipcMain.on('edit-email', (event,args)=>{
-    let dboEmail = new sqlite3.Database(testDB, (err)=>{
+    let dboEmail = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
         }
@@ -1835,7 +2209,7 @@ ipcMain.on('edit-email', (event,args)=>{
          
 })
 ipcMain.on('edit-contact-name', (event,args)=>{
-    let dboCN = new sqlite3.Database(testDB, (err)=>{
+    let dboCN = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
         }
@@ -1857,7 +2231,7 @@ ipcMain.on('edit-contact-name', (event,args)=>{
         
 })
 ipcMain.on('add-phone', (event,args)=>{
-    let dboNewPhone = new sqlite3.Database(testDB, (err)=>{
+    let dboNewPhone = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
         }
@@ -1894,7 +2268,7 @@ ipcMain.on('add-phone', (event,args)=>{
          
 })
 ipcMain.on('add-email', (event,args)=>{
-    let dboNewEmail = new sqlite3.Database(testDB, (err)=>{
+    let dboNewEmail = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
         }
@@ -1931,9 +2305,9 @@ ipcMain.on('add-email', (event,args)=>{
 })
 
 
-
+//handler to delete items (phone number, email,, contact or any variation of the three) from contacts
 ipcMain.on('delete-item', (event,args)=>{
-    let dboDelPhone = new sqlite3.Database(testDB, (err)=>{
+    let dboDelPhone = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
         }
@@ -2015,19 +2389,50 @@ ipcMain.on('open-login-window', function(){
 /********
  * communications regarding reports
  ********/
+ const shell = electron.shell
+ const os = require('os')
 ipcMain.on('open-report-window',(event,args)=>{
     createReportWindow()
 }) 
-
-ipcMain.on('pull-activity-log', (event, args1, args2)=>{
-    console.log(args1 + ' '+args2)
+ipcMain.on('print-to-pdf', function (event) {
     try{
-    let l= fs.readFileSync(`${logLocation}${args1}/${args2}/activityLog.txt`, 'UTF-8');
-    event.returnValue = l
-}catch(err){
-    console.log(err)
-    event.returnValue = "no file exists"
-}
+            console.log('print-to-pdf called')
+            
+            const pdfPath = path.join(os.homedir(), 'Documents', 'temp.pdf')
+            const win = BrowserWindow.fromWebContents(event.sender)
+            win.webContents.printToPDF({scaleFactor: 75}).then(data => {
+                fs.writeFile(pdfPath, data, (error) => {
+                if (error) throw error
+                shell.openExternal('file://' + pdfPath)
+                console.log(`Wrote PDF successfully to ${pdfPath}`)
+                })
+                
+            }).catch(error => {
+                console.log(`Failed to write PDF to ${pdfPath}: `, error)
+            })
+            
+            
+        }catch(e){
+            console.log(e)
+        }
+        reportWin.webContents.send('close-window')
+})
+
+ipcMain.on('pull-activity-log', (event, args1, args2, args3)=>{
+    console.log(args1 + ' '+args2+ "is today ="+args3)
+    try{
+        let today = new Date()
+        let l
+        if(args3 ===true){
+            l= fs.readFileSync(`${logLocation}/activityLog${args2}.txt`, 'UTF-8');
+        }else{
+            l= fs.readFileSync(`${logLocation}${args1}/${args2}/activityLog.txt`, 'UTF-8');
+        }
+         event.returnValue = l
+    }catch(err){
+        console.log(err)
+        event.returnValue = "no file exists"
+    }
 })
 
 /********

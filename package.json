@@ -10,10 +10,12 @@
   "author": "Sean Davidson",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^13.1.7",
+    "electron": "^17.1.2",
     "electron-builder": "^22.11.7"
   },
   "dependencies": {
-       "sqlite3": "^5.0.2"
+    "@electron/remote": "^2.0.8",
+    "electron-find": "^1.0.7",
+    "sqlite3": "^5.0.2"
   }
 }

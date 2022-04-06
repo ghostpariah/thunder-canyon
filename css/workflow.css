@@ -74,8 +74,8 @@ body {
 	float:left;
 	padding: 5px;
 	font-family: 'Arial Narrow';
-	font-size: 30px;
-	color:red;
+	font-size: 1.5em;
+	color:#1b1a1a;
 	text-align:left;
 }
 
@@ -309,12 +309,14 @@ margin-right: px;
 	width:100%;
 	background: #4d3394;
 	color: white;
+	float:left;
 	
 }
 .glimpseItem{
 	margin: 3px;
 	padding: 2px;
 	float:left;
+	
 	width:100%;
 	text-align: left;
 }
@@ -324,6 +326,7 @@ margin-right: px;
 	background:seashell;
 	/* font-family: 'Arial Narrow'; */
 	float:left;
+	
 	color:black;
 	text-align: center;
 	
@@ -340,6 +343,7 @@ margin-right: px;
 .glimpseCustomer{
 	width:85%;
 	float:left;
+	
 	font-size: 13px;
 	font-weight:bold;
 	color: black;
@@ -348,20 +352,23 @@ margin-right: px;
 .glimpseDate{
 	width:100%;
 	float:left;
+	
 	font-size: 18px;
 	font-weight:bold;
 }
 .glimpseNotes{
 	width:100%;
 	float:left;
+	
 	font-size: 12px;
 }
 .glimpseSpan{
 	width:100%;
 	float:left;
+	
 }
 .bottomBox{
-	width:100%px;
+	width:100%;
 	height:125px;
 	border:2px solid #5e81ad;
 	float:left;
@@ -869,7 +876,7 @@ div.lineItem:first-child{
 	
 }
 .topCountBox{
-	border: 1px solid#5e81ad;
+	border: 1px solid #5e81ad;
 	float:left;
 	height: 65px;
 	width:17%;
@@ -940,15 +947,23 @@ input {
 	display: block;
 	z-index:4;
 }
-
 .vehicle:hover .tooltipLast {
 	color: black;
 	/* margin-top: -400px; */
 	
 	max-width: 250px;
-	display: inline-block;
+	display: block;
 	z-index:4;
 }
+.vehicle:hover .tooltipRight {
+	color: black;
+	/* margin-top: -400px; */
+	
+	max-width: 250px;
+	display: block;
+	z-index:4;
+}
+
 #wpuBoxHeader{
 	text-align: center;
 }
@@ -1011,8 +1026,8 @@ input {
 	border: 1px solid #5e81ad;
 	
 	margin-left: 115px;
+	transform: translateY(-90%);
 	
-	margin-top: -50px;
 	box-shadow: 5px 10px 18px #888888;
 	padding-left: 10px;
 	padding-right:0px;
@@ -1028,14 +1043,37 @@ input {
 	overflow-x: auto;
 	
 }
+.tooltipRight{
+	display: none; /* NEW */
+	background: white;
+	border: 1px solid #5e81ad;
+	
+	margin-left: -115px;
+	transform: translateY(25%);
+	
+	box-shadow: 5px 10px 18px #888888;
+	padding-left: 10px;
+	padding-right:0px;
+	position: absolute;
+	z-index: 100000 !important;
+	max-width: 250px;
+	width: 250px;
+	height: auto;
+	font-family: "Arial Narrow";
+	font-size: 16px;
+	text-align: left;
+	overflow: auto;
+	overflow-x: auto;	
+}
 .tooltipLast{
 	display: none; /* NEW */
 	background: white;
 	border: 1px solid black;
 	/* margin-top: -50px; */
 	clear: both;
-	margin-top: -50px;
+	transform: translateY(-90%);
 	
+	margin-left: 115px;
 	
 	box-shadow: 5px 10px 18px #888888;
 	padding-left: 10px;
@@ -1168,7 +1206,7 @@ input {
 	float:left;
 	margin-left: 5px;
 	overflow-y: auto;
-	overflow-x: hidden;
+	overflow-x: hidden; 
 	font-family:Arial, Helvetica, sans-serif;
 }
 .viewButton{
@@ -1234,6 +1272,7 @@ input {
 	margin-left: 3px;
 }
 .context-Menu{
+	
 	position: absolute;
 	display:none;
 	z-index: 10000;
@@ -1245,6 +1284,19 @@ input {
 	box-shadow: 5px 10px 18px #888888;
 	
 }
+.glimpse-context-menu{
+	position: absolute;
+	display:none;
+	z-index: 10000;
+	width:150px;
+	height: 100px;
+	background: #1b1a1a;
+	margin-left: 150px;
+	margin-top: -40px;
+	box-shadow: 5px 10px 18px #888888;
+	
+}
+
 .popuprow{
 	float:left;
 	width: 100%;
@@ -1281,9 +1333,9 @@ input {
 	text-align: center;
 }
 .context-submenu{
-	position: absolute;
+	position:absolute;
 	display:none;
-	z-index: 10000;
+	z-index: 100000;
 	width:300px;
 	height: 120px;
 	background: #1b1a1a;
@@ -1297,6 +1349,18 @@ input {
 }
 
 .context-Menu > .item{
+	float:left;
+	font-family: 'Arial Narrow';
+	padding: 2px 5px;
+	font-size:16px;
+	color:#5e81ad;
+	cursor: pointer;
+	width:140px;
+	/* transform:translateY(100%); */
+	height:20px;
+	
+}
+.glimpse-context-menu > .item{
 	float:left;
 	font-family: 'Arial Narrow';
 	padding: 2px 5px;

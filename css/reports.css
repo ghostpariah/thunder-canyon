@@ -3,6 +3,9 @@ body{
     background-color: black;
     font-family:'Arial Narrow', Arial, Helvetica, sans-serif;
 }
+label{
+    margin-right:5px;
+}
 .ribbon{
     width:100%;
     height:auto;
@@ -12,7 +15,7 @@ body{
     text-align: center;
 }
 .mainOption{
-    width: calc(95%/3);
+    width: calc(94%/4);
     font-size: 25px;
     float: left;
     height: 35px;
@@ -37,7 +40,7 @@ select {
     height: 30px;
 }
 #dateRange{
-    width: 240px;
+    width: 260px;
     padding: 2px;
 }
 #reportEndDate{
@@ -46,7 +49,7 @@ select {
 .ribbonAsset{
     float:left;
     
-    height: 60px;
+    
     margin: 10px 5px 5px 5px;
 }
 .hidden{
@@ -56,10 +59,103 @@ select {
     display:block;
 }
 .resultsContainer{
-    float:left;
-    
+    float:left;    
     color:#5e81ad;;
     width: 100%;
-    
+}
+#searchResult{
+    border: 1px solid #5e81ad;
+    margin-bottom: 10px;
+    background-color: whitesmoke;
+    color: black;
+}
+#searchResult h1{
+    text-align:center;
+}
 
+.searchInputButton{
+    background-color: #5e81ad;
+    color:white;
+    cursor: pointer;
+    padding: 0 3px 3px 3px;
+}
+#activitySearch{
+    
+    display: none;
+    text-align:left;
+    float: right;
+    height: auto;
+}
+#activitySearchNS{
+    
+    
+    text-align:left;
+    float: right;
+    height: auto;
+}
+.reportFormInput{
+    height: 2em;
+    float:left;
+    width:47%;
+    margin:2px;
+}
+.rfLabel{
+    width: 47%;
+    float:left;
+    text-align: right;
+    margin:2px;
+}
+.inputWrapper{
+    width: calc(99%/3);
+    margin-top:10px;
+    float:left;
+    
+}
+.btnReport{
+    background-color: #5e81ad;
+    height: 2.5em;
+    float:right;
+    width:47%;
+    margin: 25px 5px 5px 0; 
+}
+.EODprintItem{
+    font-size: 2em;
+    width: 100%;
+    float:left;
+    border-bottom: 1px solid black;
+}
+.labelBox{
+    float:left;
+    width:50%;
+    
+}
+.resultBox{
+    float: right;
+    width:50%;
+    text-align: right;
+}
+.spacer{
+    float:left;
+    height:2em;
+    width:100%;
+    
+}
+#achBox{
+    float:left;
+    height:auto;
+    width:100%;
+    
+}
+.achLabel{
+    width: 64%;
+    float:left;
+    text-align: right;
+    margin:2px;
+    
+}
+.achInput{
+    width: 30%;
+    height: 2em;
+    float:left;
+    
 }

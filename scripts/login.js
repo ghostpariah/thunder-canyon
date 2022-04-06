@@ -54,7 +54,8 @@ setTimeout(()=>{
             let ma = document.getElementById('-message-area')
             ma.innerHTML=""
             //alert(arg)
-            let users = ipc.sendSync('get-users')
+            let users = ipc.sendSync('get-users', 'login')
+            console.log(users)
             userID =''          
                 
                 for(let member in users){
@@ -84,7 +85,7 @@ setTimeout(()=>{
             let ma = document.getElementById('-message-area')
             ma.innerHTML=""
             //alert(arg)
-            let users = ipc.sendSync('get-users')
+            let users = ipc.sendSync('get-users', 'login')
             //let userID=args.id     
                 
             if(matchedUsername){               

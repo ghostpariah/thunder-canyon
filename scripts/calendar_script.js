@@ -849,10 +849,11 @@ function openContextMenu(e){
     // cm.setAttribute("id", cId+"_cm");
     //  cm.setAttribute("class","cal_cm");    
     //  callingElement.appendChild(cm);
-
-    
+    let arrWeekend = ['5','6','12','13','19','20','26','27','33','34','40','41']
+    let thisDay = document.getElementById('jobWallet').parentNode.id.substring(8)
     let cmList = document.createElement('ul');
-    cmList.setAttribute("class","cm_list");
+    (arrWeekend.includes(thisDay))? cmList.setAttribute("class","cm_list_left"): cmList.setAttribute("class","cm_list");
+    //cmList.setAttribute("class","cm_list");
     cmList.setAttribute("id","cmList");
     callingElement.appendChild(cmList)
     //document.getElementById(cId+"_cm").appendChild(cmList);
@@ -878,7 +879,7 @@ function openContextMenu(e){
                     
                     break;
                 case "EDIT":
-                    
+                    console.log(objJobInfo)
                     calIPC.send('open-edit', objJobInfo, 'calendar', currentUser)
                     //editCalenderJob(rn);
                     break;

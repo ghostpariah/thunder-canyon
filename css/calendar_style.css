@@ -321,6 +321,26 @@ li.cmListItem:hover{
     z-index: 1000;
     
 }
+.cm_list_left{
+    
+    font-family: 'Arial Narrow';
+    font-size: 16px;
+    margin-top: 5px;
+    position: absolute;
+    border: 1px solid #5e81ad;
+    width: 125px;
+    height:auto;
+    padding:0;
+    background-color: #1b1a1a;
+    color: #5e81ad;
+    text-align: center;
+    font-weight:normal;
+    left:-120px;
+    bottom:-75px; 
+    z-index: 1000;
+    
+}
+
 .preview{
     
     background-color: rgb(221, 217, 217);

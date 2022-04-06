@@ -37,17 +37,44 @@ setTimeout(()=>{
     
 
 },1000);
+
+/**
+ * 
+ * @param {*} input 
+ * @returns 
+ * 
+ * function to treat data synchronously
+ * data was delayed causing errors due to asynchronous flow. 
+ * used the 'async' and 'await' to stop processing until all data was received
+ */
+
+async function treatData (input) {
+	try{
+	  var treated = input	  
+	  return treated;
+	}
+	catch(err){
+	  console.log(err)
+	}
+  
+  }
+
 /**
  * handle communication from main
  */
-ipcEdit.on('edit-data', (event,args, args2, args3)=>{
+ 
+  
+ipcEdit.on('edit-data', async (event,args, args2, args3)=>{
     console.log(typeof(args))
-    editData =  args
+	editData = await treatData(args)
+	loadData(editData)
+    
 	launcher = args2
 	currentUser = args3
-    setTimeout(() => {
-        loadData(editData)
-    }, 400);
+    // setTimeout(() => {
+	// 	loadData(args)
+    //     //loadData(editData)
+    // }, 0);
 })
 ipcEdit.on('contacts-updated', (event,args,args2)=>{
 	console.log(args)
@@ -73,13 +100,16 @@ function cancelAdd(){
 	ipcEdit.send('close-window')
 }
 
+/* function to load current job data into edit form inputs*/
+function loadData(objJobToEdit){
 
-function loadData(args){
-    let d = editData[0]
-    console.log(editData[0].customer_ID)
-   
-    inpCustomer.value = ipcEdit.sendSync('db-get-customer-name',editData[0].customer_ID);
-    //selContacts.value = ipcEdit.sendSync('get-contacts',ipcEdit.sendSync('get-customer-ID',inpCustomer.value))
+    let d = objJobToEdit
+    
+	try{
+    inpCustomer.value = ipcEdit.sendSync('db-get-customer-name',d.customer_ID);
+	}catch(e){
+		console.log(e)
+	}
     
     (d.unit != null) ? inpUnit.value = d.unit : inpUnit.value = "";
     (d.designation == "On the Lot" || d.desgnation == 'on the lot')? selDesignation.selectedIndex = 1 : selDesignation.selectedIndex = 2;
@@ -106,7 +136,6 @@ function loadData(args){
         cbCash.checked = false;
     }
     
-    //(d.cash != null) ? (d.cash == 1)? cbCash.checked = true : cbCash.checked = false : cbCash.checked = false;
     (d.parts_needed != null) ? (d.parts_needed == 1)? cbParts.checked = true : cbParts.checked = false : cbParts.checked = false;
     (d.approval_needed != null) ? (d.approval_needed == 1)? cbApproval.checked = true : cbApproval.checked = false : cbApproval.checked = false;
     (d.checked != null) ? (d.checked == 1)? cbChecked.checked = true : cbChecked.checked = false : cbChecked.checked = false;
@@ -141,17 +170,15 @@ function loadData(args){
 
 function fillContacts(cont){
 	
-	//console.log('fillContacts() fired')
+	
 	let optGroup = document.createElement("optgroup")
 	let t=document.createTextNode('add contact')
 	let newOption=document.createElement("OPTION");
 	let ul = document.createElement('ul')
-	const contactContent = document.getElementById('txtContacts')//lstCOntacts
+	const contactContent = document.getElementById('txtContacts')
 	contactContent.innerHTML=""	
-	//let newNumber = document.createTextNode('+ add new number')	
-	//let elementNewNumber = document.createTextNode('+ add new email')
-	console.log(typeof cont)
-	console.log(cont)
+	
+	
 	if(typeof cont == 'object' && cont.length>0){
 		 newOption=document.createElement("OPTION");
 		 t=document.createTextNode('add contact')
@@ -164,7 +191,7 @@ function fillContacts(cont){
 			
 			let newNumber = document.createTextNode('+ add number')
 			let txtAddEmail = document.createTextNode('+ add email')
-			//let newEmail = document.createTextNode(`${cont[member].email}`)
+			
 
 			chosenFirstname = cont[member].first_name
 			chosenLastname = cont[member].last_name
@@ -181,7 +208,7 @@ function fillContacts(cont){
 			if(cont[member].contact_ID){	
 				optGroup.setAttribute('contactID', Number(cont[member].contact_ID))
 					
-				//console.log(cont[member].contactID)
+				
 			}
 			 contactContent.appendChild(optGroup);
 			 let dashOpt = document.createElement('option')					
@@ -246,23 +273,22 @@ function fillContacts(cont){
 			optGroup.lastChild.style.fontSize = '.65em'
 
 
-			//let newNumber = document.createTextNode('+ add new number')
+			
               
 		}
-		newOption=document.createElement("OPTION");
+		newOption = document.createElement("OPTION");
 		newOption.setAttribute("value","no contact");	
-		//newOption.setAttribute('class', 'addContactLink')
-		//newOption.setAttribute('style', 'font-weight = bold')
+		
 		let ac = document.createTextNode(`+ add new contact`)
-		//ac.style.fontWeight = 'bold'
+		
 		newOption.appendChild(ac)
 		contactContent.insertBefore(newOption,contactContent.firstChild)
-		//contactContent.appendChild(newOption)
+		
 		contactContent.firstChild.style.fontWeight = 'bold'
-		//contactContent.lastChild.style.color = 'blue'
+		
 		
 	}else{
-		//console.log('else triggered in fillContacts()')
+		
 		let blankOption = document.createElement('option')
 		let b_o_text = document.createTextNode('--select option--')
 		blankOption.appendChild(b_o_text)
@@ -284,27 +310,26 @@ function fillContacts(cont){
 	
 	$(contactContent).on('change',()=>{
 		
-		//tellParent()
+		
 		
 	}).off('change')
 	$(contactContent).trigger('change')
 }
 
-function tellParent(choice){
-	var conOps = document.getElementById("txtContacts");
-	//console.log(`from tellParent ${chosenCompany} ${chosenFirstname} ${chosenLastname}`)
-	//contactIDNumber = conOps.options[conOps.selectedIndex].parentElement.getAttribute('contactID')
+/*function called when contact is changed on the edit form*/
+function changeContact(choice){
+	var contactsInput = document.getElementById("txtContacts");
 		
 	
-	let con_ops = conOps.options[conOps.selectedIndex].text
+	let con_ops = contactsInput.options[contactsInput.selectedIndex].text
 	con_ops = con_ops.substring(con_ops.indexOf("~") + 1);
-	let con_name
+	let contactName
 	let index
-	let customer = ipcEdit.sendSync('db-get-customer-name', editData[0].customer_ID)
+	let customer = ipcEdit.sendSync('db-get-customer-name', editData.customer_ID)
 	switch(con_ops){
 		
 		case '+ add contact': 
-			//con_ID = d.getTime()
+			
 			
 			ipcEdit.send('open-contacts','edit page',customer, false)
 			break;
@@ -314,19 +339,19 @@ function tellParent(choice){
 			
 			break;
 		case '+ add number': 
-			con_name = conOps.options[conOps.selectedIndex].parentElement.label.split(' ')
-			index = conOps.options[conOps.selectedIndex].index
+			contactName = contactsInput.options[contactsInput.selectedIndex].parentElement.label.split(' ')
+			index = contactsInput.options[contactsInput.selectedIndex].index
 			conMeth = "phone"
-			con_ID = Number(conOps.options[conOps.selectedIndex].parentElement.getAttribute('contactID'))
-			ipcEdit.send('open-contacts','edit page',customer, false, con_name[0], con_name[1], con_ID, conMeth)
+			con_ID = Number(contactsInput.options[contactsInput.selectedIndex].parentElement.getAttribute('contactID'))
+			ipcEdit.send('open-contacts','edit page',customer, false, contactName[0], contactName[1], con_ID, conMeth)
 			console.log('test '+con_ID)
 			break;
 		case '+ add email':
-			con_name = conOps.options[conOps.selectedIndex].parentElement.label.split(' ')
-			index = conOps.options[conOps.selectedIndex].index
+			contactName = contactsInput.options[contactsInput.selectedIndex].parentElement.label.split(' ')
+			index = contactsInput.options[contactsInput.selectedIndex].index
 			conMeth = "email"
-			con_ID = Number(conOps.options[conOps.selectedIndex].parentElement.getAttribute('contactID'))
-			ipcEdit.send('open-contacts','edit page',customer, false, con_name[0], con_name[1], con_ID, conMeth)
+			con_ID = Number(contactsInput.options[contactsInput.selectedIndex].parentElement.getAttribute('contactID'))
+			ipcEdit.send('open-contacts','edit page',customer, false, contactName[0], contactName[1], con_ID, conMeth)
 			
 			break;
 		default:
@@ -389,11 +414,11 @@ function updateJob (){
 	
 	
 	//build job object
-	objNewJob.job_ID = editData[0].job_ID
+	objNewJob.job_ID = editData.job_ID
 	
     
 	if(txtCon.options[txtCon.selectedIndex].getAttribute("method")=="phone"){
-        if(txtCon.options[txtCon.selectedIndex].id != editData[0].number_ID){
+        if(txtCon.options[txtCon.selectedIndex].id != editData.number_ID){
 			objNewJob.number_ID = txtCon.options[txtCon.selectedIndex].id			
 			objNewJob.email_ID = null
 			objChangeLog.number_ID = txtCon.options[txtCon.selectedIndex].id
@@ -401,19 +426,19 @@ function updateJob (){
 		
 	}
 	if(txtCon.options[txtCon.selectedIndex].getAttribute("method")=="email"){
-        if(txtCon.options[txtCon.selectedIndex].id != editData[0].email_ID){
+        if(txtCon.options[txtCon.selectedIndex].id != editData.email_ID){
 			objNewJob.email_ID = txtCon.options[txtCon.selectedIndex].id
 			objNewJob.number_ID = null
 			objChangeLog.email_ID = txtCon.options[txtCon.selectedIndex].id
 		}      
 		
 	}
-    if(editData[0].notes == null && txtNotes.value != null && txtNotes.value != ''){
+    if(editData.notes == null && txtNotes.value != null && txtNotes.value != ''){
         objNewJob.notes = txtNotes.value
 		objChangeLog.notes = txtNotes.value
     }
-    if(editData[0].notes != null){
-        if(editData[0].notes.localeCompare(txtNotes.value)!=0){
+    if(editData.notes != null){
+        if(editData.notes.localeCompare(txtNotes.value)!=0){
 			objNewJob.notes = txtNotes.value
 			objChangeLog.notes = txtNotes.value
 		}
@@ -421,20 +446,20 @@ function updateJob (){
     }
     
     
-	if(Boolean(document.getElementById('cbCash').checked)!=Boolean(editData[0].cash_customer)){
+	if(Boolean(document.getElementById('cbCash').checked)!=Boolean(editData.cash_customer)){
     	(document.getElementById('cbCash').checked == true)
 			? objNewJob.cash_customer = 1
 			: objNewJob.cash_customer = 0
 		objChangeLog.cash_customer = document.getElementById('cbCash').checked
 	}
-    if(editData[0].estimated_cost!=null){
-        if(editData[0].estimated_cost.localeCompare(txtCost.value)!=0){
+    if(editData.estimated_cost!=null){
+        if(editData.estimated_cost.localeCompare(txtCost.value)!=0){
           objNewJob.estimated_cost = txtCost.value
 		  objChangeLog.estimated_cost = txtCost.value
 		}
     }
     
-    if(editData[0].designation.localeCompare(designation.options[designation.selectedIndex].value)!=0){
+    if(editData.designation.localeCompare(designation.options[designation.selectedIndex].value)!=0){
      	objNewJob.designation = designation.options[designation.selectedIndex].value	
 		objChangeLog.designation = designation.options[designation.selectedIndex].value
 	}
@@ -445,26 +470,26 @@ function updateJob (){
         s = "sch"
     }
 
-    if(editData[0].status.localeCompare(s)!=0 && launcher == 'move'){
+    if(editData.status.localeCompare(s)!=0 && launcher == 'move'){
 		objNewJob.status = s
 	}
     
 
-    if(editData[0].date_scheduled != null){
-        if(editData[0].date_scheduled.localeCompare(document.getElementById('datepicker').value)!=0){
+    if(editData.date_scheduled != null){
+        if(editData.date_scheduled.localeCompare(document.getElementById('datepicker').value)!=0){
           objNewJob.date_scheduled = document.getElementById('datepicker').value
 		  
         
 		}
     }
-    if(editData[0].julian_date != null){
-        (editData[0].julian_date===jDate(document.getElementById('datepicker').value))
+    if(editData.julian_date != null){
+        (editData.julian_date===jDate(document.getElementById('datepicker').value))
         ? ''
         :objNewJob.julian_date = jDate(document.getElementById('datepicker').value);
     }
 	
-    if(editData[0].time_of_day != null && editData[0].time_of_day != ''){
-        (editData[0].time_of_day.localeCompare($('input[name=ampm2]:checked').val())!=0)
+    if(editData.time_of_day != null && editData.time_of_day != ''){
+        (editData.time_of_day.localeCompare($('input[name=ampm2]:checked').val())!=0)
         ? objNewJob.time_of_day = $('input[name=ampm2]:checked').val()
         :'no change to time_of_day';
     }
@@ -472,8 +497,8 @@ function updateJob (){
 		
 	
     if(txtUnit.value.trim().length){
-		if(editData[0].unit!= null && editData[0].unit!= undefined){
-			(editData[0].unit.localeCompare(txtUnit.value)!=0)
+		if(editData.unit!= null && editData.unit!= undefined){
+			(editData.unit.localeCompare(txtUnit.value)!=0)
 				? objNewJob.unit = txtUnit.value
 				: '';
 		}else{
@@ -482,41 +507,41 @@ function updateJob (){
         
     }
 	
-	(editData[0].job_type.localeCompare(jt.options[jt.selectedIndex].value)!=0)
+	(editData.job_type.localeCompare(jt.options[jt.selectedIndex].value)!=0)
     ? objNewJob.job_type = jt.options[jt.selectedIndex].value
     : '';
 	
-    (Boolean(document.getElementById('cbParts').checked)!=Boolean(editData[0].parts_needed))
+    (Boolean(document.getElementById('cbParts').checked)!=Boolean(editData.parts_needed))
     ? (document.getElementById('cbParts').checked == true)
 		? objNewJob.parts_needed = 1
 		: objNewJob.parts_needed = 0
     : console.log('no change to parts');
 
-    (Boolean(document.getElementById('cbApproval').checked)!=Boolean(editData[0].approval_needed))
+    (Boolean(document.getElementById('cbApproval').checked)!=Boolean(editData.approval_needed))
     ? (document.getElementById('cbApproval').checked == true) 
 		? objNewJob.approval_needed = 1
 		: objNewJob.approval_needed = 0
     : console.log('no change to approval');
 
-    (Boolean(document.getElementById('cbChecked').checked)!=Boolean(editData[0].checked))
+    (Boolean(document.getElementById('cbChecked').checked)!=Boolean(editData.checked))
     ? (document.getElementById('cbChecked').checked)
 		? objNewJob.checked = 1
 		: objNewJob.checked = 0
     : console.log('no change to checked');
 
-    (Boolean(document.getElementById('cbComeback').checked)!=Boolean(editData[0].comeback_customer))
+    (Boolean(document.getElementById('cbComeback').checked)!=Boolean(editData.comeback_customer))
     ? (document.getElementById('cbComeback').checked)
 		? objNewJob.comeback_customer = 1
 		: objNewJob.comeback_customer = 0
     : console.log('no change to comeback');
 
-    (Boolean(document.getElementById('cbWaiting').checked)!=Boolean(editData[0].waiting_customer))
+    (Boolean(document.getElementById('cbWaiting').checked)!=Boolean(editData.waiting_customer))
     ? (document.getElementById('cbWaiting').checked)
 		? objNewJob.waiting_customer = 1
 		: objNewJob.waiting_customer = 0
     : console.log('no change to waiting');
 
-    (Boolean(document.getElementById('cbNoShow').checked)!=Boolean(editData[0].no_show))
+    (Boolean(document.getElementById('cbNoShow').checked)!=Boolean(editData.no_show))
     ? (document.getElementById('cbNoShow').checked)
 		? objNewJob.no_show = 1
 		: objNewJob.no_show = 0
@@ -524,7 +549,9 @@ function updateJob (){
 	
 	console.log('object length is '+Object.keys(objNewJob))
     if(Object.keys(objNewJob).length>1){
-	    ipcEdit.send('update-job',objNewJob, launcher, currentUser)
+		
+	    ipcEdit.send('update-job',objNewJob, launcher, currentUser, txtCN.value)
+		ipcEdit.send('close-window')
     }else{
 		ipcEdit.send('close-window')
 	}

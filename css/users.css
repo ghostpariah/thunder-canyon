@@ -1,6 +1,6 @@
 body{
     background-color: #1b1a1a;
-    width: 520px;
+    
     color:white;
     font-family: 'Arial Narrow'
     
@@ -11,59 +11,87 @@ form{
 }
 #buttonBox{
     float:left;
-    width:95%;
+    width:100%;
     height: 50px;
 }
 .buttons{
     border: 1px solid #5e81ad;
-    width: 150px;
+    width: calc(94%/2);
     height: 30px;
     float: left;
-    margin: 5px;
+    margin: 3px;
     text-align: center;
     color:#5e81ad;
     font-size:20px;
     padding-top: 5px;
     cursor: pointer;
 }
+.chosen{
+    color: white;
+    background-color:#5e81ad;
+}
+.unchosen{
+    color:#5e81ad;
+    background-color: black;
+}
 .buttons:hover{
     font-weight:bold;
 }
 .wrapper{
     float:left;
-    display:none;
-    width:500px;
+    /* display:none; */
+    width:100%;
 }
 h3{
     text-align: center;
     width:95%;
 }
+h2{
+    color:#335f94;
+    text-decoration: underline;
+}
 .-user-input-text{
     border:1px solid aliceblue;
-    
+    height:2em;
     line-height: 20px;
     margin:5px;
+    float:left;
 }
 .-user-label{
-    display:inline-block;
+    /* display:inline-block; */
     color:white;
-    
-    width: 150px;
+    float:left;
+    font-size: 1.2em;
     text-align: right;
+    padding-top: 5px;
 }
 .-user-submit{
-    display: inline-block;
+    float:left;
     color:white;
     background-color:#335f94;
-    width: 95px;
+    width: 15%;
    
-    font-size: 15px;
-    height: 25px;
+    font-size: 1.2em;
+    height: 1.8em;
     border:none;
-    
-    vertical-align: middle;
+    margin-left: 5px;
+    /* vertical-align: middle; */
     padding-top: 0px;
-    margin-top: 0px;
+    margin-top: 4px;
+}
+.-user-submit-edit{
+    float:right;
+    color:white;
+    background-color:#335f94;
+    width: 15%;
+   
+    font-size: 1.2em;
+    height: 1.8em;
+    border:none;
+   
+    
+    margin-right: 10px;
+    margin-top: 10px;
 }
 .-user-submit:hover{
     background-color: black;
@@ -78,4 +106,60 @@ h3{
     margin-top: 10px;
     width: 95%;
     text-align: center;
+}
+.userWrapper{
+    float:left;
+    width:100%;
+    height:2.5em;
+}
+.userDisplay{
+    float:left;
+    width: calc(60%/2);
+    height:1.75rem;
+    margin: 5px;
+    font-size: 1.2em;
+}
+.userNameDisplay{
+    float:left;
+    width: calc(60%/2);
+    height:1.75rem;
+    margin: 5px;
+    border: 1px solid #5e81ad;
+    font-size: 1.2em;
+}
+.uLabel{
+    float:left;
+    width: calc(60%/2);
+    text-align: left;
+    height: 2em;
+    /* margin-top:20px; */
+    font-size: 1.2em;
+    /* padding-top:20px; */
+    padding-bottom: 0px;
+    transform: translateY(40%);
+    margin-left: 10px;
+}
+.checkboxLabel{
+    float:left;
+    width: 15%;
+    text-align: left;
+    height: 2em;
+    
+    font-size: 1.2em;
+    /* padding-top:20px; */
+    padding-bottom: 0px;
+    transform: translateY(40%);
+     margin-left: 10px; 
+}
+.checkbox{
+   margin-top: 5px;
+    width:15%;
+    height: 2.25em;
+}
+.dropRole{
+    float:left;
+    width:15%;
+    height: 1.75em;
+    font-size: 1.2em;
+    transform: translateY(12%);
 }

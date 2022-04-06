@@ -80,12 +80,7 @@ function pullContacts(comp){
     	let cont = ipc.sendSync('get-contacts',comp)
 		console.log("pullcontacts right after get-contacts "+cont)
 		fillContacts(cont)
-		// if(cont!=undefined){
-			
-		// 	fillContacts(cont)
-		// }else{
-			
-		// }
+		
     }else{
 		//send with non object to trigger else in fillcontacts
 		console.log('pullcontacts called without a contact object ')
@@ -574,7 +569,7 @@ function addJob (){
 	
 	//build job object
 	objNewJob.customer_ID =(chosenCompanyID != null && chosenCompanyID != '') ? chosenCompanyID : ipc.sendSync('add-new-customer', txtCN.value)
-	//objNewJob.customer_ID = chosenCompanyID
+	objNewJob.customer_name = ipc.sendSync('db-get-customer-name',objNewJob.customer_ID)
 	if(txtCon.options[txtCon.selectedIndex].getAttribute("method")=="phone"){
 		objNewJob.number_ID = txtCon.options[txtCon.selectedIndex].id
 	}
