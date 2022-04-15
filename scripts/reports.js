@@ -1,8 +1,7 @@
-//const { BrowserWindow } = require('electron');
+
 const electron = require('electron')
 const ipcReport = electron.ipcRenderer
-//const Remote = require('@electron/remote')
-//const FindInPage = require('electron-find').FindInPage;
+
 
 //page elements
 

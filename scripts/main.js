@@ -6,7 +6,7 @@ const url = require('url')
 const fs = require('fs')
 const {autoUpdater} = require('electron-updater')
 const log = require('electron-log');
-require('@electron/remote/main').initialize()
+
 
 
 const { serialize } = require('v8')
@@ -230,7 +230,7 @@ app.on('ready', ()=>{
     //check for updates
     autoUpdater.checkForUpdates()
     
-    require('@electron/remote/main').enable(webContents)
+    
     // ready the files. create folder for year and day if it doesn't exist and then
     // copy log files to the directory and empty the daily logs
 
@@ -1637,7 +1637,7 @@ function createReportWindow(){
 
           reportWin.webContents.focus()
          
-          require("@electron/remote/main").enable(reportWin.webContents)
+          
     
 }
 function createAddJobWindow(args, launcher){
