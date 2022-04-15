@@ -9,7 +9,7 @@ let users
 
 window.onload = () =>{
     users = ipcUser.sendSync('get-users','useradmin')
-    //alert(users)
+   
     fillSections(users)
 }
 $('selUser').on({
@@ -19,8 +19,7 @@ $('selUser').on({
 })
 
 ipcUser.on('user-updated', (event,args)=>{
-    // document.getElementById('userWrapper').innerHtml=''
-    // fillSections(ipcUser.sendSync('get-users'))
+    
 })
 
 
@@ -49,13 +48,13 @@ function fillSections(users){
             let userID = elementID.substring(2)
             let exists = false
             let existingObjectIndex = 0
-            console.log('arr length is '+arrChanges.length)
+            
             if(arrChanges.length>0){
-                console.log('array length is bigger than 0')
+                
                 for(i=0;i<arrChanges.length;i++){
                     if(arrChanges[i].id == userID){
                         //edit changeed item
-                        console.log('an object for this user already exists')
+                        
                         exists= true
                         existingObjectIndex = i
                         break;
@@ -70,7 +69,7 @@ function fillSections(users){
                     exists = true
             }
             if(!exists){
-                    console.log('no matching id property..pushing new object')
+                    
                     let objChanges = new Object()
                     objChanges.id = userID
                     objChanges.password = event.currentTarget.value
@@ -81,7 +80,7 @@ function fillSections(users){
             }
                 
             
-            console.log(arrChanges)
+            
         
         })
 
@@ -93,13 +92,13 @@ function fillSections(users){
             let userID = elementID.substring(2)
             let exists = false
             let existingObjectIndex = 0
-            console.log('arr length is '+arrChanges.length)
+            
             if(arrChanges.length>0){
-                console.log('array length is bigger than 0')
+                
                 for(i=0;i<arrChanges.length;i++){
                     if(arrChanges[i].id == userID){
                         //edit changeed item
-                        console.log('an object for this user already exists')
+                        
                         exists= true
                         existingObjectIndex = i
                         break;
@@ -114,7 +113,7 @@ function fillSections(users){
                     exists = true
             }
             if(!exists){
-                    console.log('no matching id property..pushing new object')
+                    
                     let objChanges = new Object()
                     objChanges.id = userID
                     objChanges.role = event.currentTarget.value
@@ -125,7 +124,7 @@ function fillSections(users){
                 
                
             
-            console.log(arrChanges)
+           
         
         })
 
@@ -147,13 +146,13 @@ function fillSections(users){
             let userID = elementID.substring(2)
             let exists = false
             let existingObjectIndex = 0
-            console.log('arr length is '+arrChanges.length)
+            
             if(arrChanges.length>0){
-                console.log('array length is bigger than 0')
+                
                 for(i=0;i<arrChanges.length;i++){
                     if(arrChanges[i].id == userID){
-                        //edit changeed item
-                        console.log('an object for this user already exists')
+                        
+                        
                         exists= true
                         existingObjectIndex = i
                         break;
@@ -168,7 +167,7 @@ function fillSections(users){
                     exists = true
             }
             if(!exists){
-                    console.log('no matching id property..pushing new object')
+                    
                     let objChanges = new Object()
                     objChanges.id = userID
                     objChanges.active = event.currentTarget.checked
@@ -180,7 +179,7 @@ function fillSections(users){
             }    
                 
             
-            console.log(arrChanges)
+            
         })
        
         
@@ -192,7 +191,7 @@ function fillSections(users){
 
         
         document.getElementById('userWrapper').appendChild(wrapper)
-        console.log(users[member].active)
+        
 
         if(users[member].active == '1' || users[member].active == 'true') document.getElementById(`cb${users[member].user_ID}`).checked = true
         document.getElementById(`dr${users[member].user_ID}`).appendChild(roleOption1)
@@ -211,7 +210,7 @@ function fillSections(users){
         submitButton.setAttribute('type','button')
         submitButton.setAttribute('value','submit')
         submitButton.addEventListener('click', event =>{
-            console.log(arrChanges)
+           
             for(i=0;i<arrChanges.length;i++){
                 ipcUser.send('edit-users',arrChanges[i])
             }
@@ -229,7 +228,7 @@ function changeHappened(newData, changedItem){
             if(users[member].user_ID == newData.id){
                 switch(changedItem){
                     case 'active':
-                        console.log(`users active = ${users[member].active} new data active = ${newData.active}`)
+                        
                         if(users[member].active == newData.active){
                             return 0
                         }else{
@@ -282,7 +281,7 @@ function deleteUser(args){
 
 
 function createUser(){
-    console.log('createUser triggered')
+    
     let userData = new Object()
     let unEl = document.getElementById('user').value;
     let pwEl = document.getElementById('password').value;
@@ -292,8 +291,8 @@ function createUser(){
     
     let userExists = false
     userExists = ipcUser.sendSync('check-for-user',unEl)
-    console.log(unEl + ' '+userData.user_name)
-    console.log(userExists)
+    
+    
     if (unEl == ""){
         ma.innerHTML = ma.innerHTML.concat ("\n Please enter username!<br/>")
     }else{
@@ -310,7 +309,7 @@ function createUser(){
     }
      (urEl.options[urEl.selectedIndex].text) ? (userData.role = urEl.options[urEl.selectedIndex].text) : (ma.innerHTML = ma.innerHTML.concat("\n Please select role!<br/>"))
   
-    console.log(ma.innerHTML)
+    
     if(ma.innerHTML==""){
         
         document.getElementById('userWrapper').innerHTML =""

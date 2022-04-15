@@ -16,10 +16,9 @@ let con_ID
 let newContactID
 let conMeth
 let currentUser
-let phoneNumberCount
+//let phoneNumberCount
 let launcher
 let launcherData
-//const contactContent = document.getElementById('custNameWrapper')
 let txtCust
 
 setTimeout(()=>{
@@ -40,27 +39,27 @@ ipc.on('user-data',(event,args, args2)=>{
 	launcher = args2.launcher
 	setData(launcherData)
 	
-	//console.log(currentUser.user_ID)
+	
 })
 ipc.on('refresh',(event,args,args2,args3)=>{
 	clearContacts()
 	if(args = "go"){
-		console.log("refresh fired. args= "+args)
+		
 		
 		pullContacts(args2)
-		console.log(document.getElementById("txtContacts").options.length)
+		
 		document.getElementById("txtContacts").selectedIndex =document.getElementById("txtContacts").options.length
-		//document.getElementById('txtContacts').value = 
+		
 		var values = Array.from(document.getElementById("txtContacts").options).map(e => e.id);
 		document.getElementById("txtContacts").options.namedItem(args3).selected=true;
-		console.log(values)
+		
 	
 	}else{
-	//console.log("refresh "+JSON.stringify(args))
+	
 	
 	pullContacts(chosenCompany)
 	
-	console.log(args)
+	
 	document.getElementById("txtContacts").options[args.position].selected = true
 	}	
 	showLabel()
@@ -77,35 +76,33 @@ function setData(data){
 	document.getElementById('datepicker').value = data.date_scheduled
 	document.getElementById('rad'+data.time_of_day.toUpperCase()).checked = true
 	document.getElementById('selOrigin').value = 'Scheduled'
-	//openInput(document.getElementById('selOrigin'))
+	
 	openInput(event,document.getElementById('selOrigin'),'customerNameWrapper','dateWrapper')
-	//document.getElementById("dateWrapper").className = "hiddenInput";
+	
 }
 function pullContacts(comp){
-	//alert(typeof comp)
+	
     if(typeof comp != undefined){
-		console.log('pullcontacts called with object')
+		
     	let cont = ipc.sendSync('get-contacts',comp)
-		console.log("pullcontacts right after get-contacts "+cont)
+		
 		fillContacts(cont)
 		
     }else{
 		//send with non object to trigger else in fillcontacts
-		console.log('pullcontacts called without a contact object ')
+		
 		fillContacts(comp)
 	}
 
 }
 ipc.on('new-contact-for-new-company', (event, args)=>{
 	newCompanyContact = args
-	//fillContacts(newCompanyContact)
+	
 })
-function onEnter(){
 
-}
 
 function jDate(ds){
-	console.log(ds)
+	
 
 	var ds = ds;    
 
@@ -118,7 +115,7 @@ function fillCustomerDataList(){
 	let element = document.getElementById('lstCustomer');
 	let arrCL = new Array()
 
-	console.log('fillcustomerdatalist()fired')
+	
 	document.getElementById('lstCustomer').style.display="block";
 		
 	companyList ='';
@@ -131,10 +128,7 @@ function fillCustomerDataList(){
 	}
 	
 	companyList = Object.values(customerList)
-	/*var uniqueNames = customerList.sort(function (a, b) {
-	 	return a.toLowerCase().localeCompare(b.toLowerCase());
-	 	}).filter(onlyUnique);
-	*/	 
+	 
 	
 	customerList.sort((a, b) => (a.customer_name > b.customer_name) ? 1 : -1)
 	
@@ -153,9 +147,9 @@ function fillCustomerDataList(){
 		'keydown': function (event) {
 			chosenCompanyID = null
 			val = this.value;	
-			console.log('keydown')
+			
 			if(event.keyCode == 13 || event.keyCode == 9) {			
-				console.log('keydown'+event.keyCode)
+				
 					chosenCompany = val
 					
 					fillContacts(chosenCompany)
@@ -165,10 +159,10 @@ function fillCustomerDataList(){
 		 },
 		'keyup': function(){
 			val = this.value;		
-			console.log('keyup')
+			
 			if(val == "") {	
 	
-					console.log('empty')
+					
 					clearContacts()							
 					
 			}
@@ -183,9 +177,9 @@ function fillCustomerDataList(){
 				clearContacts()
 				chosenCompanyID = ipc.sendSync('get-customer-ID', chosenCompany)
 				
-				console.log("chosenCompanyID = "+chosenCompanyID)
+				
 				pullContacts(chosenCompanyID)
-				console.log('input')
+				
 				
 			}
 		},
@@ -194,7 +188,7 @@ function fillCustomerDataList(){
 			val = this.value;
 			chosenCompany = val
 			chosenCompanyID = ipc.sendSync('get-customer-ID', this.value)
-			console.log('blur'+this.value+" "+chosenCompanyID)
+			
 			if(chosenCompanyID == null){			
 			
 				fillContacts(this.value)
@@ -207,7 +201,7 @@ function fillCustomerDataList(){
 			$('#txtContacts').focus()
 		},
 		"click": function(){
-			console.log('click')
+			
 			this.value = ""
 		}
 		
@@ -233,7 +227,7 @@ async function clearContacts(){
 
 function tellParent(choice){
 	var conOps = document.getElementById("txtContacts");
-	console.log(`from tellParent ${chosenCompany} ${chosenFirstname} ${chosenLastname}`)
+	
 	
 	let con_ops = conOps.options[conOps.selectedIndex].text
 	con_ops = con_ops.substring(con_ops.indexOf("~") + 1);
@@ -244,7 +238,7 @@ function tellParent(choice){
 		case '+ add contact': 
 			
 			let check = ipc.sendSync('get-customer-ID',chosenCompany)
-			console.log(chosenCompanyID)
+			
 			if(check === false){
 			chosenCompanyID = addNewCompany(chosenCompany)
 			}
@@ -261,7 +255,7 @@ function tellParent(choice){
 			conMeth = "phone"
 			con_ID = Number(conOps.options[conOps.selectedIndex].parentElement.getAttribute('contactID'))
 			ipc.send('open-contacts','add job page',chosenCompany, isNewCustomer(chosenCompany.toUpperCase()), con_name[0], con_name[1], con_ID, conMeth)
-			console.log('test '+con_ID)
+			
 			break;
 		case '+ add email':
 			con_name = conOps.options[conOps.selectedIndex].parentElement.label.split(' ')
@@ -355,8 +349,7 @@ function addJob (){
 	let jt = document.getElementById('selJobType')
 
 	let objNewJob = new Object()
-	// let company_ID
-	// let contact_ID
+	
 	
 	
 	//build job object
@@ -397,7 +390,7 @@ function addJob (){
 	(document.getElementById('cbComeback').checked) ? objNewJob.comeback_customer = 1 : objNewJob.comeback_customer = 0;
 	(document.getElementById('cbWaiting').checked) ? objNewJob.waiting_customer = 1 : objNewJob.waiting_customer= 0;
 	
-	console.log(objNewJob)
+	
 	
 	ipc.send('add-job',objNewJob,currentUser,launcher)
 
@@ -476,7 +469,7 @@ function openInput(e, active, inputID1, inputID2) {
 		}
 		if (inputID2) {
 			let choice = active.options[active.selectedIndex].text
-			console.log(choice)
+			
 			switch(choice) {
 				
 				case "Scheduled":

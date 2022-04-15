@@ -79,6 +79,12 @@ $(function()
  * handlers for communication from main process
  ****************/
 
+//auto update check
+ipc.on('updater', (event, args)=>{	
+	accessGrantedContent = args
+	console.log(args)
+	if(args == 'Update not available.') accessGranted = openContent
+})
 // communication for setting page on window load
 ipc.on('message', (event, args)=>{		
 	accessGrantedContent = document.getElementById('contentArea').innerHTML

@@ -12,8 +12,7 @@ var thisYear = d.getFullYear();// xxxx
 var today = d.getDate();
 var thisMonth = month_name[monthIndex];
 
-// var nYear = new Date(new Date().setFullYear(new Date().getFullYear() + 1)); 
-// var lYear = new Date(new Date().setFullYear(new Date().getFullYear() - 1));   
+
 
 var firstDay;
 var selectedYear;
@@ -39,16 +38,7 @@ calIPC.on('load-calendar', (event,args)=>{
 calIPC.on('refresh', (event,args)=>{
     calendarLoad()
 })
-// function loadCalendar(){
-    
-//     calendarLoad()
-// }
-// function reloadCalender(){
-//     clearDays();
-//     clearDayBlocks();
-//     createDayBlocks();
-//     fillDays(thisYear);
-// }
+
 function calendarLoad(){
     clearDays(); 
     clearDayBlocks();
@@ -94,7 +84,7 @@ function todayIs() {
 function setFirstDay(y){
     var year = y;
    firstDay= new Date(year, monthIndex).getDay();
-   //console.log(firstDay);
+   
 }
 function clearDayBlocks(){
     for(i=0;i<totalBlocks;i++){
@@ -103,7 +93,7 @@ function clearDayBlocks(){
 }
 function clearDays(){
     for(var i=0;i<totalBlocks;i++){
-       // $("#dayNumber"+i).remove();
+       
        document.getElementById("dayNumber"+i).innerHTML="";
         document.getElementById("dayNumber"+i).style.background="";
     }
@@ -111,17 +101,15 @@ function clearDays(){
 }
 function fillDays(y){
     var year = y;
-   // alert(firstDay);
-    //console.log(monthIndex +" "+ firstDay + " " + year);
-    //console.log(daysInMonth(monthIndex,year));
-    //clearCalendar();
+   
+    
     let dim = daysInMonth(monthIndex, year);
     daysBefore = firstDay;
     daysAfter = totalBlocks-dim-daysBefore;
     var test=totalBlocks - dim;
-    //alert("days before="+daysBefore+" days after="+daysAfter);
+    
     for(i=0;i<dim+daysAfter;i++){
-        //alert(i);
+        
         var cell= i+firstDay;
         //assignJulian to block
         var m = monthIndex+1;
@@ -139,7 +127,7 @@ function fillDays(y){
             document.getElementById("dayNumber"+cell).innerHTML=i-daysInMonth(monthIndex, year)+1;
             document.getElementById("dayBlock"+cell).classList.add("preview");
         }
-        //document.getElementById("dayNumber"+cell).style.background="white";
+        
         var am = document.createElement('div');
         if(cell<daysInMonth(monthIndex, year)+daysBefore){
             am.className="am";
@@ -148,13 +136,13 @@ function fillDays(y){
         }
         am.setAttribute("id","am"+cell);
         am.ondblclick = function(){
-            //alert('Month index = '+monthIndex+' Month is: '+m+' days in month = '+dim)
+            
             let objCalData = new Object()
             objCalData.launcher = 'calendar'
             objCalData.time_of_day = 'am'
             objCalData.date_scheduled = `${monthIndex+1}/${this.parentNode.firstChild.innerHTML}/${year}`
             calIPC.send('open-add-job', currentUser, objCalData)
-            //scheduleJob(this);
+            
         };
         
         document.getElementById("dayBlock"+cell).appendChild(am);
@@ -177,11 +165,11 @@ function fillDays(y){
         for(j=0;j<6;j++){
             var indicator = document.createElement('div');
             indicator.className="indicator";
-            indicator.setAttribute("id","indicatorAM"+jd+"_"+j)//i+"_"+j
+            indicator.setAttribute("id","indicatorAM"+jd+"_"+j)
             document.getElementById("am"+cell).appendChild(indicator);
-            //console.log(j);
+            
             var thisIndicator=document.getElementById("indicatorAM"+jd+"_"+j);
-            //thisIndicator.style.display="none";
+            
             switch(j){
                 case 0:
                     thisIndicator.innerHTML="AM";

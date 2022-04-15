@@ -13,7 +13,7 @@ setTimeout(()=>{
    $('#user').keypress(function(e){
     if((e.keyCode ? e.keyCode : e.which) == 13){
         $("#password").focus()
-       //alert("hello")
+      
     }
     });
 },2000);
@@ -22,7 +22,7 @@ setTimeout(()=>{
     $('#password').keypress(function(e){
      if((e.keyCode ? e.keyCode : e.which) == 13){
          $("#loginSubmit").click()
-        //alert("hello")
+        
      }
      });
  },2000);
@@ -53,20 +53,20 @@ setTimeout(()=>{
             let unSucc = false
             let ma = document.getElementById('-message-area')
             ma.innerHTML=""
-            //alert(arg)
+            
             let users = ipc.sendSync('get-users', 'login')
-            console.log(users)
+            
             userID =''          
                 
                 for(let member in users){
-                    //console.log(users[member].user_name)
+                    
                     if(users[member].user_name == args1){ 
                         userID = users[member].user_id 
                                         
                         matchedUsername = true
                         if(!matchedPassword) {verifyPassword(users[member])}
                         break;   
-                        //if(matchedPassword){alert('congrats 1')}                
+                                        
                     }else{
                         matchedUsername = false
                     }
@@ -92,7 +92,7 @@ setTimeout(()=>{
                     
                     if(args.password == enteredPW){                   
                         matchedPassword = true
-                        console.log('both matched')
+                        
                         
                         ipc.send('login-success', args) 
                        

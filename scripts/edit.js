@@ -3,9 +3,6 @@
  */
 const electron = require('electron')
 const ipcEdit = electron.ipcRenderer
-//const remote = require('remote')
-//const ipcEdit = remote.require('ipc')
-let editData;
 const inpCustomer = document.getElementById('txtCustomerName')
 const selContacts = document.getElementById('txtContacts')
 const inpUnit = document.getElementById('txtUnit')
@@ -23,9 +20,11 @@ const cbComeback = document.getElementById('cbComeback')
 const cbWaiting = document.getElementById('cbWaiting')
 const cbNoShow = document.getElementById('cbNoShow')
 const txtNotes = document.getElementById('txtNotes')
-let launcher
 
+let editData;
+let launcher
 let currentUser
+
 window.onload = ()=>{
     
     
@@ -63,13 +62,13 @@ async function treatData (input) {
 ipcEdit.on('edit-data', async (event,args, args2, args3)=>{
     console.log(typeof(args))
 	editData = await treatData(args)
-	//loadData(editData)
+	
     
 	launcher = args2
 	currentUser = args3
     setTimeout(() => {
 		loadData(editData)
-        //loadData(editData)
+        
     }, 0);
 })
 ipcEdit.on('contacts-updated', (event,args,args2)=>{
@@ -104,8 +103,7 @@ function loadData(objJobToEdit){
 	}else{
 		d = objJobToEdit
 	}
-    //console.log('loadData() in edit')
-    //console.log('number id is '+d.number_ID)
+    
 	try{
     inpCustomer.value = ipcEdit.sendSync('db-get-customer-name',d?.customer_ID);
 	}catch(e){

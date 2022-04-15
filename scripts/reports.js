@@ -619,7 +619,7 @@ function displayNoShows(){
     resultBox.innerHTML = strForDisplay
     noshows = lineItems
     resultBox.style.display="block"
-    console.log(objNoshows)
+    
 
 }
 
@@ -641,7 +641,7 @@ function fillCustomerDataList(){
 	let element = document.getElementById('lstCustomer');
 	let arrCL = new Array()
 
-	console.log('fillcustomerdatalist()fired')
+	
 	document.getElementById('lstCustomer').style.display="block";
 		
 	companyList ='';
@@ -654,10 +654,7 @@ function fillCustomerDataList(){
 	}
 	
 	companyList = Object.values(customerList)
-	/*var uniqueNames = customerList.sort(function (a, b) {
-	 	return a.toLowerCase().localeCompare(b.toLowerCase());
-	 	}).filter(onlyUnique);
-	*/	 
+	
 	
 	customerList.sort((a, b) => (a.customer_name > b.customer_name) ? 1 : -1)
 	
@@ -676,23 +673,23 @@ function fillCustomerDataList(){
 		'keydown': function (event) {
 			chosenCompanyID = null
 			val = this.value;	
-			console.log('keydown')
+			
 			if(event.keyCode == 13 || event.keyCode == 9) {			
-				console.log('keydown'+event.keyCode)
+				
 					chosenCompany = val
 					
-					//fillContacts(chosenCompany)
+					
 					$('#txtContacts').focus()			
 				
 			}
 		 },
 		'keyup': function(){
 			val = this.value;		
-			console.log('keyup')
+			
 			if(val == "") {	
 	
-					console.log('empty')
-					//clearContacts()							
+					
+											
 					
 			}
 		},
@@ -703,12 +700,10 @@ function fillCustomerDataList(){
 			 }).length) {
 				
 				chosenCompany = val
-				//clearContacts()
+				
 				chosenCompanyID = ipcReport.sendSync('get-customer-ID', chosenCompany)
 				let jobs = ipcReport.sendSync('get-jobs',chosenCompanyID)
-				console.log(jobs)
-				//pullContacts(chosenCompanyID)
-				console.log('input')
+				
                 
                 displayHistory(jobs)
 				
@@ -720,19 +715,10 @@ function fillCustomerDataList(){
 			chosenCompany = val
 			chosenCompanyID = ipcReport.sendSync('get-customer-ID', this.value)
 			console.log('blur'+this.value+" "+chosenCompanyID)
-			if(chosenCompanyID == null){			
 			
-				//fillContacts(this.value)
-
-			}else{
-
-				//pullContacts(chosenCompanyID)
-				
-			}
-			//$('#txtContacts').focus()
 		},
 		"click": function(){
-			console.log('click')
+			
 			this.value = ""
 		}
 		

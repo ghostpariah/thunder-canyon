@@ -4,7 +4,8 @@ const {app, BrowserWindow, ipcMain, Menu, MenuItem, globalShortcut} = require('e
 const path = require('path')
 const url = require('url')
 const fs = require('fs')
-
+const {autoUpdater} = require('electron-updater')
+const log = require('electron-log');
 require('@electron/remote/main').initialize()
 
 
@@ -55,7 +56,32 @@ var checkDate
 onload operations
 **********
 *************************/
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = 'info';
+log.info('App starting...');
 
+autoUpdater.on('checking-for-update', () => {
+    sendStatusToWindow('Checking for update...');
+})
+autoUpdater.on('update-available', (info) => {
+sendStatusToWindow('Update available.');
+})
+autoUpdater.on('update-not-available', (info) => {
+sendStatusToWindow('Update not available.');
+})
+autoUpdater.on('error', (err) => {
+sendStatusToWindow('Error in auto-updater. ' + err);
+})
+autoUpdater.on('download-progress', (progressObj) => {
+let log_message = "Download speed: " + progressObj.bytesPerSecond;
+log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
+log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
+sendStatusToWindow(log_message);
+})
+autoUpdater.on('update-downloaded', (info) => {
+sendStatusToWindow('Update downloaded');
+autoUpdater.quitAndInstall();
+});
 
 //if log folder doesn't exist
 if (!fs.existsSync(logLocation)){
@@ -201,7 +227,8 @@ app.on('ready', ()=>{
         (appStartDay == currentDay) ? console.log(`app opened today ${currentDay}`) : restartApp();
     }, 3600000)
     
-    
+    //check for updates
+    autoUpdater.checkForUpdates()
     
     require('@electron/remote/main').enable(webContents)
     // ready the files. create folder for year and day if it doesn't exist and then
@@ -921,7 +948,10 @@ async function getCustomerName(args){
        log.close()
        
     }
-
+    function sendStatusToWindow(text) {
+        log.info(text);
+        win.webContents.send('updater', text);
+      }
   
   /**
    * user maintenance

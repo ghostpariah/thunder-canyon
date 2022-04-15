@@ -6,7 +6,8 @@
   "scripts": {
     "start": "electron .",
     "postinstall": "install-app-deps",
-    "dist:windows": "electron-builder --windows"
+    "dist": "electron-builder --windows",
+    "gh-publish": "electron-builder -p always"
   },
   "author": "Sean Davidson",
   "license": "ISC",
@@ -17,6 +18,21 @@
   "dependencies": {
     "@electron/remote": "^2.0.8",
     "electron-find": "^1.0.7",
-    "sqlite3": "^5.0.2"
-  }
+    "electron-log": "^4.4.6",
+    "electron-updater": "^5.0.1",
+    "sqlite3": "^5.0.3"
+  },
+  "build": {
+    "appId": "com.ghostPariah.workflowApp",
+    "productName": "Workflow App",
+    "win": {
+      "target": "nsis",
+      "icon": "images/logo.ico",
+      "publish": "github"
+    },
+    "nsis": {
+      "perMachine": true
+    }
+  },
+  "repository": "https://github.com/ghostpariah/thunder-canyon.git"
 }
