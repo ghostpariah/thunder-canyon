@@ -84,9 +84,9 @@ setTimeout(()=>{
             let unSucc = false
             let ma = document.getElementById('-message-area')
             ma.innerHTML=""
-            //alert(arg)
+            
             let users = ipc.sendSync('get-users', 'login')
-            //let userID=args.id     
+               
                 
             if(matchedUsername){               
                     

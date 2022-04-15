@@ -42,7 +42,7 @@ ipc.on('user-data',(event,args, args2)=>{
 	
 	//console.log(currentUser.user_ID)
 })
-ipc.on('refresh',(event,args,args2)=>{
+ipc.on('refresh',(event,args,args2,args3)=>{
 	clearContacts()
 	if(args = "go"){
 		console.log("refresh fired. args= "+args)
@@ -50,6 +50,10 @@ ipc.on('refresh',(event,args,args2)=>{
 		pullContacts(args2)
 		console.log(document.getElementById("txtContacts").options.length)
 		document.getElementById("txtContacts").selectedIndex =document.getElementById("txtContacts").options.length
+		//document.getElementById('txtContacts').value = 
+		var values = Array.from(document.getElementById("txtContacts").options).map(e => e.id);
+		document.getElementById("txtContacts").options.namedItem(args3).selected=true;
+		console.log(values)
 	
 	}else{
 	//console.log("refresh "+JSON.stringify(args))
@@ -61,6 +65,10 @@ ipc.on('refresh',(event,args,args2)=>{
 	}	
 	showLabel()
 	newContactID = args
+	
+	window.focus()
+	
+	$('#txtUnit').click()
 	$("#txtUnit").focus()
 	
 })
@@ -107,15 +115,17 @@ function jDate(ds){
 	return julian;
 }
 function fillCustomerDataList(){
-	//clearContacts()
+	let element = document.getElementById('lstCustomer');
+	let arrCL = new Array()
+
 	console.log('fillcustomerdatalist()fired')
 	document.getElementById('lstCustomer').style.display="block";
-	var element=document.getElementById('lstCustomer');	
+		
 	companyList ='';
 	element.innerHTML=""
 	customerList = ipc.sendSync('get-customer-names')
 	
-	let arrCL = new Array()
+	
 	for(member in customerList){
 		arrCL[member]=customerList[member].customer_name
 	}
@@ -127,11 +137,11 @@ function fillCustomerDataList(){
 	*/	 
 	
 	customerList.sort((a, b) => (a.customer_name > b.customer_name) ? 1 : -1)
-	//console.log("sorted customer list"+JSON.stringify(customerList))
+	
 	for(i=0;i<customerList.length;i++){
-		//console.log(uniqueNames[i])
+		
 		var newOption=document.createElement("OPTION");
-		//newOption.setAttribute('label', 'your mom')
+		
 		newOption.setAttribute("value",customerList[i].customer_name.toUpperCase());
 		newOption.setAttribute("id", customerList[i].customer_ID)
 		element.appendChild(newOption);		
@@ -142,13 +152,12 @@ function fillCustomerDataList(){
 		
 		'keydown': function (event) {
 			chosenCompanyID = null
-		val = this.value;	
+			val = this.value;	
 			console.log('keydown')
 			if(event.keyCode == 13 || event.keyCode == 9) {			
 				console.log('keydown'+event.keyCode)
 					chosenCompany = val
-					//clearContacts()
-					//pullContacts(val)
+					
 					fillContacts(chosenCompany)
 					$('#txtContacts').focus()			
 				
@@ -165,35 +174,33 @@ function fillCustomerDataList(){
 			}
 		},
 		'input' : function(){
-		val = this.value;
+			val = this.value;
 			 if($('#lstCustomer option').filter(function(){
 			 	return this.value.toUpperCase() === val.toUpperCase();        
 			 }).length) {
-				console.log(val)
-				//let opt = $('option[value="'+$(this).val()+'"]');
-    			//let optID = (opt.length ? opt.attr('id') : 'NO OPTION');
+				
 				chosenCompany = val
 				clearContacts()
 				chosenCompanyID = ipc.sendSync('get-customer-ID', chosenCompany)
-				//alert(chosenCompanyID)
+				
 				console.log("chosenCompanyID = "+chosenCompanyID)
 				pullContacts(chosenCompanyID)
 				console.log('input')
 				
 			}
 		},
-		"blur": function(){
-			
+		"blur": function(){			
 			
 			val = this.value;
 			chosenCompany = val
 			chosenCompanyID = ipc.sendSync('get-customer-ID', this.value)
 			console.log('blur'+this.value+" "+chosenCompanyID)
-			if(chosenCompanyID == null){
-				//chosenCompanyID = ipc.sendSync('get-customer-ID', chosenCompany)
+			if(chosenCompanyID == null){			
 			
-			fillContacts(this.value)
+				fillContacts(this.value)
+
 			}else{
+
 				pullContacts(chosenCompanyID)
 				
 			}
@@ -206,62 +213,11 @@ function fillCustomerDataList(){
 		
 	});
 	
-//fires an event on key release that checks for an empty customer field and clears the contact field if empty
-// $("#txtCustomerName").on('keyup', function () {
-// 	var val = this.value;
-// 	//console.log(event.keyCode)
-	
-// 	if(val == "") {			
-// 			console.log('empty')
-// 			clearContacts()
-						
-		
-// 	}
-	
-// });	
-
-//fires an event when an option is selected from the datalist and loads the contact field when selected
-// $("#txtCustomerName").on('input', function () {
-// 	var val = this.value;
-// 	if($('#lstCustomer option').filter(function(){
-// 		return this.value.toUpperCase() === val.toUpperCase();        
-// 	}).length) {
-// 		//send ajax request
-// 		//console.log(val)
-// 		//this.trigger('click')
-// 		chosenCompany = val
-// 		clearContacts()
-// 		pullContacts(val)
-		
-// 	}
-	
-// });
-	
-
-	
-
-	
-	
-
-	// $("#txtContacts").on('input', function () {
-	// 	var val = this.value;
-	// 	if($('#lstCustomer option').filter(function(){
-	// 		return this.value.toUpperCase() === val.toUpperCase();        
-	// 	}).length) {
-	// 		//send ajax request
-	// 		//console.log(val)
-	// 		//this.trigger('click')
-	// 		chosenCompany = val
-	// 		clearContacts()
-	// 		pullContacts(val)
-			
-	// 	}
-		
-	// });
 	
 }
+
 async function clearContacts(){
-	//console.log("blur fired")
+	
 	$('#txtContacts')
     .find('option')
     .remove()
@@ -273,164 +229,11 @@ async function clearContacts(){
 	.end()
 	
 }
-function fillContacts(cont){
-	console.log(cont)
-	//console.log('fillContacts() fired')
-	let optGroup = document.createElement("optgroup")
-	let t=document.createTextNode('add contact')
-	let newOption=document.createElement("OPTION");
-	let ul = document.createElement('ul')
-	const contactContent = document.getElementById('txtContacts')//lstCOntacts
-	contactContent.innerHTML=""	
-	//let newNumber = document.createTextNode('+ add new number')	
-	//let elementNewNumber = document.createTextNode('+ add new email')
-	//console.log(typeof cont)
-	//console.log(cont)
-	if(typeof cont != undefined && typeof cont === 'object'){ //&& cont.length >0
-		 newOption=document.createElement("OPTION");
-		 t=document.createTextNode('add contact')
-		
-        for(member in cont){
-			let optGroup = document.createElement("optgroup")
-			let optNewNumber = document.createElement("OPTION")
-			let optNewEmail = document.createElement("OPTION")
-			let optAddEmail =document.createElement("OPTION")
-			
-			let newNumber = document.createTextNode('+ add number')
-			let txtAddEmail = document.createTextNode('+ add email')
-			//let newEmail = document.createTextNode(`${cont[member].email}`)
 
-			chosenFirstname = cont[member].first_name
-			chosenLastname = cont[member].last_name
-			let fn = (cont[member].first_name) ? cont[member].first_name : ""
-			let ln = (cont[member].last_name) ? cont[member].last_name : ""
-			optGroup.setAttribute('label',`${fn} ${ln}`)
-			if(cont[member].phonenumbers){
-				optGroup.setAttribute('pncount',cont[member].phonenumbers.length)
-			}
-			if(cont[member].emails){
-				optGroup.setAttribute('ecount', cont[member].emails.length)
-			}
-			optGroup.setAttribute('position', member)
-			if(cont[member].contact_ID){	
-				optGroup.setAttribute('contactID', Number(cont[member].contact_ID))
-					
-				//console.log(cont[member].contactID)
-			}
-			 contactContent.appendChild(optGroup);
-			 let dashOpt = document.createElement('option')					
-			 let dash = document.createTextNode("Phone Numbers")
-			 dashOpt.setAttribute("disabled","disabled")
-			 dashOpt.setAttribute('class','cmHeader')
-			 dashOpt.appendChild(dash)
-			 optGroup.appendChild(dashOpt)
-			 
-			
-            for(n in cont[member].phonenumbers){
-				//create number element unless therre is no number
-				if(cont[member].phonenumbers[n].number !=null){
-					let newOption=document.createElement("OPTION");				 	
-					t = document.createTextNode(`${cont[member].phonenumbers[n].number}`)
-					let c = n+1
-					newOption.setAttribute("position", Number(n)+1)
-					newOption.setAttribute("id",`${cont[member].phonenumbers[n].phone_ID}` )
-					newOption.appendChild(t)
-					newOption.setAttribute("method","phone")				
-					newOption.setAttribute('value', `${cont[member].phonenumbers[n].number}`)
-					
-					
-					optGroup.appendChild(newOption)	
-				}
-
-				if(n == cont[member].phonenumbers.length-1){
-					optNewNumber.appendChild(newNumber)
-					optGroup.appendChild(optNewNumber)
-					optGroup.lastChild.style.color = 'blue'
-					optGroup.lastChild.style.fontWeight = 'bold'
-					optGroup.lastChild.style.fontSize = '.65em'
-					
-				}			
-			}
-			let eDashOpt = document.createElement('option')					
-			let eDash = document.createTextNode("EMAIL")
-			eDashOpt.setAttribute("disabled","disabled")
-			eDashOpt.appendChild(eDash)
-			optGroup.appendChild(eDashOpt)
-
-						 
-			for(n in cont[member].emails){
-
-				//create email element unless there is no email
-				if(cont[member].emails[n].email !=null){
-					let newOption=document.createElement("OPTION");				 	
-					t = document.createTextNode(`${cont[member].emails[n].email}`)
-					newOption.appendChild(t)
-					newOption.setAttribute("method","email")	
-					newOption.setAttribute("id",`${cont[member].emails[n].email_ID}`)			
-					newOption.setAttribute('value', `${fn} ${ln} ~ ${cont[member].emails[n].email}`)				
-					optGroup.appendChild(newOption)	
-				}			
-		   }
-			
-			
-			optNewEmail.appendChild(txtAddEmail)
-			optGroup.appendChild(optNewEmail)
-			optGroup.lastChild.style.color = 'blue'
-			optGroup.lastChild.style.fontWeight = 'bold'
-			optGroup.lastChild.style.fontSize = '.65em'
-
-
-			//let newNumber = document.createTextNode('+ add new number')
-              
-		}
-		newOption=document.createElement("OPTION");
-		newOption.setAttribute("value","no contact");	
-		//newOption.setAttribute('class', 'addContactLink')
-		//newOption.setAttribute('style', 'font-weight = bold')
-		let ac = document.createTextNode(`+ add new contact`)
-		//ac.style.fontWeight = 'bold'
-		newOption.appendChild(ac)
-		contactContent.insertBefore(newOption,contactContent.firstChild)
-		//contactContent.appendChild(newOption)
-		contactContent.firstChild.style.fontWeight = 'bold'
-		//contactContent.lastChild.style.color = 'blue'
-		
-	}else{
-		
-		//console.log('else triggered in fillContacts()')
-		let blankOption = document.createElement('option')
-		let b_o_text = document.createTextNode('--select option--')
-		blankOption.appendChild(b_o_text)
-		blankOption.disabled = true
-		contactContent.appendChild(blankOption)
-
-		let noOption = document.createElement('option')
-		let n_o_text = document.createTextNode('no contact')
-		noOption.appendChild(n_o_text)		
-		contactContent.appendChild(noOption)
-		
-		let addOption = document.createElement('option')
-		let a_o_text = document.createTextNode('+ add contact')
-		addOption.appendChild(a_o_text)		
-		contactContent.appendChild(addOption)
-		
-
-	}	
-	$('#txtContacts').focus()
-	
-	$(contactContent).on('change',()=>{
-		
-		tellParent()
-		
-	}).off('change')
-	$(contactContent).trigger('change')
-}
 
 function tellParent(choice){
 	var conOps = document.getElementById("txtContacts");
 	console.log(`from tellParent ${chosenCompany} ${chosenFirstname} ${chosenLastname}`)
-	//contactIDNumber = conOps.options[conOps.selectedIndex].parentElement.getAttribute('contactID')
-		
 	
 	let con_ops = conOps.options[conOps.selectedIndex].text
 	con_ops = con_ops.substring(con_ops.indexOf("~") + 1);
@@ -439,7 +242,7 @@ function tellParent(choice){
 	switch(con_ops){
 		
 		case '+ add contact': 
-			//con_ID = d.getTime()
+			
 			let check = ipc.sendSync('get-customer-ID',chosenCompany)
 			console.log(chosenCompanyID)
 			if(check === false){
@@ -448,8 +251,6 @@ function tellParent(choice){
 			ipc.send('open-contacts','add job page',chosenCompany, isNewCustomer(chosenCompany.toUpperCase()))
 			break;
 		case '+ add new contact': 
-			//con_ID = d.getTime()
-			//con_ID = Number(conOps.options[conOps.selectedIndex].parentElement.getAttribute('contactID'))
 			
 			ipc.send('open-contacts','add job page',chosenCompany, isNewCustomer(chosenCompany.toUpperCase()))
 			
@@ -554,18 +355,9 @@ function addJob (){
 	let jt = document.getElementById('selJobType')
 
 	let objNewJob = new Object()
-	let company_ID
-	let contact_ID
-	/*
-	if(isNewCustomer(txtCN.value)){
-		company_ID = addNewCompany()
-	}else{
-		company_ID = chosenCompanyID;//ipc.sendSync('get-company-id', company)
-	}
-	if(contactIsBeingAdded()){
-		ipc.send('add-new-contact', company_ID, newCompanyContact)
-	}
-	*/
+	// let company_ID
+	// let contact_ID
+	
 	
 	//build job object
 	objNewJob.customer_ID =(chosenCompanyID != null && chosenCompanyID != '') ? chosenCompanyID : ipc.sendSync('add-new-customer', txtCN.value)
@@ -582,7 +374,7 @@ function addJob (){
 		objNewJob.estimated_cost = txtCost.value;	
 	}
 	objNewJob.designation = designation.options[designation.selectedIndex].value;
-	//alert(objNewJob.designation)
+	
 	if(objNewJob.designation == "On the Lot"){
 		objNewJob.date_in = todayIs() 
 		objNewJob.status = "wfw" 
@@ -606,8 +398,7 @@ function addJob (){
 	(document.getElementById('cbWaiting').checked) ? objNewJob.waiting_customer = 1 : objNewJob.waiting_customer= 0;
 	
 	console.log(objNewJob)
-	//addNewVehicle()
-	//addNewJobToCustomer(company_ID)
+	
 	ipc.send('add-job',objNewJob,currentUser,launcher)
 
 
@@ -615,14 +406,14 @@ function addJob (){
 
 function addNewJobToCustomer(args){
 	let IDtoAdd = Number(ipc.sendSync('getID'))
-    //let companyID = Number(ipc.sendSync('get-company',company))
+    
     ipc.send('add-job-to-company', args, IDtoAdd)		
 }
 function isNewCustomer(args){
 	let isNew = true
 	
 	for(i=0;i<companyList.length;i++){
-		//console.log(args + " "+JSON.stringify(companyList[i]))
+		
 		if(args.toUpperCase() == companyList[i].customer_name.toUpperCase()){
 			
 			isNew = false
@@ -642,8 +433,7 @@ function addNewCompany(name){
 }
 function contactIsBeingAdded(){
 	let selContact = document.getElementById('txtContacts')
-	//let id = addNewCompany()
-	//console.log(id)
+	
 	let optSelected = selContact.options[selContact.selectedIndex].value	
 	let b = (optSelected.includes('no contact')) ? false : true	
 	return b
@@ -656,6 +446,8 @@ function reset(){
 	window.close()
 	ipc.send('open-add-job')
 }
+
+
 function openInput(e, active, inputID1, inputID2) {
 	
 	var v = active.value;	
@@ -691,21 +483,21 @@ function openInput(e, active, inputID1, inputID2) {
 					document.getElementById(inputID2).className = "visibleInput";
 					break;
 				case "On the Lot":
-					//document.getElementById(inputID2).style.className = "hiddenInput";
+					
 					document.getElementById("dateWrapper").className = "hiddenInput";
-					//$('#txtCustomerName').focus()
+					
 					break;
 				
 				default:
 					
-					//document.getElementById(inputID2).className = "visibleFieldset";
+					
 					document.getElementById('cbWrapper').className = "visibleFieldset";
 					document.getElementById('formButtons').className = "visibleInput";
-					//document.getElementById("dateWrapper").className = "visibleInput";
+					
 					break;
 			}
 			if(inputID2 == "dateWrapper"){
-				//document.getElementById("dateWrapper").className = "visibleInput";
+				
 									
 			}else{
 			document.getElementById(inputID2).className = "visibleFieldset";

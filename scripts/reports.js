@@ -11,7 +11,7 @@ let chosenJulian
 let chosenYear
 let activity
 let noshows
-
+let history
 let totalACH = 0
 
 
@@ -103,6 +103,12 @@ printPDFBtn.addEventListener('click', function (event) {
            // console.log(this.value)
         }
     })
+    $('#searchCriteriaHS').on({
+        keyup: function(event){
+            search('history')
+           // console.log(this.value)
+        }
+    })
     $("#reportStartDate").click()    
     $("#reportStartDate").value = todayIs()
     $("#reportStartDate").text = todayIs();
@@ -163,17 +169,15 @@ ipcReport.on('close-window', (event)=>{
 
 
 
-function formatReport(a){
-    //fill array with chunks of report
-    let arr = a.split('\n')
+// function formatReport(a){
+//     //fill array with chunks of report
+//     let arr = a.split('\n')
 
-    console.log(arr[0])
-    console.log(filterItems(arr, ))
-    //reportResult.innerHTML = (activity.length >0) ? activity.toString().replace(/\n/g, '<br/><br/>') : `No Activity On ${reportStartDate}`
-}
-function makeReport(){
+//     console.log(arr[0])
+//     console.log(filterItems(arr, ))
+//     //reportResult.innerHTML = (activity.length >0) ? activity.toString().replace(/\n/g, '<br/><br/>') : `No Activity On ${reportStartDate}`
+// }
 
-}
 function filterItems(a, query) {
     let arr = a.split('\n')
     return arr.filter(function(el) {
@@ -182,9 +186,7 @@ function filterItems(a, query) {
     })
   }
 
-function fillUsers(){
-    
-}
+
 function makeVisible(block){
     document.getElementById('ribbon').setAttribute('class','ribbon visible')
     //console.log(block.getAttribute('class'))
@@ -196,9 +198,12 @@ function toggleVisibility(el){
 
     let mainOpts = document.getElementsByClassName('mainOption')
     for(i=1;i<mainOpts.length+1;i++){
+        if(mainOpts.id != 'ribbon5'){
         document.getElementById('option'+i).setAttribute('class','mainOption unchosen')
         document.getElementById('ribbon'+i).setAttribute('class','ribbon hidden')
-        
+        }else{
+
+        }
     }
 
     const chosenOption = el.getAttribute('id').substring(6)
@@ -211,7 +216,8 @@ function toggleVisibility(el){
     
     console.log("option status is "+optionStatus);
     (optionStatus<0) ? el.setAttribute('class','mainOption unchosen') : el.setAttribute('class', 'mainOption chosen');
-    (ribVisibility<0) ? ribbon.setAttribute('class','ribbon hidden') : ribbon.setAttribute('class','ribbon visible');
+    
+    
     if(chosenOption==4){
         createEODitem($('#datepickerReport'),'date')
         $('#inpACH').focus()
@@ -219,14 +225,20 @@ function toggleVisibility(el){
     if(chosenOption ==3){
         displayNoShows()
     }
+    if(chosenOption == 5){
+        (ribVisibility<0) ? ribbon.setAttribute('class','ribbon hidden') : ribbon.setAttribute('class','ribbon visible historyRibbon');
+    }else{
+    (ribVisibility<0) ? ribbon.setAttribute('class','ribbon hidden') : ribbon.setAttribute('class','ribbon visible');
+    }
 }
 function search(searchType){
-    let searchResultBox = document.getElementById('searchResult')
+    
     let searchCriteria 
     let objSearch
     let searchData 
+    let searchResultBox = document.getElementById('searchResult')
 
-    searchResultBox.innerHTML = ""
+    document.getElementById('searchResult').innerHTML = ""
     
     if(searchType == 'activity'){        
         objSearch = activity
@@ -236,6 +248,12 @@ function search(searchType){
         objSearch = noshows
         searchCriteria = document.getElementById('searchCriteriaNS')
         console.log("searchType is noshow")
+    }
+    if(searchType == 'history'){
+        objSearch = history
+        searchCriteria = document.getElementById('searchCriteriaHS')
+        console.log("searchType is history")
+        console.log(history)
     }
         searchData = (searchCriteria.value !== "") ? filterItems(objSearch,searchCriteria.value) : ""
         for (member in searchData) {
@@ -580,7 +598,7 @@ function displayNoShows(){
     let objNoshows = ipcReport.sendSync('get-no-shows')
 
     let resultBox = document.getElementById('reportResult')
-    let searchCriteria  = document.getElementById('searchCriteria')
+    
     let strForDisplay=""
     let lineItems =""
     let strData =""
@@ -603,4 +621,122 @@ function displayNoShows(){
     resultBox.style.display="block"
     console.log(objNoshows)
 
+}
+
+function displayHistory(result){
+    let lineItem=""
+    let strForDisplay =""
+    for(i=0;i<result.length;i++){
+        if(typeof result[i] === 'object'){
+            let strData = `${ipcReport.sendSync('db-get-customer-name',result[i].customer_ID)} ${result[i].job_type} job on UNIT: ${result[i].unit} on ${result[i].date_in}   NOTES: ${result[i].notes}`
+            lineItem+= `${strData}\n`
+            strForDisplay += `${strData}<br/><br/>`
+        }
+    }
+    history = lineItem
+   document.getElementById('reportResult').innerHTML = strForDisplay
+   document.getElementById('searchContainer').style.display = 'block'
+}
+function fillCustomerDataList(){
+	let element = document.getElementById('lstCustomer');
+	let arrCL = new Array()
+
+	console.log('fillcustomerdatalist()fired')
+	document.getElementById('lstCustomer').style.display="block";
+		
+	companyList ='';
+	element.innerHTML=""
+	customerList = ipcReport.sendSync('get-customer-names')
+	
+	
+	for(member in customerList){
+		arrCL[member]=customerList[member].customer_name
+	}
+	
+	companyList = Object.values(customerList)
+	/*var uniqueNames = customerList.sort(function (a, b) {
+	 	return a.toLowerCase().localeCompare(b.toLowerCase());
+	 	}).filter(onlyUnique);
+	*/	 
+	
+	customerList.sort((a, b) => (a.customer_name > b.customer_name) ? 1 : -1)
+	
+	for(i=0;i<customerList.length;i++){
+		
+		var newOption=document.createElement("OPTION");
+		
+		newOption.setAttribute("value",customerList[i].customer_name.toUpperCase());
+		newOption.setAttribute("id", customerList[i].customer_ID)
+		element.appendChild(newOption);		
+		
+	}
+	var val
+	$("#txtCustomerName").on({
+		
+		'keydown': function (event) {
+			chosenCompanyID = null
+			val = this.value;	
+			console.log('keydown')
+			if(event.keyCode == 13 || event.keyCode == 9) {			
+				console.log('keydown'+event.keyCode)
+					chosenCompany = val
+					
+					//fillContacts(chosenCompany)
+					$('#txtContacts').focus()			
+				
+			}
+		 },
+		'keyup': function(){
+			val = this.value;		
+			console.log('keyup')
+			if(val == "") {	
+	
+					console.log('empty')
+					//clearContacts()							
+					
+			}
+		},
+		'input' : function(){
+			val = this.value;
+			 if($('#lstCustomer option').filter(function(){
+			 	return this.value.toUpperCase() === val.toUpperCase();        
+			 }).length) {
+				
+				chosenCompany = val
+				//clearContacts()
+				chosenCompanyID = ipcReport.sendSync('get-customer-ID', chosenCompany)
+				let jobs = ipcReport.sendSync('get-jobs',chosenCompanyID)
+				console.log(jobs)
+				//pullContacts(chosenCompanyID)
+				console.log('input')
+                
+                displayHistory(jobs)
+				
+			}
+		},
+		"blur": function(){			
+			
+			val = this.value;
+			chosenCompany = val
+			chosenCompanyID = ipcReport.sendSync('get-customer-ID', this.value)
+			console.log('blur'+this.value+" "+chosenCompanyID)
+			if(chosenCompanyID == null){			
+			
+				//fillContacts(this.value)
+
+			}else{
+
+				//pullContacts(chosenCompanyID)
+				
+			}
+			//$('#txtContacts').focus()
+		},
+		"click": function(){
+			console.log('click')
+			this.value = ""
+		}
+		
+	});
+	
+	
 }

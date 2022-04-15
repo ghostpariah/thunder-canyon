@@ -90,6 +90,7 @@ ipc.on('message', (event, args)=>{
  })
 
 ipc.on('update', (event, args)=>{
+	
 	allJobs = ipc.sendSync('pull_jobs')
 	countStatuses()
 	clearPage()
@@ -168,8 +169,9 @@ ipc.on('whiteboard-updated', (event,args)=>{
 	 }
 }
 
-function openContacts(){	 
-	 ipc.send('open-contacts', 'main page')
+function openContacts(){
+	console.log(currentUser)	 
+	 ipc.send('open-contacts', 'main page',null,null,null,null,null,null,currentUser)
  }
 
 function openCalendar(){	 
@@ -425,6 +427,9 @@ function fillScheduleGlimpse(args){
 			data.appendChild(schedItem)
 			glimpse.appendChild(data)
 			glimpse.appendChild(glimpseContext)
+
+			
+			
 			
 			
 		}
@@ -524,19 +529,24 @@ function createGlimpsePopUp(element){
 			menuBox.appendChild(item2Box)
 			menuBox.appendChild(item3Box)
 			menuBox.appendChild(item4Box)
+
+			$('.glimpse-context-menu').on('mouseleave',function() {
+				$(this).fadeOut(250);
+			});
+			
 			setTimeout(() => {
-				if($(`#context-Menu-${e.id.substr(4)}:hover`).length == 0){
-				menuBox.style.display = 'none'
+				
+				if($(`.glimpse-context-menu:hover`).length == 0){
+					$(`.glimpse-context-menu`).fadeOut(250);
 				}
 			}, 7000);
-			$(`#context-Menu-${e.id.substr(4)}`).mouseleave(function (){
-				setTimeout(() => {
-					if($(`#context-Menu-${e.id.substr(4)}:hover`).length == 0){
-					menuBox.style.display = 'none'
-					document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
-					}
-				}, 7000);
-			})
+			document.onclick = function (ev){
+				
+				if(ev.target.id !== `gc${e.id}`){
+					$(`.glimpse-context-menu`).fadeOut(250);
+				}
+			}
+			
 }
 
 function countStatuses(){
@@ -659,7 +669,7 @@ function dosomething(e){
 	
 	let adminMenu = document.getElementById('adminMenu')
 	let caller = document.getElementById(e.id)
-	
+	//alert(e.id)
 	//is it an admin menu item
 	if(adminMenu.contains(caller)){
 		//does it have a submenu
@@ -1495,20 +1505,31 @@ function createContextMenu(e,objJobData,g) {
 			menuBox.appendChild(item2Box)
 			menuBox.appendChild(item3Box)
 			menuBox.appendChild(item4Box)
+
+			$('.context-Menu').on('mouseleave',function() {
+				$(this).fadeOut(500);
+			});
+			
 			setTimeout(() => {
-				if($(`#context-Menu-${e.id.substr(4)}:hover`).length == 0){
-				menuBox.style.display = 'none'
-				document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+				
+				if($(`.context-Menu:hover`).length == 0){
+					$(`.context-Menu`).fadeOut(500);
 				}
 			}, 7000);
-			$(`#context-Menu-${e.id.substr(4)}`).mouseleave(function (){
-				setTimeout(() => {
-					if($(`#context-Menu-${e.id.substr(4)}:hover`).length == 0){
-					menuBox.style.display = 'none'
-					document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
-					}
-				}, 7000);
-			})
+			// setTimeout(() => {
+			// 	if($(`#context-Menu-${e.id.substr(4)}:hover`).length == 0){
+			// 	menuBox.style.display = 'none'
+			// 	document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+			// 	}
+			// }, 7000);
+			// $(`#context-Menu-${e.id.substr(4)}`).mouseleave(function (){
+			// 	setTimeout(() => {
+			// 		if($(`#context-Menu-${e.id.substr(4)}:hover`).length == 0){
+			// 		menuBox.style.display = 'none'
+			// 		document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+			// 		}
+			// 	}, 7000);
+			// })
 
 		}else{
 			item1Text = document.createTextNode('EDIT')
@@ -1601,20 +1622,30 @@ function createContextMenu(e,objJobData,g) {
 			menuBox.appendChild(item3Box)
 			menuBox.appendChild(item4Box)
 			
+			$('.context-Menu').on('mouseleave',function() {
+				$(this).fadeOut(250);
+			});
+			
 			setTimeout(() => {
-				if($(`#context-Menu-${e.id.substr(4)}:hover`).length == 0){
-				menuBox.style.display = 'none'
-				document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+				
+				if($(`.context-Menu:hover`).length == 0){
+					$(`.context-Menu`).fadeOut(250);
 				}
 			}, 7000);
-			$(`#context-Menu-${e.id.substr(4)}`).mouseleave(function (){
-				setTimeout(() => {
-					if($(`#context-Menu-${e.id.substr(4)}:hover`).length == 0){
-					menuBox.style.display = 'none'
-					document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
-					}
-				}, 7000);
-			})
+			// setTimeout(() => {
+			// 	if($(`#context-Menu-${e.id.substr(4)}:hover`).length == 0){
+			// 	menuBox.style.display = 'none'
+			// 	document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+			// 	}
+			// }, 7000);
+			// $(`#context-Menu-${e.id.substr(4)}`).mouseleave(function (){
+			// 	setTimeout(() => {
+			// 		if($(`#context-Menu-${e.id.substr(4)}:hover`).length == 0){
+			// 		menuBox.style.display = 'none'
+			// 		document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+			// 		}
+			// 	}, 7000);
+			// })
 		}
 		
 			
@@ -1625,19 +1656,20 @@ function createContextMenu(e,objJobData,g) {
 	
 	
 	
-	//hide tooltip and menu
-	document.getElementById(e.childNodes[1].id).style.visibility = "hidden";
-	thisMenu.style.display = 'block'
+		//hide tooltip and menu
+		document.getElementById(e.childNodes[1].id).style.visibility = "hidden";
+		thisMenu.style.display = 'block'
 
-	//hide if clicking outside of element
-  	document.onclick = function(ev){
-		 
-    	if(ev.target.id !== thisMenu.id && ev.target.parentNode.id !== thisMenu.id){	
-      		thisMenu.style.display = 'none';
-			  if(document.getElementById(e.childNodes[1].id)!= null && document.getElementById(e.childNodes[1].id) != undefined){
-		 			document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
-			  }
-    	}
+		//hide if clicking outside of element
+	document.onclick = function(ev){
+		console.log('menuID '+thisMenu.id)
+		console.log(ev.target.id)
+		if(ev.target.id !== thisMenu.id && ev.target.parentNode.id !== thisMenu.id){	
+			$(`.context-Menu`).fadeOut(250);
+			if(document.getElementById(e.childNodes[1].id)!= null && document.getElementById(e.childNodes[1].id) != undefined){
+					document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+			}
+		}
   	};
 
 }

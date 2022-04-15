@@ -5,7 +5,7 @@ class Splash{
          `<div class='welcome'>Welcome!</div>`
          this.headline = 
          `<h1>What's New?</h1>`
-        this.headlinContent =
+        this.headlineContent =
         `<div id='headlineContent'>
         <ul>
             <li>Log In Feature</li>
@@ -23,7 +23,7 @@ class Splash{
         return this.head+
         this.greeting + 
         this.headline+
-        this.headlinContent+
+        this.headlineContent+
         this.tail
      }
      setGreeting(){

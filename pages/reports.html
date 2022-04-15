@@ -23,6 +23,7 @@
       <span id='option2' class='mainOption unchosen' onclick="toggleVisibility(this)">Error Log</span>
       <span id='option3' class='mainOption unchosen' onclick="toggleVisibility(this)">No Shows</span>      
       <span id='option4' class='mainOption unchosen' onclick="toggleVisibility(this)">EOD</span>
+      <span id='option5' class='mainOption unchosen' onclick="toggleVisibility(this)">History</span>
   </div>
   <div id='ribbon1' class= 'ribbon hidden'>
    
@@ -95,11 +96,28 @@
         </form>
     </div>
   </div>
-  
+  <div id='ribbon5' class= 'ribbon hidden historyRibbon'>
+    <div id="activitySearchHS" class="ribbonAsset">
+      <div class="visibleInput" id="customerNameWrapper">
+                    
+          <label>Customer:&nbsp;</label>                    
+          <input id="txtCustomerName" class="classic" tabindex="1" list="lstCustomer" onfocus="fillCustomerDataList()" type="text" style="z-index:20000;"/>
+          
+          <datalist id="lstCustomer" class="classic">
+              
+          </datalist>
+      </div>
+      <div id='searchContainer'class="searchContainer">
+        <input type="text" id="searchCriteriaHS">
+        <span id="searchInputButtonHS" class ="searchInputButton" onclick="search('noshow')">search</span>
+      </div>
+    </div>
+  </div>
 
   <div id='searchResult' class="resultsContainer"></div>
   <div id="reportResult" class= 'resultsContainer'>
   </div>
   
   </body>
+  
 </html>

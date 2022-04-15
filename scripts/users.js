@@ -178,13 +178,11 @@ function fillSections(users){
                 arrChanges[existingObjectIndex].active = event.currentTarget.checked;
                 
             }    
-                // console.log('array is empty ..pushing new object')
-                // objEditedData.id = userID
-                // arrChanges.push(objEditedData)
+                
             
             console.log(arrChanges)
         })
-        //console.log(users[member].active);
+       
         
 
         wrapper.appendChild(name)
@@ -221,16 +219,13 @@ function fillSections(users){
         document.getElementById('userWrapper').appendChild(submitButton)
 }
 function changeHappened(newData, changedItem){
-    //console.log('changeHappened() triggered' )
-    //console.log(users.length)
-    //console.log(newData)
+    
     let change 
     for(member in users){
         //convert booleans
         newData.active = (newData.active == false) ? 0:1
         
-            //console.log(newData.id)
-            //console.log(users[member].user_ID)
+            
             if(users[member].user_ID == newData.id){
                 switch(changedItem){
                     case 'active':
@@ -284,10 +279,8 @@ function deleteUser(args){
     users = ipcUser.sendSync('delete-user', id)	
     fillSections(users)
 }
-//TODO: program a password reset
-function resetUser(args){
 
-}
+
 function createUser(){
     console.log('createUser triggered')
     let userData = new Object()
@@ -319,12 +312,11 @@ function createUser(){
   
     console.log(ma.innerHTML)
     if(ma.innerHTML==""){
-        //users = ipcUser.sendSync('create-user', userData)
+        
         document.getElementById('userWrapper').innerHTML =""
         document.getElementById('frmNewUser').reset()
         fillSections(ipcUser.sendSync('create-user', userData))
-        //displaySection()
-       // window.close()
+        
        
     }
 

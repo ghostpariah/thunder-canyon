@@ -5,13 +5,14 @@
   "main": "scripts/main.js",
   "scripts": {
     "start": "electron .",
-    "postinstall": "install-app-deps"
+    "postinstall": "install-app-deps",
+    "dist:windows": "electron-builder --windows"
   },
   "author": "Sean Davidson",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^17.1.2",
-    "electron-builder": "^22.11.7"
+    "electron": "^17.4.0",
+    "electron-builder": "^22.14.13"
   },
   "dependencies": {
     "@electron/remote": "^2.0.8",

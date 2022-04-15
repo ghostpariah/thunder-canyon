@@ -13,9 +13,19 @@ datalist{
     height: 0px;
     
 }
+#txtCustomerName{
+    float:left;
+    display:block;
+    margin: auto;
+    margin-left:calc(100%/3);
+}
 #customerNameWrapper{
     display: none;
-    position:relative
+    float:left;
+    
+    width:100%;
+    margin:auto;
+    
 }
 #newContactFormContainer{
     display:none;
@@ -26,11 +36,12 @@ select option :disabled{color:blue;}
     float:left;
     clear:both;
     padding:0;
-    margin-bottom:-20px;
+    
     color:#5e81ad;/*rgb(186, 245, 242);*/
     display:none;
-    display:relative;
+    
     width:100%;
+    margin-right:20px;
 }
 label{
     color:#5e81ad;
@@ -43,9 +54,10 @@ ul li ul > a{
 }
 #contactsMain{
     float: left;
-    width: 95%;
+    width: 100%;
     display: "block";
-    position: relative;
+    
+    margin-right:20px;
     
 }
 #contactsHeader h2{
@@ -69,7 +81,7 @@ input{
     height: 1.25rem;
     float: left;    
     padding-left: 5px;
-    margin-top: 3px;
+    margin: auto
 }
 label{
     float:left;
@@ -137,8 +149,39 @@ ul li ul li{
     color: rgb(180, 134, 180);
 
 }
-#currentCOntacts{
+#currentContacts{
     width:100%;
+    float:left;
+    
+}
+
+#currentContacts > ul{
+   float:left;
+   width:95%;
+}
+.primary{
+    float:left;
+    
+}
+.indicator{
+    color:red;
+    font-size: .5em;
+}
+.visible{
+    display:block;
+}
+.hidden{
+    display:none;
+}
+.divPrimaryCheckbox{
+    float:left;
+    font-size: .75em;
+    display:none;
+    width:100%;
+}
+.divPrimaryCheckbox label{
+    font-size: 1em;
+    margin-left:5px;
 }
 
   
@@ -160,6 +203,11 @@ ul li ul li{
   .actionLink:hover .tooltip {
     visibility: visible;
   }
+  #buttonContainer{
+      float:left;
+      width:100%;
+      display:block;
+  }
 .contactButton{
     width: 30px;
     height:15px;
@@ -177,27 +225,80 @@ ul li ul li{
     color:black;
     background:#5e81ad;
 }
-.compHeader{
+.smallButtonContainer{
     float:left;
-    font-size:1.5em;
-    margin: 10px 10px 10px 0px;
-    font-weight: 800;
-    width:100%;
-    border-bottom: 1px solid black;
+    height: 20px;
+    margin-left: 15px;
+    
 }
-.mainContactButton{
+#cbPrimary{
+    margin-right: 10px;
+}
+
+.smallButton{
+    width: 30px;
+    height:15px;
+    text-align: center;
+    margin:0px 5px; 
+    cursor: pointer;
+    border: 1px solid #5e81ad;
     float:left;
+    padding:2px 10px;
+    font-size:12px;/*.8em;*/
+    color:#5e81ad;
+    
+}
+.largeButton{
+    float:right;
     border:1px solid #5e81ad;
-    background-color: black;
-    margin: 2px 5px 10px 0px;
+    background-color:#5e81ad;
+    margin: 3px;;/* */
     padding:1px 3px;
     cursor:pointer;
-    color:#5e81ad;
+    color: black;
+    width: 100px;
+    text-align: center;  
+}
+.largeButton:hover{
+    color:white;
+    background: #5e81ad;
+    cursor:pointer;
+}
+.compHeader{
+    float:left;
+    font-size:2em;
+    margin: 10px 10px 10px 0;
+    font-weight: 800;
+    width:100%;
+    text-align: center;
+    border-bottom: 1px solid black;
+    cursor: pointer;
+}
+.mainContactButton{
+    float:right;
+    border:1px solid #5e81ad;
+    
+    margin: 3px;;/* */
+    padding:1px 3px;
+    cursor:pointer;
+    
+    width: calc(90%/3);
+    text-align: center;
 }
 .mainContactButton:hover{
     color:black;
     background: #5e81ad;
+    cursor:pointer;
 }
+.buttonSelected{    
+    background-color: #5e81ad;    
+    color:black;    
+}
+.buttonUnselected{    
+    background-color: black;    
+    color:#5e81ad;    
+}
+
 .nameInput{
     width:100px;
     margin: 5px 5px 5px 5px;

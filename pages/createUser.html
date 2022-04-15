@@ -23,17 +23,19 @@
 	<script>if (window.module) module = window.module;</script>
 </head>
 <body>
+    <h3>CREATE NEW USER</h3>
     
+        
     <div id="wrapper1" class='wrapper'>
         
         <div id="-message-area"></div>
-        <h2>create new user</h2>
+        
         <form id="frmNewUser" class="wrapper">
             <label class="uLabel">User Name:</label>
             
             <label class="uLabel">Password:</label>
             <label class="checkboxLabel">Role:</label>
-            <input class="userNameDisplay" id="user"><br>
+            <input class="userDisplay" id="user"><br>
             <input class="userDisplay" id="password"><br>
             
             <select id='role' class="dropRole">
@@ -44,10 +46,13 @@
             <input class="-user-submit" type="button" value="add" onclick="createUser()"/>
         </form>
     </div>
+
+
+    
     <div id="wrapper2" class='wrapper'>
         
         <div id="-message-area"></div>
-        <h2>edit users</h2>
+        <h3>EDIT USERS</h3>
         <form class="userWrapper">
             
             <div class="userWrapper">
@@ -65,6 +70,6 @@
         </form>
         
     </div>
-    
+   
 </body>
 </html>

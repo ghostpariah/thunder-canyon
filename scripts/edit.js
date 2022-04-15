@@ -24,18 +24,14 @@ const cbWaiting = document.getElementById('cbWaiting')
 const cbNoShow = document.getElementById('cbNoShow')
 const txtNotes = document.getElementById('txtNotes')
 let launcher
-//TODO: program currrent user being sent to here and then passed on with edit to main
+
 let currentUser
 window.onload = ()=>{
     
     
 }
 setTimeout(()=>{		
-    $("#datepicker").datepicker({dateFormat : "mm/dd/yy"});
-        
-    
-    
-
+    $("#datepicker").datepicker({dateFormat : "mm/dd/yy"});  
 },1000);
 
 /**
@@ -67,14 +63,14 @@ async function treatData (input) {
 ipcEdit.on('edit-data', async (event,args, args2, args3)=>{
     console.log(typeof(args))
 	editData = await treatData(args)
-	loadData(editData)
+	//loadData(editData)
     
 	launcher = args2
 	currentUser = args3
-    // setTimeout(() => {
-	// 	loadData(args)
-    //     //loadData(editData)
-    // }, 0);
+    setTimeout(() => {
+		loadData(editData)
+        //loadData(editData)
+    }, 0);
 })
 ipcEdit.on('contacts-updated', (event,args,args2)=>{
 	console.log(args)
@@ -102,16 +98,21 @@ function cancelAdd(){
 
 /* function to load current job data into edit form inputs*/
 function loadData(objJobToEdit){
-
-    let d = objJobToEdit
-    
+	let d
+	if(Array.isArray(objJobToEdit)){
+		d = objJobToEdit[0]
+	}else{
+		d = objJobToEdit
+	}
+    //console.log('loadData() in edit')
+    //console.log('number id is '+d.number_ID)
 	try{
-    inpCustomer.value = ipcEdit.sendSync('db-get-customer-name',d.customer_ID);
+    inpCustomer.value = ipcEdit.sendSync('db-get-customer-name',d?.customer_ID);
 	}catch(e){
 		console.log(e)
 	}
     
-    (d.unit != null) ? inpUnit.value = d.unit : inpUnit.value = "";
+    (d?.unit) ? inpUnit.value = d.unit : inpUnit.value = "";
     (d.designation == "On the Lot" || d.desgnation == 'on the lot')? selDesignation.selectedIndex = 1 : selDesignation.selectedIndex = 2;
     (d.date_scheduled != null) ? inpScheduledDate.value = d.date_scheduled : inpScheduledDate.value = "";
     (d.time_of_day == 'am')? radAM.checked = true : radAM.checked = false;
@@ -149,8 +150,9 @@ function loadData(objJobToEdit){
     if(d.number_ID != null && d.number_ID != ''){
 
 		for(var i=0; i<selContacts.options.length;i++) {
-			if(selContacts.options[i].id == d.number_ID) {
-				selContacts.selectedIndex = i;
+			if(selContacts.options[i].id == d.number_ID && selContacts.options[i].getAttribute('method') == 'phone') {
+				
+				selContacts.options[i].selected = true
 				showLabel()
 				break;
 			}
@@ -159,8 +161,9 @@ function loadData(objJobToEdit){
 	if(d.email_ID != null && d.email_ID != ''){
 
 		for(var i=0; i<selContacts.options.length;i++) {
-			if(selContacts.options[i].id == d.email_ID) {
-				selContacts.selectedIndex = i;
+			if(selContacts.options[i].id == d.email_ID && selContacts.options[i].getAttribute('method') == 'email') {
+				selContacts.options[i].selected = true
+				
 				showLabel()
 				break;
 			}
@@ -168,153 +171,6 @@ function loadData(objJobToEdit){
 	}
 }
 
-function fillContacts(cont){
-	
-	
-	let optGroup = document.createElement("optgroup")
-	let t=document.createTextNode('add contact')
-	let newOption=document.createElement("OPTION");
-	let ul = document.createElement('ul')
-	const contactContent = document.getElementById('txtContacts')
-	contactContent.innerHTML=""	
-	
-	
-	if(typeof cont == 'object' && cont.length>0){
-		 newOption=document.createElement("OPTION");
-		 t=document.createTextNode('add contact')
-		
-        for(member in cont){
-			let optGroup = document.createElement("optgroup")
-			let optNewNumber = document.createElement("OPTION")
-			let optNewEmail = document.createElement("OPTION")
-			let optAddEmail =document.createElement("OPTION")
-			
-			let newNumber = document.createTextNode('+ add number')
-			let txtAddEmail = document.createTextNode('+ add email')
-			
-
-			chosenFirstname = cont[member].first_name
-			chosenLastname = cont[member].last_name
-			let fn = (cont[member].first_name) ? cont[member].first_name : ""
-			let ln = (cont[member].last_name) ? cont[member].last_name : ""
-			optGroup.setAttribute('label',`${fn} ${ln}`)
-			if(cont[member].phonenumbers){
-				optGroup.setAttribute('pncount',cont[member].phonenumbers.length)
-			}
-			if(cont[member].emails){
-				optGroup.setAttribute('ecount', cont[member].emails.length)
-			}
-			optGroup.setAttribute('position', member)
-			if(cont[member].contact_ID){	
-				optGroup.setAttribute('contactID', Number(cont[member].contact_ID))
-					
-				
-			}
-			 contactContent.appendChild(optGroup);
-			 let dashOpt = document.createElement('option')					
-			 let dash = document.createTextNode("Phone Numbers")
-			 dashOpt.setAttribute("disabled","disabled")
-			 dashOpt.setAttribute('class','cmHeader')
-			 dashOpt.appendChild(dash)
-			 optGroup.appendChild(dashOpt)
-			 
-			
-            for(n in cont[member].phonenumbers){
-				//create number element unless therre is no number
-				if(cont[member].phonenumbers[n].number !=null){
-					let newOption=document.createElement("OPTION");				 	
-					t = document.createTextNode(`${cont[member].phonenumbers[n].number}`)
-					let c = n+1
-					newOption.setAttribute("position", Number(n)+1)
-					newOption.setAttribute("id",`${cont[member].phonenumbers[n].phone_ID}` )
-					newOption.appendChild(t)
-					newOption.setAttribute("method","phone")				
-					newOption.setAttribute('value', `${cont[member].phonenumbers[n].number}`)
-					
-					
-					optGroup.appendChild(newOption)	
-				}
-
-				if(n == cont[member].phonenumbers.length-1){
-					optNewNumber.appendChild(newNumber)
-					optGroup.appendChild(optNewNumber)
-					optGroup.lastChild.style.color = 'blue'
-					optGroup.lastChild.style.fontWeight = 'bold'
-					optGroup.lastChild.style.fontSize = '.65em'
-					
-				}			
-			}
-			let eDashOpt = document.createElement('option')					
-			let eDash = document.createTextNode("EMAIL")
-			eDashOpt.setAttribute("disabled","disabled")
-			eDashOpt.appendChild(eDash)
-			optGroup.appendChild(eDashOpt)
-
-						 
-			for(n in cont[member].emails){
-
-				//create email element unless there is no email
-				if(cont[member].emails[n].email !=null){
-					let newOption=document.createElement("OPTION");				 	
-					t = document.createTextNode(`${cont[member].emails[n].email}`)
-					newOption.appendChild(t)
-					newOption.setAttribute("method","email")	
-					newOption.setAttribute("id",`${cont[member].emails[n].email_ID}`)			
-					newOption.setAttribute('value', `${fn} ${ln} ~ ${cont[member].emails[n].email}`)				
-					optGroup.appendChild(newOption)	
-				}			
-		   }
-			
-			
-			optNewEmail.appendChild(txtAddEmail)
-			optGroup.appendChild(optNewEmail)
-			optGroup.lastChild.style.color = 'blue'
-			optGroup.lastChild.style.fontWeight = 'bold'
-			optGroup.lastChild.style.fontSize = '.65em'
-
-
-			
-              
-		}
-		newOption = document.createElement("OPTION");
-		newOption.setAttribute("value","no contact");	
-		
-		let ac = document.createTextNode(`+ add new contact`)
-		
-		newOption.appendChild(ac)
-		contactContent.insertBefore(newOption,contactContent.firstChild)
-		
-		contactContent.firstChild.style.fontWeight = 'bold'
-		
-		
-	}else{
-		
-		let blankOption = document.createElement('option')
-		let b_o_text = document.createTextNode('--select option--')
-		blankOption.appendChild(b_o_text)
-		blankOption.disabled = true
-		contactContent.appendChild(blankOption)
-
-		let noOption = document.createElement('option')
-		let n_o_text = document.createTextNode('no contact')
-		noOption.appendChild(n_o_text)		
-		contactContent.appendChild(noOption)
-		
-		let addOption = document.createElement('option')
-		let a_o_text = document.createTextNode('+ add contact')
-		addOption.appendChild(a_o_text)		
-		contactContent.appendChild(addOption)
-		
-
-	}	
-	
-	$(contactContent).on('change',()=>{
-		
-		
-		
-	}).off('change')
-	$(contactContent).trigger('change')
-}
 
 /*function called when contact is changed on the edit form*/
 function changeContact(choice){
@@ -359,6 +215,9 @@ function changeContact(choice){
 			
 			break;
 	}
+	
+}
+function showSelected(id){
 	
 }
 function showLabel() {
@@ -411,7 +270,12 @@ function updateJob (){
 
 	let objNewJob = new Object()
 	let objChangeLog = new Object()
+	let editData2 = new Object()
 	
+	console.log(editData.designation)
+	if(Array.isArray(editData)){
+		editData = editData[0]
+	}
 	
 	//build job object
 	objNewJob.job_ID = editData.job_ID
