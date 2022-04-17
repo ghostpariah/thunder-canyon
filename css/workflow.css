@@ -32,16 +32,17 @@
 
 html {
     display: table;
-    margin: auto;
+    margin: 0;
 	
 }
 
-body {
+/* body {
     display: table-cell;
     vertical-align: middle;
 	overflow: visible;
 	
-}
+	width: fit-content;
+} */
 #wpuJobContainer{
 	padding-left: 7px;
 	padding-bottom: 5px;
@@ -53,15 +54,17 @@ datalist{
 }
 body {
 	
-	width:100%;/*1600px;*/
+	width:1600px;
 	background: black;
-	margin:0 auto;
+	margin:0;
 	vertical-align: middle;
+	padding:0;
 }
 
 #contentArea{
 	float:left;
 	width:100%;
+	margin:0;
 	
     
 }
@@ -81,7 +84,7 @@ body {
 
 
 #main {
-	width: 1600px;
+	width: 1600px;/*1600px;*/
 	
 	min-height: 800px;;
 	border: 1px solid white;
@@ -158,7 +161,7 @@ body {
 	text-align: center;
 	vertical-align: middle;
 	font-family: Arial, Helvetica, sans-serif;
-	font-size:13px;
+	font-size:13px; 
 	/*
 	border-left:2px solid #cecece;
 	border-right:2px solid #cecece;
@@ -199,34 +202,41 @@ body {
 #kingPin {
 	background: green;
 }
-#left {
-	width: 52%;
-	float: left;
-	height:640px;
-	margin-top: 5px;
-}
 #middle {
+	width: 52.8%;
+	float: left;
+	height:635px;
+	margin-top: 1px;/*5px*/
+	margin-bottom: 1px;
+}
+#right {
 	width: 31%;/*32%;*/
 	float: left;
-	margin-left:2px;
-	height:auto;
-	margin-top: 5px;
+	/* margin-left:2px; */
+	height:635px;
+	margin-top: 1px;/* 5px */
+	margin-bottom: 1px;
+	margin-right:0px;
+	margin-left:1px;
 }
 
-#right {
+#left {
 	
 	width: 16%;
 	float: left;
-	margin-right:8px;
-	height:640px;
-	margin-top: 5px;
+	/* margin-right:8px; */
+	height:635px;
+	margin-top: 1px;/*5px;*/
+	margin-left:0px;
+	margin-right: 1px;
+	margin-bottom: 1px;
 }
 .cat {
 	width: 97%;
 	/*border: 2px solid #cdcdcd;*/
 	float: left;
 	height: 300px;
-	margin: 2px;
+	/* margin: 2px; */
 	background: whitesmoke;
 }
 #cBucket{
@@ -251,12 +261,12 @@ margin-right: px;
 	color:black;
 }
 #waiting.cat {
-	height: auto;
-	width: 99%;
+	height: 100%;
+	width: 100%;
 	overflow:auto;
 }
 #waiting{
-	background-image: url(../images/bgTest2V.svg);
+	/* background-image: url(../images/bgTest2V.svg); */
 	background-repeat: no-repeat;
 	
 	
@@ -265,22 +275,22 @@ margin-right: px;
 #wip.cat {
 	/*height: 625px;*/
 	height:420px;/*420*/
-	width:99%;
+	width:100%;
 }
-#right .cat {
+/* #right .cat {
 	height: 205px;
 	font-family: "Arial Narrow";
 	font-size: 30px;
 	color: #736F6E;
 	text-align: center;
 
-}
+} */
 #bottom{
 	float:left;
-	height:200px;/*169px;*/
-	width:492px;
+	height:213px;/*169px;*/
+	width:100%;
 	background-color: white;
-	margin-left:3px;
+	/* margin-left:3px; */
 	
 	margin-top: 1px;
 	padding:0;
@@ -323,7 +333,7 @@ margin-right: px;
 .glimpseData{
 	width:100%;
 	
-	background:seashell;
+	background:white;
 	/* font-family: 'Arial Narrow'; */
 	float:left;
 	
@@ -372,7 +382,7 @@ margin-right: px;
 	height:125px;
 	border:2px solid #5e81ad;
 	float:left;
-	margin:3px;
+	/* margin:3px; */
 	background: black;
 	color:#5e81ad;
 }
@@ -591,6 +601,7 @@ div.lineItem:first-child{
 #legend-statuses{
 	float:left;
 	font-size: 12px;
+	margin-top: 2px;
 	
 }
 #legendButtonContainer{
@@ -693,7 +704,7 @@ div.lineItem:first-child{
 
 #waiting .job {
 	width: 98%;/*24%;*/
-	height: 44px;
+	height: 45px;
 }
 #wip .job {
 	width: 48%;
@@ -753,9 +764,9 @@ div.lineItem:first-child{
 }
 #SCH{
 	border: none;
-	height: 97.5%;
+	height: 100%;
 	background-color:whitesmoke;
-	margin-left: 7px;
+	/* margin-left: 7px; */
 }
 #bigSCHcountBox{
 	width: 150px;
@@ -822,17 +833,18 @@ div.lineItem:first-child{
 	float: left;
 	font-family: Arial, Helvetica, sans-serif;
 	text-align: center;
-	font-size: 12px;
+	font-size: 10px;
 	background-repeat: no-repeat;
 	height: inherit;
 	overflow: hidden;
   text-overflow: ellipsis;
 }
-.customerName {
+.mainJobCustomerName {
 	
-	font-weight: 600;
+	font-weight: 800;
 	
-	font-size: 12px;
+	font-size: 1em;
+	width: 100%;
 }
 
 .jobCat {
@@ -1204,7 +1216,7 @@ input {
 	height:500px;
 	/* border: 1px solid #5e81ad; */
 	float:left;
-	margin-left: 5px;
+	margin-left: 7px;
 	overflow-y: auto;
 	overflow-x: hidden; 
 	font-family:Arial, Helvetica, sans-serif;
@@ -1258,8 +1270,10 @@ input {
 }
 .unitNumber{
 	display: inline-block;
-	width: 90%;
-	height:14px;
+	width: 100%;
+	height:auto;
+	font-size:.8em;
+	font-weight:600;
 	
 }
 .jobIndicator{
@@ -1267,7 +1281,7 @@ input {
 	width:14px;;
 	
 	background-repeat: no-repeat;
-	height: 14px;
+	height: 9px;
 	
 	margin-left: 3px;
 }
@@ -1280,9 +1294,13 @@ input {
 	height: 100px;
 	background: #1b1a1a;
 	margin-left: 150px;
-	margin-top: -40px;
-	box-shadow: 5px 10px 18px #888888;
+	/* margin-top: -20px; */
+	transform: translateY(-90%);
+	/* box-shadow: 5px 10px 18px #888888; */
 	
+}
+.left{
+	margin-left: -75px;
 }
 .glimpse-context-menu{
 	position: absolute;
@@ -1371,6 +1389,9 @@ input {
 	
 	height:20px;
 	
+}
+#jobIndicatorContainer{
+	width:100%;
 }
 
 .item:hover{

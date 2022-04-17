@@ -60,7 +60,7 @@ autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
 log.info('App starting...');
 
-autoUpdater.on('checking-for-update', () => {
+autoUpdater.on('checking-for-update', (info) => {
     sendStatusToWindow('Checking for update...');
 })
 autoUpdater.on('update-available', (info) => {
@@ -228,8 +228,11 @@ app.on('ready', ()=>{
     }, 3600000)
     
     //check for updates
+    try{
     autoUpdater.checkForUpdates()
-    
+    }catch(e){
+        console.log(e)
+    }
     
     // ready the files. create folder for year and day if it doesn't exist and then
     // copy log files to the directory and empty the daily logs
@@ -949,6 +952,7 @@ async function getCustomerName(args){
        
     }
     function sendStatusToWindow(text) {
+        console.log('triggered')
         log.info(text);
         win.webContents.send('updater', text);
       }
@@ -1454,8 +1458,8 @@ ipcMain.on('db-get-contact-name',(event, args1, args2)=>{
 function createMainWindow(){
     
     win = new BrowserWindow({
-        width: 1650,
-        height: 900,        
+        width: 1620,
+        height: 842,        
         icon: path.join(__dirname, '../images/logo.ico'),
         autoHideMenuBar: true,
         
@@ -1486,6 +1490,7 @@ function createMainWindow(){
     })
     win.once('ready-to-show', () => {
         win.webContents.send('load-page')
+        autoUpdater.checkForUpdates()
       })
     
     
@@ -1755,8 +1760,8 @@ function createCalendarWindow(args,args2){
     calendarWin = new BrowserWindow({
             parent: win,
             modal: true,
-            width:1400,//1140
-            height: 800,//600
+            width:1087,//1140
+            height: 562,//600
             autoHideMenuBar: true,
             show: false,
             webPreferences: {

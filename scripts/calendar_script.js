@@ -4,6 +4,9 @@ const date = new Date();
 let allJobs
 let scheduledJobs
 let year = date.getFullYear();
+let Holidays = require('date-holidays')
+let hd = new Holidays()
+hd.init('US','oh')
 
 var d = new Date();
 var month_name=['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -11,8 +14,9 @@ var monthIndex = d.getMonth();// 0-11
 var thisYear = d.getFullYear();// xxxx
 var today = d.getDate();
 var thisMonth = month_name[monthIndex];
-
-
+let arrRightSide = ['4','5','6','11','12','13','18','19','20','25','26','27','32','33','34','39','40','41'];
+let arrWeekendContext = ['5','6','12','13','19','20','26','27','33','34','40','41'];     
+let arrTop = ['0','1','2','3','4','5','6']
 
 var firstDay;
 var selectedYear;
@@ -23,6 +27,8 @@ var inc;
 var dayHolder=[];
 let currentUser
 
+
+
 var daysInMonth= function (month,year){
     
     return 32 -new Date(year,month,32).getDate();
@@ -30,13 +36,16 @@ var daysInMonth= function (month,year){
 calIPC.on('opened', (event,args)=>{
     currentUser = args
     
+    //console.log(hd.isHoliday(new Date('2022-4-17')))
 })
 calIPC.on('load-calendar', (event,args)=>{
     resetCalendar();
-    setCalendarMonth();    
+    setCalendarMonth();  
+    console.log(hd.getCountries())  
 })
 calIPC.on('refresh', (event,args)=>{
     calendarLoad()
+
 })
 
 function calendarLoad(){
@@ -120,12 +129,36 @@ function fillDays(y){
         }
         var jd = jDate(m.toString()+"/"+dnumber.toString()+"/"+year.toString());
         document.getElementById("dayBlock"+cell).setAttribute("data-julian",jd);
+        let h = hd.isHoliday(new Date(m.toString()+"/"+dnumber.toString()+"/"+year.toString()))
+        let strHolidayName =''
+        let eleHolidayBox = document.createElement('div')
+        eleHolidayBox.setAttribute('class','holiday')
+        let eleHolidayBoxText
+        if(h){
+            strHolidayName = h[0].name
+            let eleHolidayBoxText = document.createTextNode(strHolidayName)
+            eleHolidayBox.appendChild(eleHolidayBoxText)
+            document.getElementById("dayNumber"+cell).appendChild(eleHolidayBox)
+
+        }
         if(cell<daysInMonth(monthIndex, year)+daysBefore){
-        document.getElementById("dayNumber"+cell).innerHTML=i+1;
-        document.getElementById("dayNumber"+cell).style.background="white";
+            let txtDayNumber = document.createTextNode(i+1)
+            
+            // document.getElementById("dayNumber"+cell).innerHTML=(h)
+            // ?`${h[0].name} ${i+1}`
+            // : i+1;
+            document.getElementById("dayNumber"+cell).appendChild(txtDayNumber)
+
+            //document.getElementById("dayNumber"+cell).innerHTML=i+1;
+            document.getElementById("dayNumber"+cell).style.background="white";
         }else{
+            let txtDayNumber = document.createTextNode(i-daysInMonth(monthIndex, year)+1)
+            // document.getElementById("dayNumber"+cell).innerHTML=(h)
+            // ?`${h[0].name} ${i-daysInMonth(monthIndex, year)+1}`
+            // : i-daysInMonth(monthIndex, year)+1;
             document.getElementById("dayNumber"+cell).innerHTML=i-daysInMonth(monthIndex, year)+1;
             document.getElementById("dayBlock"+cell).classList.add("preview");
+            //document.getElementById('dayBlock'+cell).innerHTML = i-daysInMonth(monthIndex, year)+1
         }
         
         var am = document.createElement('div');
@@ -600,8 +633,16 @@ function resetSCHcounts(){
 function showJobs(e){
 
     var element = e;
-    var schJobWallet = document.createElement("div");    
-    schJobWallet.setAttribute("class","jobWallet");    
+    var schJobWallet = document.createElement("div");
+    
+    let saturday = arrRightSide.filter((da)=>{
+        return da % 2 == 0
+    });
+    
+    (arrRightSide.includes(element.id.substring(8)))? schJobWallet.setAttribute("class","jobWalletLeft"): schJobWallet.setAttribute("class","jobWallet");
+        
+      
+    //schJobWallet.setAttribute("class","jobWallet");    
     schJobWallet.setAttribute("id","jobWallet");
     element.appendChild(schJobWallet);
     
@@ -744,6 +785,7 @@ function makeCalenderJobContainers(e){
 
 
 function openContextMenu(e){
+    
     try{  
     
         let callingElement = e;
@@ -761,10 +803,26 @@ function openContextMenu(e){
             };
         }
        
-        let arrWeekend = ['5','6','12','13','19','20','26','27','33','34','40','41']
-        let thisDay = document.getElementById('jobWallet').parentNode.id.substring(8)
+        let thisDay = document.getElementById('jobWallet').parentNode.id.substring(8);
+
         let cmList = document.createElement('ul');
-        (arrWeekend.includes(thisDay))? cmList.setAttribute("class","cm_list_left"): cmList.setAttribute("class","cm_list");
+        //is it on the top row
+        (arrTop.includes(thisDay))
+            //is it on the top row and on the right side (fri or sat)
+            ? (arrWeekendContext.includes(thisDay))
+                //if on top row and the right side
+                ?  cmList.setAttribute("class","cm_list left top")
+                //on top row but not the right side
+                : cmList.setAttribute("class","cm_list top")
+            //not on top
+            : (arrWeekendContext.includes(thisDay))
+                //not on top row but on the right side
+                ? cmList.setAttribute("class","cm_list left")
+                //not on top row or the right side
+                : cmList.setAttribute("class","cm_list")
+
+        
+
         
         cmList.setAttribute("id","cmList");
         callingElement.appendChild(cmList)

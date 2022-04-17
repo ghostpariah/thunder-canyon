@@ -19,6 +19,7 @@ const arrLastRow = ['wfw11','wfw23','wfw35','wfw47','wfw59']
 const arrBottomHalf = ['wfw7','wfw8','wfw9','wfw10','wfw11',
 						'wfw19','wfw20','wfw21','wfw22','wfw23',
 						'wfw31','wfw32','wfw33','wfw34','wfw35',
+						'wfw43','wfw44','wfw45','wfw46','wfw47',
 						'wfw55','wfw56','wfw57','wfw58','wfw59']
 
 const arrShopLocations = ['wip0','wip1','wip2','wip3','wip4','wip5','wip6','wip7','wip8','wip9','wip10','wip11']
@@ -81,9 +82,10 @@ $(function()
 
 //auto update check
 ipc.on('updater', (event, args)=>{	
-	accessGrantedContent = args
+	document.getElementById('contentArea').innerHTML = args
+	//accessGrantedContent = args
 	console.log(args)
-	if(args == 'Update not available.') accessGranted = openContent
+	//if(args == 'Update not available.') accessGranted = openContent
 })
 // communication for setting page on window load
 ipc.on('message', (event, args)=>{		
@@ -833,13 +835,17 @@ function allowDrop(ev) {
 
 function drag(ev) {
 	try{
-	
+	//console.log(ev.target.id)
+	//ev.currentTarget.firstChild.style.display = 'none';
+	let img = new Image()
+	img.src="../images/semi2.png"
 	ev.dataTransfer.setData("Text", ev.target.id);
+	ev.dataTransfer.setDragImage(img, 0, 0);
 	
 	document.getElementById(ev.currentTarget.childNodes[1].id).style.display = "none";
 	document.getElementById('context-Menu-'+ev.currentTarget.id.substr(4))
 	}catch(e){
-		logError(e);
+		console.log(e);
 	}
 }
 
@@ -1283,12 +1289,16 @@ function makeJobDiv2(args){
 			? '<b>Email: </b>'+objContact.item + '</br>'
 			: '<b>Phone: </b>'+objContact.item + '</br>'
 		:'';
+	
+	let context = (arrShopLocations.includes(args.shop_location))?'context-Menu left':'context-Menu'
+		
 	const smallJobContainer = `<div class='vehicle' 
 	oncontextmenu='createContextMenu(this, pullJob(${args.job_ID}));return false;' 
 	id='drag${args.job_ID}' 
 	draggable='true' 
 	ondragstart='drag(event)'
 	ondragover='allowDrop(event)'
+	onclick='hideTT(event)'
 	ondrop='drop(event)'>
 	
 	<span class=${toolTipClass} 
@@ -1304,15 +1314,16 @@ function makeJobDiv2(args){
 	${ec}
 	${n}
 	</span>
-	<div id='context-Menu-${args.job_ID}' class='context-Menu'>
+	<div id='context-Menu-${args.job_ID}' class='${context}'>
 	
 	</div>
 	<div id = 'submenu-${args.job_ID}' class = 'context-submenu'>
 	</div>
 	<span class='info' 
 	id='${args.job_ID}info'>
-	<span class='customerName'>${customerName}</span><br/>
+	<span class='mainJobCustomerName'>${customerName}</span><br/>
 	<span class='unitNumber' id = 'jobIndicatorContainer${args.job_ID}'>
+	
 	<span id = 'jica${args.job_ID}' class='jobIndicator jobIndicatorCash'></span>
 	<span id = 'jiw${args.job_ID}' class='jobIndicator jobIndicatorWaiting'></span>
 	<span id = 'jip${args.job_ID}' class='jobIndicator jobIndicatorParts'></span>
@@ -1320,6 +1331,7 @@ function makeJobDiv2(args){
 	<span id = 'jico${args.job_ID}' class='jobIndicator jobIndicatorComeback'></span>
 	<span id = 'jich${args.job_ID}' class='jobIndicator jobIndicatorChecked'></span>
 	</span></br>
+	<span class='unitNumber' id = 'unitNumber'>Unit: ${args.unit}</span>
 	<span class='notes'>${(args.notes!=null)?args.notes:""}</span>
 	</span>
 	<span class='jobCat jobCat${str}' 
@@ -1720,4 +1732,12 @@ function createOpenContent(){
 	const content = new Splash()
 	
 	return content.getGreeting()
+
+}
+function hideTT(event){
+	event.stopPropagation()
+	event.preventDefault()
+	console.log(event.target.id)
+	//event.target.firstChild.style.display ='none'
+	
 }

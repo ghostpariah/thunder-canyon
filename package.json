@@ -1,6 +1,6 @@
 {
   "name": "electronworkflow",
-  "version": "1.0.0",
+  "version": "v1.0.1",
   "description": "app to manage workflow for Frame & Spring",
   "main": "scripts/main.js",
   "scripts": {
@@ -16,6 +16,7 @@
     "electron-builder": "^22.14.13"
   },
   "dependencies": {
+    "date-holidays": "^3.14.8",
     "electron-log": "^4.4.6",
     "electron-updater": "^5.0.1",
     "sqlite3": "^5.0.3"

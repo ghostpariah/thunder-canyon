@@ -6,7 +6,7 @@
 	<link id= "mainStyle" rel="stylesheet" type="text/css" href="../css/workflow.css">
 	<link rel="stylesheet" type="text/css" media="all" href="../scripts/jquery-ui-1.11.4.custom/jquery-ui.css">
 	<link rel="stylesheet" href="../css/print.css" type="text/css" media="print" />
-	<link rel="stylesheet" type="text/css" href="../css/calendar_style.css"/>
+	<!--<link rel="stylesheet" type="text/css" href="../css/calendar_style.css"/>-->
 	<link rel="stylesheet" type="text/css" href="../css/splash.css"/>
 	
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -39,7 +39,7 @@
 					</div>
 				</div>
 				<div id="headerMiddle">
-					<img src="../images/wordmark3.png"/>
+					<img id="logo" src="../images/wordmark3.png"/>
 				</div>
 				<div id="headerRight">
 					<div id= 'topCounts'>
@@ -137,12 +137,10 @@
 					
 				</div>
 			</div>
-			<iframe id="frameReport" src="#" name="frameReport">
-				hello
-			</iframe>
+			
 
 			<div id="contentArea">
-                <div id="right">
+                <div id="left">
                    
                     <div id="SCH" class="bottomBox" ondrop="drop(event)" ondragover="allowDrop(event)" >
 						<div class="header">
@@ -188,12 +186,10 @@
 					
 						
 					
-						<!--
-						<img src="../images/logo4.jpg">
-					-->
+					
 
 				</div>
-				<div id="left">
+				<div id="middle">
 					<div id="waiting" class="cat">
 						<div class="header" id="wfwHeader">
 							On the Lot
@@ -252,7 +248,7 @@
 						<div class="job" id="wfw44" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
 						<div class="job" id="wfw45" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
 						<div class="job" id="wfw46" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
-						<div class="job" id="wfw47" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+						<div class="job" id="wfw47" ondrop="drop(event)" ondragstart="hideTT(event)" ondragover="allowDrop(event)"></div>
 						</div>
 						<div class="bucket" id="cBucket">
 							<div class="job" id="wfw48" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
@@ -272,7 +268,7 @@
 					</div>
 
 				</div>
-				<div id="middle">
+				<div id="right">
 					<div id="wip" class="cat">
 						<div class="header">
 							In the Shop
@@ -309,8 +305,15 @@
 						<div id="wip11" class="job" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
 
 					</div>
+					<div id="bottom">
+                    
+					
+					<div class = 'header'>Whiteboard</div>
+					<div contenteditable="true" id="whiteBoardContent" ondragenter="event.preventDefault(); event.dataTransfer.dropEffect = 'none'" ondragover="event.preventDefault(); event.dataTransfer.dropEffect = 'none'" class="whiteBoardContent" ></div>
+						
 				</div>
-				
+				</div>
+				<!--
 				<div id="bottom">
                     
 					
@@ -318,7 +321,7 @@
 					<div contenteditable="true" id="whiteBoardContent" ondragenter="event.preventDefault(); event.dataTransfer.dropEffect = 'none'" ondragover="event.preventDefault(); event.dataTransfer.dropEffect = 'none'" class="whiteBoardContent" ></div>
 						
 				</div>
-					
+				-->	
 				</div>
             
 			</div>

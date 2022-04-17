@@ -2,7 +2,7 @@ body{
     background:black;
     font-family: 'Arial Narrow';
     text-align: center;
-    width: 1064px;
+    width: 1070px;
     margin:0 auto;
     vertical-align: middle;
     
@@ -12,7 +12,7 @@ body{
     float:left;
     width:100%;
     height: auto;
-    margin-top: 10px;
+    /* margin-top: 10px; */
     
    
     
@@ -49,18 +49,31 @@ body{
     
 }
 .jobWallet{
-    border:2px solid black;
+    border:2px solid #1b1a1a;
     height:auto;
     width:300px;
     position:absolute;
     color:whitesmoke;
-    left:120px;
-    bottom: 40px;
-    
+    left:90px;
+    bottom: 40px;    
     background-color: black;
     z-index: 1;
     padding:0;
-    /* border-radius: 8px; */
+    
+}
+
+.jobWalletLeft{
+    border:2px solid #1b1a1a;
+    height:auto;
+    width:300px;
+    position:absolute;
+    color:whitesmoke;
+    left:-200px;
+    bottom: 40px;    
+    background-color: black;
+    z-index: 1;
+    padding:0;
+    
 }
 .top{
     top:0;
@@ -163,7 +176,8 @@ body{
     width:47%;
     float:left;
     margin: 1px;
-    background-color: rgb(221, 217, 217);
+    /* background-color: aliceblue; */
+    
     text-align:center;
     /* font-family: Verdana, Geneva, Tahoma, sans-serif; */
     color: white;
@@ -179,7 +193,18 @@ body{
     /* font-family: Verdana, Geneva, Tahoma, sans-serif; */
     
 }
-
+.holiday{
+    float:left;
+    text-align: left;
+    font-size: .9em;
+    font-weight: bold;
+    width:85%;
+    overflow: hidden;
+    text-overflow:ellipsis;
+    height:19px;
+    color:cornflowerblue;
+    padding-left: 3px;
+}
 .calendarLegend{
     height: 13px;
     float: left;
@@ -320,6 +345,13 @@ li.cmListItem:hover{
     bottom:25px; 
     z-index: 1000;
     
+}
+.left{
+    left:-120px;
+    bottom:-75px; 
+}
+.top{
+    bottom: -67px;
 }
 .cm_list_left{
     
