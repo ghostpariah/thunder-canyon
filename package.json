@@ -1,6 +1,6 @@
 {
   "name": "electronworkflow",
-  "version": "v1.0.1",
+  "version": "1.0.2",
   "description": "app to manage workflow for Frame & Spring",
   "main": "scripts/main.js",
   "scripts": {
@@ -25,12 +25,13 @@
     "appId": "com.ghostPariah.workflowApp",
     "productName": "Workflow App",
     "win": {
-      "target": "nsis",
+      "target": "nsis-web",
       "icon": "images/logo.ico",
       "publish": "github"
     },
-    "nsis": {
-      "perMachine": true
+    "nsisWeb": {
+      "perMachine": true,
+      "installerIcon": "images/logo.ico"
     }
   },
   "repository": "https://github.com/ghostpariah/thunder-canyon.git"

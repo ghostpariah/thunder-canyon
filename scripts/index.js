@@ -10,8 +10,11 @@
 /***************
  * global variables
  ***************/
+//import errLog from 'electron-log';
 
 const electron = require('electron')
+
+
 const ipc = electron.ipcRenderer
 const date = new Date();
 const arrPenultimateRow = ['wfw10','wfw22','wfw34','wfw46','wfw58']
@@ -46,16 +49,20 @@ var largestBucket = 0;
 
 
 
+
  
 /*************
  * page load functions and event listeners
  ************/
 
 window.onload = () =>{
-	 
+	 try{
 	allJobs = ipc.sendSync('pull_jobs')		
 	accessGrantedContent = document.getElementById('contentArea').innerHTML	
 	document.getElementById('contentArea').innerHTML = openContent;	
+	 }catch(e){
+		 logError(e)
+	 }
 	
 } 
 
@@ -80,22 +87,18 @@ $(function()
  * handlers for communication from main process
  ****************/
 
-//auto update check
-ipc.on('updater', (event, args)=>{	
-	document.getElementById('contentArea').innerHTML = args
-	//accessGrantedContent = args
-	console.log(args)
-	//if(args == 'Update not available.') accessGranted = openContent
-})
+
+
 // communication for setting page on window load
-ipc.on('message', (event, args)=>{		
-	accessGrantedContent = document.getElementById('contentArea').innerHTML
-	for (var member in args){ 
-		placeElement(args[member]);		
-	}	
-	document.getElementById('contentArea').innerHTML = openContent;   	
+// ipc.on('message', (event, args)=>{
+// 	logError('from index.js')		
+// 	accessGrantedContent = document.getElementById('contentArea').innerHTML
+// 	for (var member in args){ 
+// 		placeElement(args[member]);		
+// 	}	
+// 	document.getElementById('contentArea').innerHTML = openContent;   	
 	
- })
+//  })
 
 ipc.on('update', (event, args)=>{
 	
@@ -709,6 +712,7 @@ function dosomething(e){
 	
 }
 function displaySubMenu(objCaller, pc){
+	try{
 	
 	//variables
 	
@@ -823,6 +827,9 @@ function displaySubMenu(objCaller, pc){
 			}
 		}//end main process
 	}	
+}catch(e){
+	logError(e)
+}
 }
 
 
@@ -838,155 +845,158 @@ function drag(ev) {
 	//console.log(ev.target.id)
 	//ev.currentTarget.firstChild.style.display = 'none';
 	let img = new Image()
-	img.src="../images/semi2.png"
+	img.src="../images/semi3.png"
 	ev.dataTransfer.setData("Text", ev.target.id);
 	ev.dataTransfer.setDragImage(img, 0, 0);
 	
 	document.getElementById(ev.currentTarget.childNodes[1].id).style.display = "none";
 	document.getElementById('context-Menu-'+ev.currentTarget.id.substr(4))
 	}catch(e){
-		console.log(e);
+		logError(e);
 	}
 }
 
 
 function drop(ev) {
-	
-	ns = ev.target.id;
-	let newStatus;
-	
-	let data = ev.dataTransfer.getData("Text");
-	let id = data.substr(4)
-	
-	let oldStatus = document.getElementById(data).parentNode.id.substr(0, 3).toLowerCase(); 
-	
-	let newLocation 
-	
-	
-	
-	let cellOccupied = (document.getElementById(ev.target.id))?document.getElementById(ev.target.id).hasChildNodes():true;	
-	
-	ev.stopPropagation();
-	ev.preventDefault();
+	try{
+		ns = ev.target.id;
+		let newStatus;
+		
+		let data = ev.dataTransfer.getData("Text");
+		let id = data.substr(4)
+		
+		let oldStatus = document.getElementById(data).parentNode.id.substr(0, 3).toLowerCase(); 
+		
+		let newLocation 
+		
+		
+		
+		let cellOccupied = (document.getElementById(ev.target.id))?document.getElementById(ev.target.id).hasChildNodes():true;	
+		
+		ev.stopPropagation();
+		ev.preventDefault();
 
-	let thisJob
-	
-	
-	let objMoving = new Object()
-	
-	if(cellOccupied){
+		let thisJob
 		
-		newStatus = ns.substring(0, 3).toLowerCase(); 
 		
-		if(newStatus == "wpu" || newStatus == "sch" || newStatus =="SCH"){
-			 
+		let objMoving = new Object()
+		
+		if(cellOccupied){
+			
+			newStatus = ns.substring(0, 3).toLowerCase(); 
+			
+			if(newStatus == "wpu" || newStatus == "sch" || newStatus =="SCH"){
+				
+				objMoving.status = newStatus;
+				
+				if(newStatus=='sch' || newStatus=='SCH'){
+					objMoving.designation = "Scheduled"
+				}	
+				
+				for(member in allJobs){
+					if(id == allJobs[member].job_ID){
+						let getSpot = new Object()
+						getSpot.job_type = allJobs[member].job_type
+						getSpot.status = newStatus
+						newLocation = findSpot(getSpot)
+						objMoving.shop_location = newLocation
+						objMoving.date_in = allJobs[member].date_in					
+						objMoving.job_ID = id
+						objMoving.customer_ID = allJobs[member].customer_ID
+						
+
+						
+					}else{
+						objMoving.date_in = null
+						objMoving.job_ID = id
+					}
+				
+				}
+				
+			}
+		}
+		else{
+			newStatus = ns.substring(0, 3).toLowerCase();
+			newLocation = ev.target.id
 			objMoving.status = newStatus;
+			objMoving.shop_location = newLocation
+			objMoving.designation = 'On the Lot'
 			
-			if(newStatus=='sch' || newStatus=='SCH'){
-				objMoving.designation = "Scheduled"
-			}	
+			document.getElementById(newLocation).appendChild(document.getElementById(data))
 			
+
+			// determine whether the job is being dragged from scheduled to on the lot
+			// and set date_in accordingly. 
+			if(oldStatus == 'sch' && newStatus != 'sch'){
+				objMoving.date_in = todayIs()
+			}else{
+				for(member in allJobs){
+					if(id == allJobs[member].job_ID){
+						objMoving.date_in = allJobs[member].date_in
+					}
+				}
+			}		
+		
+			
+			
+			objMoving.job_ID = id
+			let custID
 			for(member in allJobs){
 				if(id == allJobs[member].job_ID){
-					let getSpot = new Object()
-					getSpot.job_type = allJobs[member].job_type
-					getSpot.status = newStatus
-					newLocation = findSpot(getSpot)
-					objMoving.shop_location = newLocation
-					objMoving.date_in = allJobs[member].date_in					
-					objMoving.job_ID = id
-					objMoving.customer_ID = allJobs[member].customer_ID
 					
-
+					custID = allJobs[member].customer_ID
 					
-				}else{
-					objMoving.date_in = null
-					objMoving.job_ID = id
-				}
-			
-			}
-			
-		}
-	}
-	else{
-		newStatus = ns.substring(0, 3).toLowerCase();
-		newLocation = ev.target.id
-		objMoving.status = newStatus;
-		objMoving.shop_location = newLocation
-		objMoving.designation = 'On the Lot'
-		
-		document.getElementById(newLocation).appendChild(document.getElementById(data))
-		
-
-		// determine whether the job is being dragged from scheduled to on the lot
-		// and set date_in accordingly. 
-		if(oldStatus == 'sch' && newStatus != 'sch'){
-			objMoving.date_in = todayIs()
-		}else{
-			for(member in allJobs){
-				if(id == allJobs[member].job_ID){
-					objMoving.date_in = allJobs[member].date_in
 				}
 			}
-		}		
-	
+			document.getElementById(data).remove()
+			let cn = ipc.sendSync('db-get-customer-name',custID)
+			let editedJob = ipc.sendSync('edit-location-drop', objMoving, currentUser,cn)
+			
+
+
+			//determine whether new location is at bottom of page and reset
+			//tooltip class accordingly		
+			let t = document.getElementById(newLocation)
+			
+			let tt = t.firstChild?.childNodes[1]			
+			let tooltip = (arrBottomHalf.includes(newLocation))?'tooltipLast': (arrShopLocations.includes(newLocation))?'tooltipRight':'tooltip'
+			if(tt) tt.className = tooltip	
+			
+		//jquery function to bind the hover event to the created element
+		$('.vehicle').on('mouseenter',function() {
+			$(this).find('.tooltip').fadeIn(50);
+		});
 		
+		$('.vehicle').on('mouseleave',function() {
+			$(this).find('.tooltip').fadeOut(50);
+		});
+		$('.vehicle').on('mouseenter',function() {
+			$(this).find('.toolTipBottom').fadeIn(50);
+		});
 		
-		objMoving.job_ID = id
-		let custID
-		for(member in allJobs){
-			if(id == allJobs[member].job_ID){
-				
-				custID = allJobs[member].customer_ID
-				
-			}
+		$('.vehicle').on('mouseleave',function() {
+			$(this).find('.toolTipBottom').fadeOut(50);
+		});
+		$('.vehicle').on('mouseenter',function() {
+			$(this).find('.tooltipLast').fadeIn(50);		
+		});
+		
+		$('.vehicle').on('mouseleave',function() {
+			$(this).find('.tooltipLast').fadeOut(50);
+		});
+		$('.vehicle').on('mouseenter',function() {
+			$(this).find('.tooltipRight').fadeIn(50);
+		});
+		
+		$('.vehicle').on('mouseleave',function() {
+			$(this).find('.tooltipRight').fadeOut(50);
+		});
+
+		countStatuses();
+		
 		}
-		document.getElementById(data).remove()
-		let cn = ipc.sendSync('db-get-customer-name',custID)
-		let editedJob = ipc.sendSync('edit-location-drop', objMoving, currentUser,cn)
-		
-
-
-		//determine whether new location is at bottom of page and reset
-		//tooltip class accordingly		
-		let t = document.getElementById(newLocation)
-		
-		let tt = t.firstChild?.childNodes[1]			
-		let tooltip = (arrBottomHalf.includes(newLocation))?'tooltipLast': (arrShopLocations.includes(newLocation))?'tooltipRight':'tooltip'
-		if(tt) tt.className = tooltip	
-		
-	//jquery function to bind the hover event to the created element
-	$('.vehicle').on('mouseenter',function() {
-		$(this).find('.tooltip').fadeIn(50);
-	});
-	
-	$('.vehicle').on('mouseleave',function() {
-		$(this).find('.tooltip').fadeOut(50);
-	});
-	$('.vehicle').on('mouseenter',function() {
-		$(this).find('.toolTipBottom').fadeIn(50);
-	});
-	
-	$('.vehicle').on('mouseleave',function() {
-		$(this).find('.toolTipBottom').fadeOut(50);
-	});
-	$('.vehicle').on('mouseenter',function() {
-		$(this).find('.tooltipLast').fadeIn(50);		
-	});
-	
-	$('.vehicle').on('mouseleave',function() {
-		$(this).find('.tooltipLast').fadeOut(50);
-	});
-	$('.vehicle').on('mouseenter',function() {
-		$(this).find('.tooltipRight').fadeIn(50);
-	});
-	
-	$('.vehicle').on('mouseleave',function() {
-		$(this).find('.tooltipRight').fadeOut(50);
-	});
-
-	countStatuses();
-	
+	}catch(e){
+		logError(e)
 	}
 }
 
@@ -995,13 +1005,17 @@ function drop(ev) {
 
 
 function deleteCompletedJobs(){
-	let cc = document.getElementById('wpuJobContainer').childNodes.length
-	for(i=0;i<cc;i++){
-		if(document.getElementById('wpu'+i).hasChildNodes()){
-			let id = document.getElementById('wpu'+i).childNodes[0].id.substr(4)			
-			ipc.send('deactivate', id, currentUser)			
+	try{
+		let cc = document.getElementById('wpuJobContainer').childNodes.length
+		for(i=0;i<cc;i++){
+			if(document.getElementById('wpu'+i).hasChildNodes()){
+				let id = document.getElementById('wpu'+i).childNodes[0].id.substr(4)			
+				ipc.send('deactivate', id, currentUser)			
+			}
+			
 		}
-		
+	}catch(e){
+		logError(e)
 	}
 	
 }
@@ -1142,204 +1156,213 @@ function closeBox(ev, e) {
 
 //function to place jobs in correct page locations
 function placeElement(args){
-	
-	let placement = (args.shop_location != null && args.shop_location != '') ? makeJobDiv2(args) : findOpenSpace(args) 
-	
-	if(placement !=null) {
-		try{
-		document.getElementById(args.shop_location).innerHTML = placement
-		}catch(e){
-			console.log(e)
+	try{
+		let placement = (args.shop_location != null && args.shop_location != '') ? makeJobDiv2(args) : findOpenSpace(args) 
+		
+		if(placement !=null) {
+			try{
+			document.getElementById(args.shop_location).innerHTML = placement
+			}catch(e){
+				console.log(e)
+			}
 		}
+		if(args.cash_customer==1){document.getElementById('jica'+args.job_ID).style.display = 'inline-block'};
+		if(args.waiting_customer===1){document.getElementById('jiw'+args.job_ID).style.display = 'inline-block'};
+		if(args.parts_needed==1){document.getElementById('jip'+args.job_ID).style.display = 'inline-block'};
+		if(args.approval_needed==1){document.getElementById('jia'+args.job_ID).style.display = 'inline-block'};
+		if(args.comeback_customer==1){document.getElementById('jico'+args.job_ID).style.display = 'inline-block'};
+		if(args.checked==1){document.getElementById('jich'+args.job_ID).style.display = 'inline-block'};
+	}catch(e){
+		logError(e)
 	}
-	if(args.cash_customer==1){document.getElementById('jica'+args.job_ID).style.display = 'inline-block'};
-	if(args.waiting_customer===1){document.getElementById('jiw'+args.job_ID).style.display = 'inline-block'};
-	if(args.parts_needed==1){document.getElementById('jip'+args.job_ID).style.display = 'inline-block'};
-	if(args.approval_needed==1){document.getElementById('jia'+args.job_ID).style.display = 'inline-block'};
-	if(args.comeback_customer==1){document.getElementById('jico'+args.job_ID).style.display = 'inline-block'};
-	if(args.checked==1){document.getElementById('jich'+args.job_ID).style.display = 'inline-block'};
-	
 }
 
 //function to find the first open space in column for newly created jobs
 function findOpenSpace(args){
-	
-	let usedLocation = []
-	for(member in allJobs){
-		usedLocation.push(allJobs[member].shop_location)
-	}
-	
-	let jt=args.job_type
-	let js=args.status
-	
-	let newBucket = []
-	let bucket = []
-	let hasKids = true
-	let springBucket = ["wfw0", "wfw1", "wfw2", "wfw3", "wfw4", "wfw5", "wfw6", "wfw7", "wfw8", "wfw9", "wfw10", "wfw11"];
-    let checkallBucket = ["wfw12", "wfw13", "wfw14", "wfw15", "wfw16", "wfw17", "wfw18", "wfw19", "wfw20", "wfw21", "wfw22", "wfw23"];
-	let alignmentBucket = ["wfw24", "wfw25", "wfw26", "wfw27", "wfw28", "wfw29", "wfw30", "wfw31", "wfw32", "wfw33", "wfw34", "wfw35"];
-	let kingpinBucket = ["wfw36", "wfw37", "wfw38", "wfw39", "wfw40", "wfw41", "wfw42", "wfw43", "wfw44", "wfw45", "wfw46", "wfw47"];
-	let frameBucket =["wfw48", "wfw49", "wfw50", "wfw51", "wfw52", "wfw53", "wfw54", "wfw55", "wfw56", "wfw57", "wfw58", "wfw59"];
-	let wpuBucket = []
-	let schBucket = []
-	for(i=0;i<scheduledSpots;i++){
-		schBucket.push(`sch${i}`)
-	}
-	for(i=0;i<wpuSpots;i++){
-		wpuBucket.push(`wpu${i}`)
-	}
-
-	if(js != "sch" && js!= "wpu" && js != 'SCH'){
-	newBucket = jt == "Spring" ? springBucket : (jt == "Alignment") ? alignmentBucket :(jt == "Frame") ? frameBucket : (jt=="King Pin") ? kingpinBucket : checkallBucket 
-	}else{
-		js == "sch" || js == "SCH" ? newBucket =schBucket : newBucket = wpuBucket
-	}
-
-	bucket = newBucket
-	
-	
-	for(let i=0;i<bucket.length;i++){
+	try{
+		let usedLocation = []
+		for(member in allJobs){
+			usedLocation.push(allJobs[member].shop_location)
+		}
 		
-		if(usedLocation.indexOf(bucket[i])<0){			
-			args.shop_location = bucket[i]
-			break;
-		}		
+		let jt=args.job_type
+		let js=args.status
 		
-	}
-	
-	ipc.send('edit-location',args)
-	return makeJobDiv2(args)
-}
-function findSpot(args){
-	
-	let jt=args.job_type
-	let js=args.status
-	let spot	
-	let newBucket = []
-	let bucket = []
-	let hasKids = true
-	let springBucket = ["wfw0", "wfw1", "wfw2", "wfw3", "wfw4", "wfw5", "wfw6", "wfw7", "wfw8", "wfw9", "wfw10", "wfw11"];
-    let checkallBucket = ["wfw12", "wfw13", "wfw14", "wfw15", "wfw16", "wfw17", "wfw18", "wfw19", "wfw20", "wfw21", "wfw22", "wfw23"];
-	let alignmentBucket = ["wfw24", "wfw25", "wfw26", "wfw27", "wfw28", "wfw29", "wfw30", "wfw31", "wfw32", "wfw33", "wfw34", "wfw35"];
-	let kingpinBucket = ["wfw36", "wfw37", "wfw38", "wfw39", "wfw40", "wfw41", "wfw42", "wfw43", "wfw44", "wfw45", "wfw46", "wfw47"];
-	let frameBucket =["wfw48", "wfw49", "wfw50", "wfw51", "wfw52", "wfw53", "wfw54", "wfw55", "wfw56", "wfw57", "wfw58", "wfw59"];
-	let wpuBucket =["wpu0","wpu1","wpu2","wpu3","wpu4","wpu5","wpu6","wpu7","wpu8","wpu9","wpu10","wpu11","wpu12","wpu13","wpu14","wpu15","wpu16","wpu17","wpu18","wpu19"];
-	let schBucket =["sch0","sch1","sch2","sch3","sch4","sch5","sch6","sch7","sch8","sch9","sch10","sch11","sch12","sch13","sch14","sch15","sch16","sch17","sch18","sch19"];
-	
-	if(js != "sch" && js!= "wpu" && js != 'SCH'){
-	newBucket = jt == "Spring" ? springBucket : (jt == "Alignment") ? alignmentBucket :(jt == "Frame") ? frameBucket : (jt=="King Pin") ? kingpinBucket : checkallBucket 
-	}else{
-		js == "sch" || js == "SCH" ? newBucket =schBucket : newBucket = wpuBucket
-	}
-
-	bucket = newBucket
-	
-	for(let i=0;i<bucket.length;i++){
-		
-		hasKids = document.getElementById(bucket[i]).hasChildNodes();
-		if(!hasKids){
-			
-			spot = bucket[i];
-			
-			
-			break;
-			
+		let newBucket = []
+		let bucket = []
+		let hasKids = true
+		let springBucket = ["wfw0", "wfw1", "wfw2", "wfw3", "wfw4", "wfw5", "wfw6", "wfw7", "wfw8", "wfw9", "wfw10", "wfw11"];
+		let checkallBucket = ["wfw12", "wfw13", "wfw14", "wfw15", "wfw16", "wfw17", "wfw18", "wfw19", "wfw20", "wfw21", "wfw22", "wfw23"];
+		let alignmentBucket = ["wfw24", "wfw25", "wfw26", "wfw27", "wfw28", "wfw29", "wfw30", "wfw31", "wfw32", "wfw33", "wfw34", "wfw35"];
+		let kingpinBucket = ["wfw36", "wfw37", "wfw38", "wfw39", "wfw40", "wfw41", "wfw42", "wfw43", "wfw44", "wfw45", "wfw46", "wfw47"];
+		let frameBucket =["wfw48", "wfw49", "wfw50", "wfw51", "wfw52", "wfw53", "wfw54", "wfw55", "wfw56", "wfw57", "wfw58", "wfw59"];
+		let wpuBucket = []
+		let schBucket = []
+		for(i=0;i<scheduledSpots;i++){
+			schBucket.push(`sch${i}`)
+		}
+		for(i=0;i<wpuSpots;i++){
+			wpuBucket.push(`wpu${i}`)
 		}
 
-	}
+		if(js != "sch" && js!= "wpu" && js != 'SCH'){
+		newBucket = jt == "Spring" ? springBucket : (jt == "Alignment") ? alignmentBucket :(jt == "Frame") ? frameBucket : (jt=="King Pin") ? kingpinBucket : checkallBucket 
+		}else{
+			js == "sch" || js == "SCH" ? newBucket =schBucket : newBucket = wpuBucket
+		}
 
-	
-	return spot
+		bucket = newBucket
+		
+		
+		for(let i=0;i<bucket.length;i++){
+			
+			if(usedLocation.indexOf(bucket[i])<0){			
+				args.shop_location = bucket[i]
+				break;
+			}		
+			
+		}
+		
+		ipc.send('edit-location',args)
+		return makeJobDiv2(args)
+	}catch(e){
+		logError(e)
+	}
+}
+function findSpot(args){
+	try{
+		let jt=args.job_type
+		let js=args.status
+		let spot	
+		let newBucket = []
+		let bucket = []
+		let hasKids = true
+		let springBucket = ["wfw0", "wfw1", "wfw2", "wfw3", "wfw4", "wfw5", "wfw6", "wfw7", "wfw8", "wfw9", "wfw10", "wfw11"];
+		let checkallBucket = ["wfw12", "wfw13", "wfw14", "wfw15", "wfw16", "wfw17", "wfw18", "wfw19", "wfw20", "wfw21", "wfw22", "wfw23"];
+		let alignmentBucket = ["wfw24", "wfw25", "wfw26", "wfw27", "wfw28", "wfw29", "wfw30", "wfw31", "wfw32", "wfw33", "wfw34", "wfw35"];
+		let kingpinBucket = ["wfw36", "wfw37", "wfw38", "wfw39", "wfw40", "wfw41", "wfw42", "wfw43", "wfw44", "wfw45", "wfw46", "wfw47"];
+		let frameBucket =["wfw48", "wfw49", "wfw50", "wfw51", "wfw52", "wfw53", "wfw54", "wfw55", "wfw56", "wfw57", "wfw58", "wfw59"];
+		let wpuBucket =["wpu0","wpu1","wpu2","wpu3","wpu4","wpu5","wpu6","wpu7","wpu8","wpu9","wpu10","wpu11","wpu12","wpu13","wpu14","wpu15","wpu16","wpu17","wpu18","wpu19"];
+		let schBucket =["sch0","sch1","sch2","sch3","sch4","sch5","sch6","sch7","sch8","sch9","sch10","sch11","sch12","sch13","sch14","sch15","sch16","sch17","sch18","sch19"];
+		
+		if(js != "sch" && js!= "wpu" && js != 'SCH'){
+		newBucket = jt == "Spring" ? springBucket : (jt == "Alignment") ? alignmentBucket :(jt == "Frame") ? frameBucket : (jt=="King Pin") ? kingpinBucket : checkallBucket 
+		}else{
+			js == "sch" || js == "SCH" ? newBucket =schBucket : newBucket = wpuBucket
+		}
+
+		bucket = newBucket
+		
+		for(let i=0;i<bucket.length;i++){
+			
+			hasKids = document.getElementById(bucket[i]).hasChildNodes();
+			if(!hasKids){
+				
+				spot = bucket[i];
+				
+				
+				break;
+				
+			}
+
+		}
+
+		
+		return spot
+	}catch(e){
+		logError(e)
+	}
 }
 
 function makeJobDiv2(args){
-	
-	let str = args.job_type.replace(/\s+/g, '');
-	let objContact
-	let contactName 
-	let contactItem
-	let customerName
+	try{
+		let str = args.job_type.replace(/\s+/g, '');
+		let objContact
+		let contactName 
+		let contactItem
+		let customerName
 
-	 
-	
-	//if contact provided
-	if(args.number_ID != null && args.number_ID != '' && args.number_ID != 'null'){
-		objContact = ipc.sendSync('db-get-contact-name','phone', args.number_ID )
-		contactName = `${objContact?.first_name ?? ''} ${objContact?.last_name ?? ''}`
-	}else if(args.email_ID != null && args.email_ID != ''){
-		objContact = ipc.sendSync('db-get-contact-name','email', args.email_ID )
-		contactName = `${objContact?.first_name ?? ''} ${objContact?.last_name ?? ''}`
-	}else{
-		contactName = 'No Contact'
-	} 
-							
-	
-	customerName = (args.customer_ID != null) ? ipc.sendSync('db-get-customer-name', args.customer_ID): 'no name'
-	let cuN = '<b>'+customerName.toUpperCase()+'</b><br/>'
-	let dIn =(args.date_in == null) ? '': '<b>Date In:</b>'+ args.date_in+'<br/>'
-	let ec = (args.estimated_cost == undefined || args.estimated_cost =='') ? '': '<b>Est Cost:</b> $'+args.estimated_cost+'</br>'
-	let u = (args.unit == null || args.unit == '')?'': '<b>Unit: </b>'+args.unit+'</br>'
-	let sd = (args.date_scheduled != null) ? '<b>Sched. Date: </b>' +args.date_scheduled+' '+args.time_of_day+'<br/>': ''
-	let dc = (args.date_called != null) ? `<b>Date Called: </b>` + args.date_called+'<br/>':''
-	let toolTipClass = (arrBottomHalf.includes(args.shop_location))?'tooltipLast': (arrShopLocations.includes(args.shop_location))?'tooltipRight':'tooltip'
-	
-	let n = (args.notes != null) ? '<b>Notes: </b>'+args.notes+'</br>' : '' 
-	let it = (typeof objContact != "undefined") 
-		? (objContact.item.includes('@')) 
-			? '<b>Email: </b>'+objContact.item + '</br>'
-			: '<b>Phone: </b>'+objContact.item + '</br>'
-		:'';
-	
-	let context = (arrShopLocations.includes(args.shop_location))?'context-Menu left':'context-Menu'
 		
-	const smallJobContainer = `<div class='vehicle' 
-	oncontextmenu='createContextMenu(this, pullJob(${args.job_ID}));return false;' 
-	id='drag${args.job_ID}' 
-	draggable='true' 
-	ondragstart='drag(event)'
-	ondragover='allowDrop(event)'
-	onclick='hideTT(event)'
-	ondrop='drop(event)'>
-	
-	<span class=${toolTipClass} 
-	id='tt${args.job_ID}'>
-	${cuN}
-	<b>Job Type:</b> ${args.job_type}<br/>
-	${dIn}
-	${sd}
-	${dc}
-	${u}	
-	<b>Contact:</b> ${contactName}</br>
-	${it}
-	${ec}
-	${n}
-	</span>
-	<div id='context-Menu-${args.job_ID}' class='${context}'>
-	
-	</div>
-	<div id = 'submenu-${args.job_ID}' class = 'context-submenu'>
-	</div>
-	<span class='info' 
-	id='${args.job_ID}info'>
-	<span class='mainJobCustomerName'>${customerName}</span><br/>
-	<span class='unitNumber' id = 'jobIndicatorContainer${args.job_ID}'>
-	
-	<span id = 'jica${args.job_ID}' class='jobIndicator jobIndicatorCash'></span>
-	<span id = 'jiw${args.job_ID}' class='jobIndicator jobIndicatorWaiting'></span>
-	<span id = 'jip${args.job_ID}' class='jobIndicator jobIndicatorParts'></span>
-	<span id = 'jia${args.job_ID}' class='jobIndicator jobIndicatorApproval'></span>
-	<span id = 'jico${args.job_ID}' class='jobIndicator jobIndicatorComeback'></span>
-	<span id = 'jich${args.job_ID}' class='jobIndicator jobIndicatorChecked'></span>
-	</span></br>
-	<span class='unitNumber' id = 'unitNumber'>Unit: ${args.unit}</span>
-	<span class='notes'>${(args.notes!=null)?args.notes:""}</span>
-	</span>
-	<span class='jobCat jobCat${str}' 
-	id='${args.job_ID}Cat'></span>
-	</div>`;
-	
-	return smallJobContainer
 		
+		//if contact provided
+		if(args.number_ID != null && args.number_ID != '' && args.number_ID != 'null'){
+			objContact = ipc.sendSync('db-get-contact-name','phone', args.number_ID )
+			contactName = `${objContact?.first_name ?? ''} ${objContact?.last_name ?? ''}`
+		}else if(args.email_ID != null && args.email_ID != ''){
+			objContact = ipc.sendSync('db-get-contact-name','email', args.email_ID )
+			contactName = `${objContact?.first_name ?? ''} ${objContact?.last_name ?? ''}`
+		}else{
+			contactName = 'No Contact'
+		} 
+								
+		
+		customerName = (args.customer_ID != null) ? ipc.sendSync('db-get-customer-name', args.customer_ID): 'no name'
+		let cuN = '<b>'+customerName.toUpperCase()+'</b><br/>'
+		let dIn =(args.date_in == null) ? '': '<b>Date In:</b>'+ args.date_in+'<br/>'
+		let ec = (args.estimated_cost == undefined || args.estimated_cost =='') ? '': '<b>Est Cost:</b> $'+args.estimated_cost+'</br>'
+		let u = (args.unit == null || args.unit == '')?'': '<b>Unit: </b>'+args.unit+'</br>'
+		let sd = (args.date_scheduled != null) ? '<b>Sched. Date: </b>' +args.date_scheduled+' '+args.time_of_day+'<br/>': ''
+		let dc = (args.date_called != null) ? `<b>Date Called: </b>` + args.date_called+'<br/>':''
+		let toolTipClass = (arrBottomHalf.includes(args.shop_location))?'tooltipLast': (arrShopLocations.includes(args.shop_location))?'tooltipRight':'tooltip'
+		
+		let n = (args.notes != null) ? '<b>Notes: </b>'+args.notes+'</br>' : '' 
+		let it = (typeof objContact != "undefined") 
+			? (objContact.item.includes('@')) 
+				? '<b>Email: </b>'+objContact.item + '</br>'
+				: '<b>Phone: </b>'+objContact.item + '</br>'
+			:'';
+		
+		let context = (arrShopLocations.includes(args.shop_location))?'context-Menu left':'context-Menu'
+			
+		const smallJobContainer = `<div class='vehicle' 
+		oncontextmenu='createContextMenu(this, pullJob(${args.job_ID}));return false;' 
+		id='drag${args.job_ID}' 
+		draggable='true' 
+		ondragstart='drag(event)'
+		ondragover='allowDrop(event)'		
+		ondrop='drop(event)'>
+		
+		<span class=${toolTipClass} 
+		id='tt${args.job_ID}'>
+		${cuN}
+		<b>Job Type:</b> ${args.job_type}<br/>
+		${dIn}
+		${sd}
+		${dc}
+		${u}	
+		<b>Contact:</b> ${contactName}</br>
+		${it}
+		${ec}
+		${n}
+		</span>
+		<div id='context-Menu-${args.job_ID}' class='${context}'>
+		
+		</div>
+		<div id = 'submenu-${args.job_ID}' class = 'context-submenu'>
+		</div>
+		<span class='info' 
+		id='${args.job_ID}info'>
+		<span class='mainJobCustomerName'>${customerName}</span><br/>
+		<span class='unitNumber' id = 'jobIndicatorContainer${args.job_ID}'>
+		
+		<span id = 'jica${args.job_ID}' class='jobIndicator jobIndicatorCash'></span>
+		<span id = 'jiw${args.job_ID}' class='jobIndicator jobIndicatorWaiting'></span>
+		<span id = 'jip${args.job_ID}' class='jobIndicator jobIndicatorParts'></span>
+		<span id = 'jia${args.job_ID}' class='jobIndicator jobIndicatorApproval'></span>
+		<span id = 'jico${args.job_ID}' class='jobIndicator jobIndicatorComeback'></span>
+		<span id = 'jich${args.job_ID}' class='jobIndicator jobIndicatorChecked'></span>
+		</span></br>
+		<span class='unitNumber' id = 'unitNumber'>Unit: ${args.unit}</span>
+		<span class='notes'>${(args.notes!=null)?args.notes:""}</span>
+		</span>
+		<span class='jobCat jobCat${str}' 
+		id='${args.job_ID}Cat'></span>
+		</div>`;
+		
+		return smallJobContainer
+	}catch(e){
+		logError(e)
+	}	
 
 }
 
@@ -1433,262 +1456,266 @@ function pullJob(id){
 
 
 function createContextMenu(e,objJobData,g) {
-	let thisMenu = (g) ? document.getElementById(`gc${e.id}`) : document.getElementById('context-Menu-'+e.id.substr(4));	
-	let status
-	for(member in allJobs){
-		if(document.getElementById('context-Menu-'+allJobs[member].job_ID)){
-			document.getElementById('context-Menu-'+allJobs[member].job_ID).style.display = 'none'
+	try{
+		let thisMenu = (g) ? document.getElementById(`gc${e.id}`) : document.getElementById('context-Menu-'+e.id.substr(4));	
+		let status
+		for(member in allJobs){
+			if(document.getElementById('context-Menu-'+allJobs[member].job_ID)){
+				document.getElementById('context-Menu-'+allJobs[member].job_ID).style.display = 'none'
+			}
+			if(allJobs[member].job_ID == e.id.substr(4)){			
+				status = allJobs[member].status
+			}
 		}
-		if(allJobs[member].job_ID == e.id.substr(4)){			
-			status = allJobs[member].status
-		}
-	}
-	
-		//create context menu
-		let menuBox = document.getElementById('context-Menu-'+e.id.substr(4))
 		
-		
-		let item1Box = document.createElement('span')
-		let item2Box = document.createElement('span')
-		let item3Box = document.createElement('span')
-		let item4Box = document.createElement('span')
-		let item1Text 
-		let item2Text 
-		let item3Text 
-		let item4Text
-
-		
-		menuBox.style.display ='none'
-		menuBox.innerHTML=""
-		
-		if(status=='sch'){
-			item1Text = document.createTextNode('EDIT')
-			item1Box.appendChild(item1Text)
-			item1Box.setAttribute('class','item')
-			item1Box.setAttribute('id','edit'+e.id.substr(4))
-			item1Box.addEventListener('click',(event)=>{
-				menuBox.style.display = 'none'
-				document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
-				ipc.send('open-edit', objJobData, 'context-menu',currentUser)
-			})
-
-			item2Text = document.createTextNode('NO-SHOW')
-			item2Box.appendChild(item2Text)
-			item2Box.setAttribute('class','item')
-			item2Box.setAttribute('id','noshow'+e.id.substr(4))
-			item2Box.addEventListener('click',(event)=>{
-				menuBox.style.display = 'none'
-				document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
-				
-				objNoshow = new Object()
-				objNoshow.job_ID = objJobData.job_ID
-				objNoshow.no_show = 1
-				objNoshow.active = 0
-				ipc.send('update-job',objNoshow, 'context-menu', currentUser, ipc.sendSync('db-get-customer-name',objJobData.customer_ID))
-				e.remove()
-			})
-
-			item3Text = document.createTextNode('SEND TO LOT')			
-			item3Box.appendChild(item3Text)
-			item3Box.setAttribute('class','item')
-			item3Box.setAttribute('id','send'+e.id.substr(4))
-			item3Box.addEventListener('click',(event)=>{
-				menuBox.style.display = 'none'
-				document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
-				
-				objLot = new Object()
-				objLot.job_ID = objJobData.job_ID
-				objLot.shop_location = ''
-				objLot.status = 'wfw'
-				objLot.designation = 'On the Lot'
-				objLot.date_in = todayIs()
-				ipc.send('update-job',objLot, 'context-menu', currentUser, ipc.sendSync('db-get-customer-name',objJobData.customer_ID))
-				e.remove()
-			})
-			item4Text = document.createTextNode('CANCEL APPT')			
-			item4Box.appendChild(item4Text)
-			item4Box.setAttribute('class','item')
-			item4Box.setAttribute('id','send'+e.id.substr(4))
-			item4Box.addEventListener('click',(event)=>{
-				menuBox.style.display = 'none'
-				document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
-				objCancel = new Object()
-				objCancel.job_ID = objJobData.job_ID
-				objCancel.cancelled = 1
-				objCancel.active = 0
-				ipc.send('update-job',objCancel, "context-menu",currentUser, ipc.sendSync('db-get-customer-name',objJobData.customer_ID))
-				e.remove()
-			})
-			menuBox.appendChild(item1Box)
-			menuBox.appendChild(item2Box)
-			menuBox.appendChild(item3Box)
-			menuBox.appendChild(item4Box)
-
-			$('.context-Menu').on('mouseleave',function() {
-				$(this).fadeOut(500);
-			});
+			//create context menu
+			let menuBox = document.getElementById('context-Menu-'+e.id.substr(4))
 			
-			setTimeout(() => {
-				
-				if($(`.context-Menu:hover`).length == 0){
-					$(`.context-Menu`).fadeOut(500);
-				}
-			}, 7000);
-			// setTimeout(() => {
-			// 	if($(`#context-Menu-${e.id.substr(4)}:hover`).length == 0){
-			// 	menuBox.style.display = 'none'
-			// 	document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
-			// 	}
-			// }, 7000);
-			// $(`#context-Menu-${e.id.substr(4)}`).mouseleave(function (){
-			// 	setTimeout(() => {
-			// 		if($(`#context-Menu-${e.id.substr(4)}:hover`).length == 0){
-			// 		menuBox.style.display = 'none'
-			// 		document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
-			// 		}
-			// 	}, 7000);
-			// })
+			
+			let item1Box = document.createElement('span')
+			let item2Box = document.createElement('span')
+			let item3Box = document.createElement('span')
+			let item4Box = document.createElement('span')
+			let item1Text 
+			let item2Text 
+			let item3Text 
+			let item4Text
 
-		}else{
-			item1Text = document.createTextNode('EDIT')
-			item1Box.appendChild(item1Text)
-			item1Box.setAttribute('class','item')
-			item1Box.setAttribute('id','edit'+e.id.substr(4))
-			item1Box.addEventListener('click',(event)=>{
-				menuBox.style.display = 'none'
-				document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
-				ipc.send('open-edit', objJobData, 'context-menu',currentUser)
-			})
-
-			item2Text = document.createTextNode('CHECKED')
-			item2Box.appendChild(item2Text)
-			item2Box.setAttribute('class','item')
-			item2Box.setAttribute('id','checked'+e.id.substr(4))
-			item2Box.addEventListener('click',(event)=>{
-				menuBox.style.display = 'none'
-				document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
-				let objChecked = new Object()
-				
-				objChecked.job_ID = objJobData.job_ID
-				objChecked.checked = 1
-				ipc.send('update-job', objChecked,'context-menu', currentUser, ipc.sendSync('db-get-customer-name',objJobData.customer_ID))
-				
-			})
-			item3Text = document.createTextNode('SCHEDULE')
-			item3Box.appendChild(item3Text)
-			item3Box.setAttribute('class','item')
-			item3Box.setAttribute('id','schedule'+e.id.substr(4))
-			item3Box.addEventListener('click',(event)=>{
-				document.getElementById(e.childNodes[1].id).style.display='none';
-				event.target.parentNode.nextElementSibling.style.display = 'block'
-				let sub_content = `<div class= 'popupHeader'>CONFIRM OR CHANGE SCHEDULED DATE</div><br/>
-				<div class='popuprow'><label> Scheduled Date:&nbsp;&nbsp;</label>
-				<input type="text" id="datepicker" class = "popup"></div>
-				<br/>
-				<div class='popuprow'>
-					<div class= 'halfrow'>
-                        <label>AM</label>
-                        <input type='radio' id="radAM" tabindex='6'name='ampm2' value='am'>
-                        <label>PM</label>
-                        <input type='radio' id="radPM" tabindex='7' name='ampm2' value='pm'>
-						
-                    </div>
-					<div class='popupButton' onclick= 'moveToScheduled(this, ${false})' >MOVE</div><div class='popupButton' onclick='cancelScheduleAdd(this)'>CANCEL</div>
-				</div>
-					
-					 `
-					 event.target.parentNode.nextElementSibling.innerHTML = sub_content;
-					  		
-					for(member in allJobs){
-						if (allJobs[member].job_ID == event.target.id.substr(8)){
-							popupDate = (allJobs[member].date_scheduled) ? allJobs[member].date_scheduled : "";
-							
-							(allJobs[member].time_of_day == 'am')? document.getElementById('radAM').checked = true : document.getElementById('radAM').checked = false;
-    						(allJobs[member].time_of_day == 'pm')? document.getElementById('radPM').checked = true : document.getElementById('radPM').checked = false;
-						}
-
-					}	
-					
-					 
-					 $('.popup').datepicker().datepicker('setDate', popupDate );
-					 $('#datepicker').datepicker({
-						onSelect: function () {
-							$('#datepicker').text(this.value);
-						}
-					 });
-					 
+			
+			menuBox.style.display ='none'
+			menuBox.innerHTML=""
+			
+			if(status=='sch'){
+				item1Text = document.createTextNode('EDIT')
+				item1Box.appendChild(item1Text)
+				item1Box.setAttribute('class','item')
+				item1Box.setAttribute('id','edit'+e.id.substr(4))
+				item1Box.addEventListener('click',(event)=>{
+					menuBox.style.display = 'none'
+					document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+					ipc.send('open-edit', objJobData, 'context-menu',currentUser)
 				})
-				item4Text = document.createTextNode('COMPLETED')			
+
+				item2Text = document.createTextNode('NO-SHOW')
+				item2Box.appendChild(item2Text)
+				item2Box.setAttribute('class','item')
+				item2Box.setAttribute('id','noshow'+e.id.substr(4))
+				item2Box.addEventListener('click',(event)=>{
+					menuBox.style.display = 'none'
+					document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+					
+					objNoshow = new Object()
+					objNoshow.job_ID = objJobData.job_ID
+					objNoshow.no_show = 1
+					objNoshow.active = 0
+					ipc.send('update-job',objNoshow, 'context-menu', currentUser, ipc.sendSync('db-get-customer-name',objJobData.customer_ID))
+					e.remove()
+				})
+
+				item3Text = document.createTextNode('SEND TO LOT')			
+				item3Box.appendChild(item3Text)
+				item3Box.setAttribute('class','item')
+				item3Box.setAttribute('id','send'+e.id.substr(4))
+				item3Box.addEventListener('click',(event)=>{
+					menuBox.style.display = 'none'
+					document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+					
+					objLot = new Object()
+					objLot.job_ID = objJobData.job_ID
+					objLot.shop_location = ''
+					objLot.status = 'wfw'
+					objLot.designation = 'On the Lot'
+					objLot.date_in = todayIs()
+					ipc.send('update-job',objLot, 'context-menu', currentUser, ipc.sendSync('db-get-customer-name',objJobData.customer_ID))
+					e.remove()
+				})
+				item4Text = document.createTextNode('CANCEL APPT')			
 				item4Box.appendChild(item4Text)
 				item4Box.setAttribute('class','item')
 				item4Box.setAttribute('id','send'+e.id.substr(4))
 				item4Box.addEventListener('click',(event)=>{
 					menuBox.style.display = 'none'
 					document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
-					
-					let objCompleted = new Object()				
-					objCompleted.job_ID = objJobData.job_ID					
-					objCompleted.shop_location = ''
-					objCompleted.status= 'wpu'
-					console.table(objJobData)
-					ipc.send('update-job', objCompleted,'context-menu',currentUser,ipc.sendSync('db-get-customer-name',objJobData.customer_ID))
+					objCancel = new Object()
+					objCancel.job_ID = objJobData.job_ID
+					objCancel.cancelled = 1
+					objCancel.active = 0
+					ipc.send('update-job',objCancel, "context-menu",currentUser, ipc.sendSync('db-get-customer-name',objJobData.customer_ID))
 					e.remove()
-				})	
-			
-			menuBox.appendChild(item1Box)
-			menuBox.appendChild(item2Box)
-			menuBox.appendChild(item3Box)
-			menuBox.appendChild(item4Box)
-			
-			$('.context-Menu').on('mouseleave',function() {
-				$(this).fadeOut(250);
-			});
-			
-			setTimeout(() => {
-				
-				if($(`.context-Menu:hover`).length == 0){
-					$(`.context-Menu`).fadeOut(250);
-				}
-			}, 7000);
-			// setTimeout(() => {
-			// 	if($(`#context-Menu-${e.id.substr(4)}:hover`).length == 0){
-			// 	menuBox.style.display = 'none'
-			// 	document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
-			// 	}
-			// }, 7000);
-			// $(`#context-Menu-${e.id.substr(4)}`).mouseleave(function (){
-			// 	setTimeout(() => {
-			// 		if($(`#context-Menu-${e.id.substr(4)}:hover`).length == 0){
-			// 		menuBox.style.display = 'none'
-			// 		document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
-			// 		}
-			// 	}, 7000);
-			// })
-		}
-		
-			
-			
-		
-		
-	
-	
-	
-	
-		//hide tooltip and menu
-		document.getElementById(e.childNodes[1].id).style.visibility = "hidden";
-		thisMenu.style.display = 'block'
+				})
+				menuBox.appendChild(item1Box)
+				menuBox.appendChild(item2Box)
+				menuBox.appendChild(item3Box)
+				menuBox.appendChild(item4Box)
 
-		//hide if clicking outside of element
-	document.onclick = function(ev){
-		console.log('menuID '+thisMenu.id)
-		console.log(ev.target.id)
-		if(ev.target.id !== thisMenu.id && ev.target.parentNode.id !== thisMenu.id){	
-			$(`.context-Menu`).fadeOut(250);
-			if(document.getElementById(e.childNodes[1].id)!= null && document.getElementById(e.childNodes[1].id) != undefined){
+				$('.context-Menu').on('mouseleave',function() {
+					$(this).fadeOut(500);
+				});
+				
+				setTimeout(() => {
+					
+					if($(`.context-Menu:hover`).length == 0){
+						$(`.context-Menu`).fadeOut(500);
+					}
+				}, 7000);
+				// setTimeout(() => {
+				// 	if($(`#context-Menu-${e.id.substr(4)}:hover`).length == 0){
+				// 	menuBox.style.display = 'none'
+				// 	document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+				// 	}
+				// }, 7000);
+				// $(`#context-Menu-${e.id.substr(4)}`).mouseleave(function (){
+				// 	setTimeout(() => {
+				// 		if($(`#context-Menu-${e.id.substr(4)}:hover`).length == 0){
+				// 		menuBox.style.display = 'none'
+				// 		document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+				// 		}
+				// 	}, 7000);
+				// })
+
+			}else{
+				item1Text = document.createTextNode('EDIT')
+				item1Box.appendChild(item1Text)
+				item1Box.setAttribute('class','item')
+				item1Box.setAttribute('id','edit'+e.id.substr(4))
+				item1Box.addEventListener('click',(event)=>{
+					menuBox.style.display = 'none'
 					document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+					ipc.send('open-edit', objJobData, 'context-menu',currentUser)
+				})
+
+				item2Text = document.createTextNode('CHECKED')
+				item2Box.appendChild(item2Text)
+				item2Box.setAttribute('class','item')
+				item2Box.setAttribute('id','checked'+e.id.substr(4))
+				item2Box.addEventListener('click',(event)=>{
+					menuBox.style.display = 'none'
+					document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+					let objChecked = new Object()
+					
+					objChecked.job_ID = objJobData.job_ID
+					objChecked.checked = 1
+					ipc.send('update-job', objChecked,'context-menu', currentUser, ipc.sendSync('db-get-customer-name',objJobData.customer_ID))
+					
+				})
+				item3Text = document.createTextNode('SCHEDULE')
+				item3Box.appendChild(item3Text)
+				item3Box.setAttribute('class','item')
+				item3Box.setAttribute('id','schedule'+e.id.substr(4))
+				item3Box.addEventListener('click',(event)=>{
+					document.getElementById(e.childNodes[1].id).style.display='none';
+					event.target.parentNode.nextElementSibling.style.display = 'block'
+					let sub_content = `<div class= 'popupHeader'>CONFIRM OR CHANGE SCHEDULED DATE</div><br/>
+					<div class='popuprow'><label> Scheduled Date:&nbsp;&nbsp;</label>
+					<input type="text" id="datepicker" class = "popup"></div>
+					<br/>
+					<div class='popuprow'>
+						<div class= 'halfrow'>
+							<label>AM</label>
+							<input type='radio' id="radAM" tabindex='6'name='ampm2' value='am'>
+							<label>PM</label>
+							<input type='radio' id="radPM" tabindex='7' name='ampm2' value='pm'>
+							
+						</div>
+						<div class='popupButton' onclick= 'moveToScheduled(this, ${false})' >MOVE</div><div class='popupButton' onclick='cancelScheduleAdd(this)'>CANCEL</div>
+					</div>
+						
+						`
+						event.target.parentNode.nextElementSibling.innerHTML = sub_content;
+								
+						for(member in allJobs){
+							if (allJobs[member].job_ID == event.target.id.substr(8)){
+								popupDate = (allJobs[member].date_scheduled) ? allJobs[member].date_scheduled : "";
+								
+								(allJobs[member].time_of_day == 'am')? document.getElementById('radAM').checked = true : document.getElementById('radAM').checked = false;
+								(allJobs[member].time_of_day == 'pm')? document.getElementById('radPM').checked = true : document.getElementById('radPM').checked = false;
+							}
+
+						}	
+						
+						
+						$('.popup').datepicker().datepicker('setDate', popupDate );
+						$('#datepicker').datepicker({
+							onSelect: function () {
+								$('#datepicker').text(this.value);
+							}
+						});
+						
+					})
+					item4Text = document.createTextNode('COMPLETED')			
+					item4Box.appendChild(item4Text)
+					item4Box.setAttribute('class','item')
+					item4Box.setAttribute('id','send'+e.id.substr(4))
+					item4Box.addEventListener('click',(event)=>{
+						menuBox.style.display = 'none'
+						document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+						
+						let objCompleted = new Object()				
+						objCompleted.job_ID = objJobData.job_ID					
+						objCompleted.shop_location = ''
+						objCompleted.status= 'wpu'
+						console.table(objJobData)
+						ipc.send('update-job', objCompleted,'context-menu',currentUser,ipc.sendSync('db-get-customer-name',objJobData.customer_ID))
+						e.remove()
+					})	
+				
+				menuBox.appendChild(item1Box)
+				menuBox.appendChild(item2Box)
+				menuBox.appendChild(item3Box)
+				menuBox.appendChild(item4Box)
+				
+				$('.context-Menu').on('mouseleave',function() {
+					$(this).fadeOut(250);
+				});
+				
+				setTimeout(() => {
+					
+					if($(`.context-Menu:hover`).length == 0){
+						$(`.context-Menu`).fadeOut(250);
+					}
+				}, 7000);
+				// setTimeout(() => {
+				// 	if($(`#context-Menu-${e.id.substr(4)}:hover`).length == 0){
+				// 	menuBox.style.display = 'none'
+				// 	document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+				// 	}
+				// }, 7000);
+				// $(`#context-Menu-${e.id.substr(4)}`).mouseleave(function (){
+				// 	setTimeout(() => {
+				// 		if($(`#context-Menu-${e.id.substr(4)}:hover`).length == 0){
+				// 		menuBox.style.display = 'none'
+				// 		document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+				// 		}
+				// 	}, 7000);
+				// })
 			}
-		}
-  	};
+			
+				
+				
+			
+			
+		
+		
+		
+		
+			//hide tooltip and menu
+			document.getElementById(e.childNodes[1].id).style.visibility = "hidden";
+			thisMenu.style.display = 'block'
+
+			//hide if clicking outside of element
+		document.onclick = function(ev){
+			console.log('menuID '+thisMenu.id)
+			console.log(ev.target.id)
+			if(ev.target.id !== thisMenu.id && ev.target.parentNode.id !== thisMenu.id){	
+				$(`.context-Menu`).fadeOut(250);
+				if(document.getElementById(e.childNodes[1].id)!= null && document.getElementById(e.childNodes[1].id) != undefined){
+						document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+				}
+			}
+		};
+	}catch(e){
+		logError(e)
+	}
 
 }
 
@@ -1734,10 +1761,16 @@ function createOpenContent(){
 	return content.getGreeting()
 
 }
-function hideTT(event){
-	event.stopPropagation()
-	event.preventDefault()
-	console.log(event.target.id)
-	//event.target.firstChild.style.display ='none'
+// function hideTT(event){
+// 	event.stopPropagation()
+// 	event.preventDefault()
+// 	console.log(event.target.id)
+// 	//event.target.firstChild.style.display ='none'
 	
+// }
+
+//function to log errors to file
+function logError(text){
+	console.log(text)
+	ipc.send('log-error',text)
 }

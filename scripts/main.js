@@ -6,6 +6,7 @@ const url = require('url')
 const fs = require('fs')
 const {autoUpdater} = require('electron-updater')
 const log = require('electron-log');
+const errLog = log.create('anotherInstance')
 
 
 
@@ -26,7 +27,8 @@ const dayOfYear = date =>
 let today = dayOfYear(new Date()); 
 const appStartDay = today
 
-const rootStorage = app.getPath('userData')
+//const rootStorage = app.getPath('userData')
+const rootStorage = 'd:/'
 const dataFolder = path.join(rootStorage, `/data/`)
 const workflowDB = path.join(rootStorage, '/data', 'workflow_app.db')
 const white_board = path.join(rootStorage, '/data', 'whiteBoardContent.txt')
@@ -49,6 +51,7 @@ let addJobWin
 let calendarWin
 let cuWin
 var checkDate
+let updateWin
 
 
 /***********************
@@ -56,6 +59,9 @@ var checkDate
 onload operations
 **********
 *************************/
+//set path to errorLog files
+errLog.transports.file.resolvePath = () => errorLog;
+
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
 log.info('App starting...');
@@ -229,7 +235,7 @@ app.on('ready', ()=>{
     
     //check for updates
     try{
-    autoUpdater.checkForUpdates()
+    //autoUpdater.checkForUpdates()
     }catch(e){
         console.log(e)
     }
@@ -419,7 +425,8 @@ app.on('ready', ()=>{
 
     
     //launch app by creating the main window
-    createMainWindow();
+    //createMainWindow();
+    createUpdateWindow()
 })
 app.on('window-all-closed', ()=>{
     if(process.platform !== 'darwin'){
@@ -460,8 +467,19 @@ fs.watch(white_board, (event, filename) => {
 
 /************************************
  * communication with main workflow page js index.js
+ * 
  ************************************/
 
+ipcMain.on('log-error', (event,args)=>{
+    console.log('your mom')
+    errLog.info(args)
+    //logErr(args)
+})
+ipcMain.on('start-app',(event)=>{
+    updateWin.close()
+    createMainWindow()
+    
+})
 
  ipcMain.on('get-whiteboard', (event, args1, args2)=>{
     let d
@@ -798,13 +816,16 @@ async function getCustomerName(args){
     
     
 }
-    
+   function logErr(text){
+        
+        errLog.info(text)
+   } 
     
     
     async function logActivity(args1, args2, args3){
         console.log(`args2 in logActivity = ${JSON.stringify(args3)}`)
         let jobCustomer
-        const log = fs.createWriteStream(broadcaster, { flags: 'a' });      
+        const actLog = fs.createWriteStream(broadcaster, { flags: 'a' });      
         let date = new Date()
         let action = args1
         let logEvent
@@ -883,8 +904,8 @@ async function getCustomerName(args){
         }
        
         
-       log.write(logEvent)
-       log.close()
+       actLog.write(logEvent)
+       actLog.close()
     
        
     }
@@ -952,9 +973,9 @@ async function getCustomerName(args){
        
     }
     function sendStatusToWindow(text) {
-        console.log('triggered')
+        errLog.info(text)
         log.info(text);
-        win.webContents.send('updater', text);
+        updateWin.webContents.send('updater', text);
       }
   
   /**
@@ -1459,7 +1480,7 @@ function createMainWindow(){
     
     win = new BrowserWindow({
         width: 1620,
-        height: 842,        
+        height: 844,        
         icon: path.join(__dirname, '../images/logo.ico'),
         autoHideMenuBar: true,
         
@@ -1493,6 +1514,46 @@ function createMainWindow(){
         autoUpdater.checkForUpdates()
       })
     
+    
+}
+function createUpdateWindow(args){
+    updateWin = new BrowserWindow({
+        width: 315,
+        height: 315,        
+        icon: path.join(__dirname, '../images/logo.ico'),
+        autoHideMenuBar: true,
+        frame: false,
+        
+        
+        
+        webPreferences: {
+            nodeIntegration: true,
+            webSecurity: false,
+            contextIsolation: false,
+            enableRemoteModule: true,
+
+        }
+    })
+    updateWin.loadURL(url.format({
+        pathname: path.join(__dirname, '../pages/updateMessage.html'),
+        protocol: 'file',
+        slashes:true
+    }))
+    
+    updateWin.on('ready', ()=>{
+        
+       
+       
+    })
+    
+    updateWin.on('closed', ()=>{
+        updateWin = null
+    })
+    updateWin.once('ready-to-show', () => {
+        autoUpdater.checkForUpdates()
+        updateWin.webContents.send('load-page')
+        
+      })
     
 }
 let editWindowCount = 0
@@ -1855,11 +1916,12 @@ ipcMain.on('edit', (event, args)=>{
     edit(args)  
      
 });
-ipcMain.on('message', (event)=>{
+
+// ipcMain.on('message', (event)=>{
     
-    event.sender.send('message',objList)
+//     event.sender.send('message',objList)
     
-});
+// });
 ipcMain.on('open-edit',(event,args, args2,args3)=>{
     //console.log('open-edit')
     //console.log(args)
@@ -1927,10 +1989,10 @@ ipcMain.on('delete-user', (event,args)=>{
     
 })
 
-ipcMain.on('reloadPage', (event) =>{
+// ipcMain.on('reloadPage', (event) =>{
    
-    event.sender.send('reload', objList)
-})
+//     event.sender.send('reload', objList)
+// })
 
 
 ipcMain.on('deactivate', (event,args, args2)=>{
