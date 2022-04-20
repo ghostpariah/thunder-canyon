@@ -111,11 +111,12 @@ function clearDays(){
 function fillDays(y){
     var year = y;
    
-    
+    //console.log(hd.getHolidays())
     let dim = daysInMonth(monthIndex, year);
     daysBefore = firstDay;
     daysAfter = totalBlocks-dim-daysBefore;
     var test=totalBlocks - dim;
+    console.log(totalBlocks)
     
     for(i=0;i<dim+daysAfter;i++){
         
@@ -133,12 +134,15 @@ function fillDays(y){
         let strHolidayName =''
         let eleHolidayBox = document.createElement('div')
         eleHolidayBox.setAttribute('class','holiday')
-        let eleHolidayBoxText
+        
         if(h){
+            //console.log(h)
             strHolidayName = h[0].name
             let eleHolidayBoxText = document.createTextNode(strHolidayName)
             eleHolidayBox.appendChild(eleHolidayBoxText)
+            if(h[0].type == 'public') eleHolidayBox.setAttribute('class','holiday bank')
             document.getElementById("dayNumber"+cell).appendChild(eleHolidayBox)
+
 
         }
         if(cell<daysInMonth(monthIndex, year)+daysBefore){
@@ -173,7 +177,7 @@ function fillDays(y){
             let objCalData = new Object()
             objCalData.launcher = 'calendar'
             objCalData.time_of_day = 'am'
-            objCalData.date_scheduled = `${monthIndex+1}/${this.parentNode.firstChild.innerHTML}/${year}`
+            objCalData.date_scheduled = `${monthIndex+1}/${this.parentNode.firstChild.childNodes[1].textContent}/${year}`
             calIPC.send('open-add-job', currentUser, objCalData)
             
         };
@@ -278,7 +282,20 @@ function fillDays(y){
             }
         }
     }
-   
+    switch(totalBlocks){
+        case 28:
+            calIPC.send('resize-calendar', [1087,477])
+            break;
+        case 35:
+            calIPC.send('resize-calendar', [1087,562])
+            break;
+        case 42:
+            calIPC.send('resize-calendar', [1087,647])
+            break;
+        default:
+            //calIPC.send('resize-calendar', [1087,562])
+            break;
+    }
     
     
 }
@@ -570,7 +587,7 @@ function createDayBlocks(){
         
         
     }
-  
+    
 }
 function jDate(ds){
 

@@ -1,6 +1,9 @@
-class Splash{
+class Greeting{
     constructor(){
-        this.head = `<div id='open-content'>`
+        this.main = ()=>{
+            let greetingContainer = document.createElement('div')
+            return greetingContainer
+        }
         this.greeting =
          `<div class='welcome'>Welcome!</div>`
          this.headline = 
@@ -8,18 +11,11 @@ class Splash{
         this.headlineContent =
         `<div id='headlineContent'>
         <ul>
+            <li>Log In Feature</li>
             <li>New Design</li>
-            <li>User Log In</li>            
-            <li>Customer Contacts</li>
-            <li>Reports
-                <ul>
-                    <li>User Activity</li>
-                    <li>No Shows</li>
-                    <li>EOD</li>
-                    <li>Company Job History</li>
-                </ul>
-            </li>
-            <li>Automatic Updates</li>
+            <li>Saved Customer Info</li>
+            <li>Contact Section</li>
+            <li>View Customer's Past Jobs </li>
         </ul>
         </div>
             `
@@ -37,6 +33,3 @@ class Splash{
          
      }
 }
-
-
-

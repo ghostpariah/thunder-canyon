@@ -1,48 +1,31 @@
-/*
-@media only screen and (max-width: 1400px) {
-	body {
-	  background-color: lightblue;
-	  width: 100%;
-	}
-	#add{
-		width:100%;
-	}
-	#main {
-		width: 100%;
-		margin: auto;
-	}
-  }
-  @media only screen and (max-width: 1200px) {
-	body {
-	  background-color: blue;
-	  width: 100%;
-	}
-	#add{
-		width:100%;
-	}
-	#main {
-		width: 100%;
-		margin: auto;
-	}
-  }
-*/
+
  html, body {
-    height: 100%;
+    margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
 } 
 
-html {
-    /* display: table; */
-    margin: 0;
+body {
+	min-width: fit-content;
 	
+	background: black;
+	position:fixed;
+	/* vertical-align: middle; */
+	box-sizing: border-box;
+	clear:both;
 }
 
-/* body {
-    display: table-cell;
-    vertical-align: middle;
-	overflow: visible;
-	
-	width: fit-content;
-} */
+#main {
+	width: 1602px;/*1600px;*/
+	clear:both;
+	min-height: 800px;;
+	/* border: 1px solid white;  */
+}
+
+
 #wpuJobContainer{
 	padding-left: 7px;
 	padding-bottom: 5px;
@@ -52,21 +35,13 @@ datalist{
 	z-index: 900000;
 	visibility: collapse;
 }
-body {
-	
-	width:100%;
-	background: black;
-	margin:0;
-	vertical-align: middle;
-	padding:0;
-	overflow-x: hidden;
-}
+
 
 #contentArea{
 	float:left;
 	width:100%;
 	margin:0;
-	
+	clear:both;
     
 }
 [contenteditable]:focus {
@@ -84,12 +59,7 @@ body {
 }
 
 
-#main {
-	width: 1600px;/*1600px;*/
-	
-	min-height: 800px;;
-	border: 2px solid white; 
-}
+
 #customerContainer{
 	float:left;
 }
@@ -153,7 +123,7 @@ body {
 	margin-top: -2px;*/
 }
 #legend{
-	width:100%;/*1580px;*/
+	width: 100%;/*1580px;*/
 	height:23px;
 	float:left;
 	background: #ffffff;
@@ -163,6 +133,8 @@ body {
 	vertical-align: middle;
 	font-family: Arial, Helvetica, sans-serif;
 	font-size:13px; 
+	margin:0;
+	clear:both;
 	/*
 	border-left:2px solid #cecece;
 	border-right:2px solid #cecece;
@@ -211,25 +183,24 @@ body {
 	margin-bottom: 1px;
 }
 #right {
-	width: 31%;/*32%;*/
-	float: left;
-	/* margin-left:2px; */
+	width: 31.05%;/*32%;*/
+	float: left;	
 	height:635px;
 	margin-top: 1px;/* 5px */
 	margin-bottom: 1px;
 	margin-right:0px;
-	margin-left:1px;
+	margin-left:2px;
 }
 
 #left {
 	
-	width: 16%;
+	width: 15.88%;
 	float: left;
 	/* margin-right:8px; */
 	height:635px;
 	margin-top: 1px;/*5px;*/
 	margin-left:0px;
-	margin-right: 1px;
+	margin-right: 2px;
 	margin-bottom: 1px;
 }
 .cat {
@@ -288,7 +259,7 @@ margin-right: px;
 } */
 #bottom{
 	float:left;
-	height:213px;/*169px;*/
+	height:214px;/*169px;*/
 	width:100%;
 	background-color: white;
 	/* margin-left:3px; */
@@ -337,7 +308,7 @@ margin-right: px;
 	background:white;
 	/* font-family: 'Arial Narrow'; */
 	float:left;
-	
+	cursor:pointer;
 	color:black;
 	text-align: center;
 	
@@ -852,6 +823,9 @@ div.lineItem:first-child{
 	width: 8%;
 	float: right;	
 	height: inherit;
+}
+#mainHeader{
+	clear:both;
 }
 .mainHeader {
 	float: left;	

@@ -8,6 +8,8 @@ const {autoUpdater} = require('electron-updater')
 const log = require('electron-log');
 const errLog = log.create('anotherInstance')
 
+const process = require('process')
+
 
 
 const { serialize } = require('v8')
@@ -28,7 +30,7 @@ let today = dayOfYear(new Date());
 const appStartDay = today
 
 //const rootStorage = app.getPath('userData')
-const rootStorage = 'd:/'
+const rootStorage = 'v:/'
 const dataFolder = path.join(rootStorage, `/data/`)
 const workflowDB = path.join(rootStorage, '/data', 'workflow_app.db')
 const white_board = path.join(rootStorage, '/data', 'whiteBoardContent.txt')
@@ -52,7 +54,7 @@ let calendarWin
 let cuWin
 var checkDate
 let updateWin
-
+let uncaughtCount = 0
 
 /***********************
 ********
@@ -88,6 +90,31 @@ autoUpdater.on('update-downloaded', (info) => {
 sendStatusToWindow('Update downloaded');
 autoUpdater.quitAndInstall();
 });
+
+process.on('uncaughtException', (err, origin) => {
+    uncaughtCount++
+    console.log(err)
+    logErr(err)
+    logErr(origin)
+    if(uncaughtCount<2){
+        restartApp()
+    }
+  });
+//initiateFSWatcher()
+
+// fs.watchFile(broadcaster, (curr, prev)=>{
+//     setTimeout(function() {
+            
+//         win.webContents.send('update')
+//         }, 5);  
+    
+// })
+// fs.watchFile(white_board, (curr, prev)=>{
+//     setTimeout(function() {
+            
+//         win.webContents.send('update')
+//         }, 5);  
+// })
 
 //if log folder doesn't exist
 if (!fs.existsSync(logLocation)){
@@ -369,22 +396,42 @@ app.on('ready', ()=>{
             }
         }
         //watch file for changes
-    fs.watch(broadcaster, (event, filename) => {
-    
-        if (filename) {        
-          if (fsWait) return;    
-          fsWait = setTimeout(() => {
-            fsWait = false;      
-          }, 5);      
-          
-          setTimeout(function() {
-              
-              win.webContents.send('update')
-          }, 5);      
-        }
-        
-    });
+        //try{
+            fs.watch(broadcaster, (event, filename) => {
+            
+                if (filename) {        
+                    if (fsWait) return;    
+                    fsWait = setTimeout(() => {
+                        fsWait = false;      
+                    }, 5);      
+                    
+                    setTimeout(function() {
+                        
+                        win.webContents.send('update')
+                    }, 5);      
+                }
+                
+            });
+        // }catch(e){
+        //     fs.watch(broadcaster, (event, filename) => {
+            
+        //         if (filename) {        
+        //         if (fsWait) return;    
+        //         fsWait = setTimeout(() => {
+        //             fsWait = false;      
+        //         }, 5);      
+                
+        //         setTimeout(function() {
+                    
+        //             win.webContents.send('update')
+        //         }, 5);      
+        //         }
+                
+        //     });
+        //     console.log(e)
+        // }
     })
+
     
    
     
@@ -428,6 +475,44 @@ app.on('ready', ()=>{
     //createMainWindow();
     createUpdateWindow()
 })
+
+function initiateFSWatcher(){
+    try{
+        fs.watch(broadcaster, (event, filename) => {
+              
+            if (filename) {        
+                if (fsWait) return;    
+                fsWait = setTimeout(() => {
+                    fsWait = false;      
+                }, 5);      
+                console.log('log watch triggered')
+                setTimeout(function() {
+                
+                win.webContents.send('update')
+                }, 5);      
+            }
+            
+        });
+        fs.watch(white_board, (event, filename) => {
+                
+            if (filename) {        
+                if (fsWait) return;    
+                fsWait = setTimeout(() => {
+                    fsWait = false;      
+                }, 5);      
+                console.log('whiteboard watch triggered')
+                setTimeout(function() {
+                
+                win.webContents.send('update')
+                }, 5);      
+            }
+            
+        });
+    }catch(e){
+        initiateFSWatcher()
+        console.log(e)
+    }
+}
 app.on('window-all-closed', ()=>{
     if(process.platform !== 'darwin'){
         app.quit()
@@ -442,6 +527,7 @@ app.on('activate', () => {
 
 
 //watches for changes on whiteboard text file and reloads page with changed file
+try{
 fs.watch(white_board, (event, filename) => {
     if (filename) {        
       if (fsWait) return;    
@@ -455,7 +541,24 @@ fs.watch(white_board, (event, filename) => {
     }
     
 });
-
+}catch(e){
+    
+        fs.watch(white_board, (event, filename) => {
+            if (filename) {        
+              if (fsWait) return;    
+              fsWait = setTimeout(() => {
+                fsWait = false;      
+              }, 200);      
+              
+              setTimeout(function() {
+                  win.webContents.send('whiteboard-updated')
+              }, 50);      
+            }
+            
+        });
+        console.log(e)
+    
+}
 
 /***********************************************************************
  * 
@@ -977,7 +1080,12 @@ async function getCustomerName(args){
         log.info(text);
         updateWin.webContents.send('updater', text);
       }
-  
+
+
+
+  ipcMain.on('resize-calendar',(event,args)=>{
+      calendarWin.setSize(args[0],args[1],false)
+  })
   /**
    * user maintenance
    */
@@ -1480,9 +1588,11 @@ function createMainWindow(){
     
     win = new BrowserWindow({
         width: 1620,
-        height: 844,        
+        height: 841,  
+        hasShadow: false,   
         icon: path.join(__dirname, '../images/logo.ico'),
         autoHideMenuBar: true,
+        
         
         
         
@@ -1563,7 +1673,8 @@ function createEditWindow(args, args2, args3){
     const opts = {  
         parent: win,
         width: 500,
-        height: 950,              
+        height: 950, 
+                 
         autoHideMenuBar: true,
         modal: true,     
         icon: path.join(__dirname, '../images/icon.png'),
@@ -1577,22 +1688,26 @@ function createEditWindow(args, args2, args3){
     };
     
   if (BrowserWindow.getFocusedWindow()) {
-      editWindowCount++
+      
     current_win = BrowserWindow.getFocusedWindow();
     const pos = current_win.getPosition();
-    if(editWindowCount<3 && args2 != 'context-menu'){
+    
+    
+    if(editWindowCount == 1){
         Object.assign(opts, {
-        x: pos[0] + 100,
-        y: pos[1] - 100,
-        });
+            x: pos[0] + 200,
+            y: pos[1] - 10,
+            });
     }else{
+    
         Object.assign(opts, {
-            x: pos[0] + 250,
-            y: pos[1] + 25,
+            x: pos[0] + 175,
+            y: pos[1] + 10,
             });
     }
+    editWindowCount++
   };
-
+  
         winEdit = new BrowserWindow(opts)
     
     
@@ -1600,35 +1715,37 @@ function createEditWindow(args, args2, args3){
         pathname: path.join(__dirname, '../pages/edit.html'),
         protocol: 'file',
         slashes:true
+        
     }))
     
     winEdit.on('ready', ()=>{
         
        winEdit.webContents.focus()
-       //winEdit.webContents.send('edit-data',args , args2, args3)
+       
         
        
     })
     winEdit.on('focus', ()=>{
-        //winEdit.webContents.send('edit-data',args , args2, args3)
+        
         
     })
     winEdit.once('ready-to-show', () => {
         winEdit.show()
         win.preventDefault
-        winEdit.webContents.send('edit-data',args , args2, args3)
+        
         
     })
-    //winEdit.webContents.openDevTools()
+    
     winEdit.webContents.focus()         
     winEdit.on('closed', ()=>{
         winEdit = null
+        
     })
     winEdit.webContents.once('did-finish-load',()=>{
-        console.log('did-finish-load ')  
-        console.log(args)  
-        console.log(winEdit.id)
-        //winEdit.webContents.send('edit-data',args , args2, args3) 
+         
+        let thisBW = BrowserWindow.fromId(winEdit.id)  
+        
+       thisBW.webContents.send('edit-data',args , args2, args3) 
                
     })
    
@@ -1822,7 +1939,7 @@ function createCalendarWindow(args,args2){
             parent: win,
             modal: true,
             width:1087,//1140
-            height: 562,//600
+            height: 477,//600
             autoHideMenuBar: true,
             show: false,
             webPreferences: {

@@ -2,7 +2,7 @@
 	font-size: 4em;
 }
 #open-content{
-	float:left;
+	
 	text-align: center;
 	color:#5e81ad;;
 	font-family: "Arial Narrow";
@@ -12,8 +12,9 @@
 }
 #headlineContent{
     
-    float: left;
-    margin-left: 600px;
+    display:flex;
+	justify-content: center;
+    /* margin-left: 600px; */
     text-align:center;
 }
 

@@ -149,10 +149,13 @@ body{
     
 }
 #footer{
-    float:left;
+    display:flex;
+    justify-content: center;
+    align-items: center;
     width:100%;
     height:30px;
     border-top:1px solid #cecece;
+    padding:0;
     text-align: center;
     background-color: whitesmoke;
     /* border-radius: 0 0 10px 10px; */
@@ -193,6 +196,18 @@ body{
     /* font-family: Verdana, Geneva, Tahoma, sans-serif; */
     
 }
+.legHoliday{
+    float:left;
+    font-weight: bold;
+    margin: 0 5px;
+    background-color: aliceblue;
+}
+#legObserveHoliday{
+    color:cornflowerblue;    
+}
+#legBankHoliday{
+    color:darkblue;    
+}
 .holiday{
     float:left;
     text-align: left;
@@ -204,21 +219,27 @@ body{
     height:19px;
     color:cornflowerblue;
     padding-left: 3px;
+    background-color: aliceblue;
+}
+.bank{
+    color:darkblue;
+    
 }
 .calendarLegend{
-    height: 13px;
+    /* height: 13px; */
     float: left;
     color:white;
     /* font-family: Verdana, Geneva, Tahoma, sans-serif; */
     font-weight: bold;
     text-align: center;
-    font-size: 9px;
-    margin: 2px;
+    /* font-size: 9px; */
+    margin: 0 5px;
     padding: 0 2px 0 2px;
+    
 }
 #springLegend{
     background-color: #5e81ad;
-    margin-left: 415px;
+    /* margin-left: 415px; */
 }
 #alignmentLegend{
     background-color: #ad5ea8;
