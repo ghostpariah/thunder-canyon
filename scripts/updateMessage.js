@@ -2,7 +2,7 @@ const electron = require('electron')
 const ipcUpdate = electron.ipcRenderer
 
 //updater doesnt work in dev environment so starting app by default just for dev.
-ipcUpdate.send('start-app')
+//ipcUpdate.send('start-app')
 
 
 ipcUpdate.on('updater', (event , args)=>{
