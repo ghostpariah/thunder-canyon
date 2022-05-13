@@ -35,9 +35,12 @@ setTimeout(()=>{
 },200)
 ipc.on('user-data',(event,args, args2)=>{
 	currentUser = args
-	launcherData = args2
-	launcher = args2.launcher
-	setData(launcherData)
+	if(args2){
+		launcherData = args2
+		console.log(args2)
+		launcher = args2.launcher
+		setData(launcherData)
+	}
 	
 	
 })
@@ -145,63 +148,66 @@ function fillCustomerDataList(){
 	$("#txtCustomerName").on({
 		
 		'keydown': function (event) {
-			chosenCompanyID = null
-			val = this.value;	
+			// chosenCompanyID = null
+			// val = this.value;	
 			
-			if(event.keyCode == 13 || event.keyCode == 9) {			
+			// if(event.keyCode == 13 || event.keyCode == 9) {			
 				
-					chosenCompany = val
+			// 		chosenCompany = val
 					
-					fillContacts(chosenCompany)
-					$('#txtContacts').focus()			
+			// 		//fillContacts(chosenCompany)
+			// 		$('#txtContacts').focus()			
 				
-			}
+			// }
 		 },
 		'keyup': function(){
+			//reset contacts if backspacing to empty field
 			val = this.value;		
 			
-			if(val == "") {	
-	
-					
-					clearContacts()							
-					
+			if(val == "") {						
+					clearContacts()						
 			}
 		},
 		'input' : function(){
 			val = this.value;
+			//sort datalist to display entries that match what is typed
 			 if($('#lstCustomer option').filter(function(){
 			 	return this.value.toUpperCase() === val.toUpperCase();        
 			 }).length) {
 				
-				chosenCompany = val
-				clearContacts()
-				chosenCompanyID = ipc.sendSync('get-customer-ID', chosenCompany)
-				
-				
-				pullContacts(chosenCompanyID)
+				// chosenCompany = val
+				// clearContacts()
+				// chosenCompanyID = ipc.sendSync('get-customer-ID', chosenCompany)				
+				// pullContacts(chosenCompanyID)
 				
 				
 			}
 		},
 		"blur": function(){			
-			
+			clearContacts()
+			chosenCompanyID =null
 			val = this.value;
-			chosenCompany = val
+			chosenCompany = val.trim()
+			console.log(chosenCompany)
 			chosenCompanyID = ipc.sendSync('get-customer-ID', this.value)
-			
-			if(chosenCompanyID == null){			
-			
+			console.log(chosenCompanyID)
+			console.log(this.value)
+
+			// if 'get-customer-ID' returned false or null
+			if(!chosenCompanyID){			
+				//call fill contacts with false value
 				fillContacts(this.value)
 
 			}else{
-
+				//pull contacts with chosenCompanyID
 				pullContacts(chosenCompanyID)
 				
 			}
 			$('#txtContacts').focus()
 		},
-		"click": function(){
-			
+		"focus": function(){
+			//clear the input field and contacts when clicked in or tabbing to
+			clearContacts()
 			this.value = ""
 		}
 		
@@ -226,6 +232,7 @@ async function clearContacts(){
 
 
 function tellParent(choice){
+	$('#txtContacts').click()
 	var conOps = document.getElementById("txtContacts");
 	
 	
@@ -353,7 +360,7 @@ function addJob (){
 	
 	
 	//build job object
-	objNewJob.customer_ID =(chosenCompanyID != null && chosenCompanyID != '') ? chosenCompanyID : ipc.sendSync('add-new-customer', txtCN.value)
+	objNewJob.customer_ID =(chosenCompanyID != null && chosenCompanyID != '') ? chosenCompanyID : ipc.sendSync('add-new-customer', txtCN.value.trim())
 	objNewJob.customer_name = ipc.sendSync('db-get-customer-name',objNewJob.customer_ID)
 	if(txtCon.options[txtCon.selectedIndex].getAttribute("method")=="phone"){
 		objNewJob.number_ID = txtCon.options[txtCon.selectedIndex].id
@@ -420,7 +427,7 @@ function isNewCustomer(args){
  */
 
 function addNewCompany(name){
-	let id = ipc.sendSync('add-new-customer', name)
+	let id = ipc.sendSync('add-new-customer', name.trim())
 	
 	return id
 }

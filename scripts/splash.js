@@ -1,12 +1,14 @@
 class Splash{
-    constructor(){
+    constructor(version){
+        this.version = version
         this.head = `<div id='open-content'>`
         this.greeting =
          `<div class='welcome'>Welcome!</div>`
          this.headline = 
-         `<h1>What's New?</h1>`
+         `<h1>What's New in version ${this.version}?</h1>`
         this.headlineContent =
         `<div id='headlineContent'>
+        
         <ul>
             <li>New Design</li>
             <li>User Log In</li>            
@@ -24,7 +26,14 @@ class Splash{
         </div>
             `
          this.tail = `</div>`
+         
 
+         
+
+    }
+    setVersion(v){
+
+           this.version = v;
     }
      getGreeting(){
         return this.head+

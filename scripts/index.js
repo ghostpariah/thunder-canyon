@@ -113,6 +113,10 @@ ipc.on('count', (event,args)=>{
 	countStatuses()
 })
 
+
+
+
+
 ipc.on('reload',(event,args)=>{	
    loadJobs(args)
    countStatuses()	 
@@ -191,6 +195,9 @@ function openCalendar(){
 
  function openCreateUser(){
 	ipc.send('open-create-user')
+}
+function openRestore(){
+	ipc.send('open-restore')
 }
 
 function openReports(){	
@@ -622,6 +629,8 @@ function toggleAdminMenu() {
 		// {
 		// 	text : 'No-Shows'
 		// }]
+	},{
+		'text': 'Restore DB'
 	}];
 	let menuItem
 	let menuText
@@ -693,8 +702,8 @@ function dosomething(e){
 				case 'EOD':					
 					openReports()
 					break;
-				case 'No-Shows':
-					
+				case 'Restore DB':
+					openRestore()
 					break;
 				case 'Users':					
 					openCreateUser()
@@ -1756,7 +1765,7 @@ function moveToScheduled(e, drop){
 
 
 function createOpenContent(){
-	const content = new Splash()
+	const content = new Splash(ipc.sendSync('get-version'))
 	
 	return content.getGreeting()
 

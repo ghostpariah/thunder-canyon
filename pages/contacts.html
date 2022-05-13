@@ -247,56 +247,60 @@
 
      
       function togglePageView(action) {
-
-        let buttonList = document.getElementsByClassName('mainContactButton')
-        let allIndicators = document.getElementsByClassName('indicator')
-        let allCheckboxes = document.getElementsByClassName('cbPrimary')
-        let all = document.getElementsByClassName('divPrimaryCheckbox')
-        
-        //reset buttons to default style        
-        for(i=0;i<buttonList.length;i++){
-          buttonList[i].setAttribute('class','mainContactButton buttonUnselected')
-        }
-        
-        switch(action){
-          case 'add':
-              contactContent.style.display = "none";
-              contactForm.style.display = "block";              
-              document.getElementById('btnMainAdd').setAttribute('class','mainContactButton buttonSelected')
-              
-              
-            break;
-          case 'edit':
-              document.getElementById('btnMainEdit').setAttribute('class','mainContactButton buttonSelected')
-              contactContent.style.display = "block";
-              contactForm.style.display = "none";              
-              
-              for(i=0;i<allIndicators.length;i++){
-                  allIndicators[i].setAttribute('class','indicator hidden')                               
-              }
-              for(i=0;i<all.length;i++){
-                if(all[i].childNodes[2]){
-                  all[i].childNodes[2].remove()
+        try{
+          let buttonList = document.getElementsByClassName('mainContactButton')
+          let allIndicators = document.getElementsByClassName('indicator')
+          let allCheckboxes = document.getElementsByClassName('cbPrimary')
+          let all = document.getElementsByClassName('divPrimaryCheckbox')
+          
+          //if(buttonList.length < 1)  throw new Error(``)
+          //reset buttons to default style        
+          for(i=0;i<buttonList.length;i++){
+            buttonList[i].setAttribute('class','mainContactButton buttonUnselected')
+          }
+          
+          switch(action){
+            case 'add':
+                contactContent.style.display = "none";
+                contactForm.style.display = "block";              
+                document.getElementById('btnMainAdd').setAttribute('class','mainContactButton buttonSelected')
+                
+                
+              break;
+            case 'edit':
+                document.getElementById('btnMainEdit').setAttribute('class','mainContactButton buttonSelected')
+                contactContent.style.display = "block";
+                contactForm.style.display = "none";              
+                
+                for(i=0;i<allIndicators.length;i++){
+                    allIndicators[i].setAttribute('class','indicator hidden')                               
                 }
-                all[i].style.display = 'block'
-              }
+                for(i=0;i<all.length;i++){
+                  if(all[i].childNodes[2]){
+                    all[i].childNodes[2].remove()
+                  }
+                  all[i].style.display = 'block'
+                }
 
-            break;
-          case 'cancel':
-              contactContent.style.display = "block";
-              contactForm.style.display = "none";
-              
-              
-              for(i=0;i<allIndicators.length;i++){
-                  allIndicators[i].setAttribute('class','indicator visible')                               
-              }
-              for(i=0;i<all.length;i++){
-                all[i].style.display ='none'
-              }
-            break;
-          default:
-            console.log('default')
-            break;
+              break;
+            case 'cancel':
+                contactContent.style.display = "block";
+                contactForm.style.display = "none";
+                
+                
+                for(i=0;i<allIndicators.length;i++){
+                    allIndicators[i].setAttribute('class','indicator visible')                               
+                }
+                for(i=0;i<all.length;i++){
+                  all[i].style.display ='none'
+                }
+              break;
+            default:
+              console.log('default')
+              break;
+
+          }
+        }catch(e){
 
         }
         
@@ -305,7 +309,7 @@
         "name-chosen",
         (event, args1, args2, args3, args4, args5, args6, args7, args8) => {
           
-          
+        try{  
           let argCount = 0;
 
           //launching page
@@ -394,8 +398,12 @@
             customerNameWrapper.style.display = "block";
           }
           
-        }
-      );
+        
+      }catch(e){
+        conIPC.send('log-error',e)
+      }
+    });
+      
 
       setTimeout(() => {
         loadContactsPage();
@@ -651,6 +659,8 @@
         }
         data.active = 1
         data.customer_ID = conIPC.sendSync("get-customer-ID", cn); 
+        console.log(`customer name is ${cn}`)
+        console.log(`customer ID is ${data.customer_ID}`)
         let itemID = conIPC.sendSync("db-contact-add", data);
         
         switch (pageLauncher) {

@@ -9,10 +9,10 @@
 } 
 
 body {
-	min-width: fit-content;
+	width:100%;
 	
 	background: black;
-	position:fixed;
+	
 	/* vertical-align: middle; */
 	box-sizing: border-box;
 	clear:both;
@@ -621,7 +621,9 @@ div.lineItem:first-child{
 
 .adminMenuItem{
 	height: 25px;
-	padding-top: 3px;
+	padding-top: 5px;
+	padding-left:5px;
+	text-align: left;
 	
 }
 .adminMenuItem:hover{

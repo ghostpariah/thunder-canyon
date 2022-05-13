@@ -4,6 +4,8 @@ const {app, BrowserWindow, ipcMain, Menu, MenuItem, globalShortcut} = require('e
 const path = require('path')
 const url = require('url')
 const fs = require('fs')
+const fsc = require('fs')
+const fsp = require('fs/promises')
 const {autoUpdater} = require('electron-updater')
 const log = require('electron-log');
 const errLog = log.create('anotherInstance')
@@ -31,12 +33,14 @@ const appStartDay = today
 
 //const rootStorage = app.getPath('userData')
 const rootStorage = 'v:/'
+const backupFolder = path.join(rootStorage,'/backup/')
 const dataFolder = path.join(rootStorage, `/data/`)
 const workflowDB = path.join(rootStorage, '/data', 'workflow_app.db')
+
 const white_board = path.join(rootStorage, '/data', 'whiteBoardContent.txt')
 const logArchive = path.join(rootStorage, `/data/logs/${y}/${today}/`)
 const logLocation = path.join(rootStorage, `/data/logs/`)
-const broadcaster = path.join(rootStorage, '/data/logs', `activityLog${today}.txt`)
+const activityLog = path.join(rootStorage, '/data/logs', `activityLog${today}.txt`)
 const errorLog = path.join(rootStorage, '/data/logs', `errorLog${today}.txt`)
 
 
@@ -49,6 +53,7 @@ let fsWait = false;
 let loginWin
 let contactWin
 let reportWin
+let restoreWin
 let addJobWin
 let calendarWin
 let cuWin
@@ -63,34 +68,37 @@ onload operations
 *************************/
 //set path to errorLog files
 errLog.transports.file.resolvePath = () => errorLog;
+async function readyUpdates(){
+   
+    autoUpdater.logger = log;
+    autoUpdater.logger.transports.file.level = 'info';
+    log.info('App starting...');
 
-autoUpdater.logger = log;
-autoUpdater.logger.transports.file.level = 'info';
-log.info('App starting...');
-
-autoUpdater.on('checking-for-update', (info) => {
-    sendStatusToWindow('Checking for update...');
-})
-autoUpdater.on('update-available', (info) => {
-sendStatusToWindow('Update available.');
-})
-autoUpdater.on('update-not-available', (info) => {
-sendStatusToWindow('Update not available.');
-})
-autoUpdater.on('error', (err) => {
-sendStatusToWindow('Error in auto-updater. ' + err);
-})
-autoUpdater.on('download-progress', (progressObj) => {
-let log_message = "Download speed: " + progressObj.bytesPerSecond;
-log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
-log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
-sendStatusToWindow(log_message);
-})
-autoUpdater.on('update-downloaded', (info) => {
-sendStatusToWindow('Update downloaded');
-autoUpdater.quitAndInstall();
-});
-
+    autoUpdater.on('checking-for-update', () => {
+        sendStatusToWindow('Checking for update...');
+    })
+    autoUpdater.on('update-available', (info) => {
+        sendStatusToWindow('Update available.');
+    })
+    autoUpdater.on('update-not-available', (info) => {
+        sendStatusToWindow('Update not available.');
+       
+    })
+    autoUpdater.on('error', (err) => {
+        sendStatusToWindow('Error in auto-updater. ' + err);
+        
+    })
+    autoUpdater.on('download-progress', (progressObj) => {
+        let log_message = "Download speed: " + progressObj.bytesPerSecond;
+        log_message = log_message + ' - Downloaded ' + progressObj.percent.toFixed() + '%';
+        log_message = log_message + ' (' + progressObj.transferred.toFixed() + "/" + progressObj.total.toFixed() + ')';
+        sendStatusToWindow(log_message);
+    })
+    autoUpdater.on('update-downloaded', (info) => {
+        sendStatusToWindow('Update downloaded');
+        autoUpdater.quitAndInstall();
+    });
+}
 process.on('uncaughtException', (err, origin) => {
     uncaughtCount++
     console.log(err)
@@ -100,40 +108,116 @@ process.on('uncaughtException', (err, origin) => {
         restartApp()
     }
   });
-//initiateFSWatcher()
 
-// fs.watchFile(broadcaster, (curr, prev)=>{
-//     setTimeout(function() {
-            
-//         win.webContents.send('update')
-//         }, 5);  
-    
-// })
-// fs.watchFile(white_board, (curr, prev)=>{
-//     setTimeout(function() {
-            
-//         win.webContents.send('update')
-//         }, 5);  
-// })
 
-//if log folder doesn't exist
-if (!fs.existsSync(logLocation)){
-    //does data folder exist
-    if (!fs.existsSync(dataFolder)){
-        fs.mkdirSync(logLocation, { recursive: true });
-    }else{
-        fs.mkdirSync(logLocation, { recursive: false });
+/**
+ * creates directory and any parent directories if isRecursive = true
+ * used for setting up folders on the v:drive to store database, text files and logs
+ * @param {string} dir //path of directory to create
+ * @param {boolean} isRecursive //boolean for recursive key in fsp.mkdir
+ * 
+ */
+function createFolder(dir, isRecursive){
+    fsp.mkdir(dir, {recursive:isRecursive})
+    .then(()=>{
+        console.log(`${dir} created succesfully`)
+    }).catch(()=>{
+        errLog.info('failed to create directory')
+    });
+}
+
+
+/**
+ * Uses fsp.readdir to check for the existence of directory
+ * and if directory doesnt exist calls the createFolder passing the path 
+ * and the recursive key value
+ * @param {string} dir //path to directory
+ * @param {boolean} isRecursive //recursive key
+ * @returns 
+ */
+async function checkForFolder(dir, isRecursive){
+    try {
+        const files = await fsp.readdir(dir);
+        for (const file of files)
+          console.log(`${dir} ${file}`);
+    } catch (err) {        
+        return createFolder(dir,isRecursive)
     }
 }
-    //creates database if it doesn't already exist
-    if(!fs.existsSync(workflowDB)){
-        console.log('calling createDatabase')
-        createDatabase(workflowDB)
+
+/**
+ * 
+ * @param {string} db -path to database
+ * @returns 
+ */
+async function checkForDB(db){    
+    try{
+    const info = await fsp.stat(db)
+    }catch(e){
+        //updateWin.webContents.send('new-database')
+        return createDatabase(db)
     }
-    //create whiteboardContent.txt if it doesn't already exist
-    if (!fs.existsSync(white_board)){
-        fs.closeSync(fs.openSync(white_board,'w'))
+}
+
+
+async function checkForWhiteboard(){
+    const wb = await fsp.stat(white_board).catch(e =>{fs.closeSync(fs.openSync(white_board,'w'))})
+    console.log(wb)    
+}
+async function checkForPathToRootStorage(path){
+    try {
+        const files = await fsp.readdir(rootStorage);
+        return true
+        
+    } catch (err) {
+        log.info(err)
+        console.error(err);
+        app.quit()
+        return 
     }
+}
+async function readyApp(){
+    
+    try{
+    await readyUpdates().catch(e =>{errLog.info(e)})
+    
+    if(await checkForPathToRootStorage(rootStorage)){
+    
+        await checkForFolder(backupFolder, false)
+        await checkForFolder(logLocation, true)        
+        await checkForDB(workflowDB)
+        readyFolders()
+        
+        setTimeout(() => {
+            checkForWhiteboard()
+            backupDB()
+            fs.watch(white_board, (event, filename) => {
+                        if (filename) {        
+                          if (fsWait) return;    
+                          fsWait = setTimeout(() => {
+                            fsWait = false;      
+                          }, 200);      
+                          
+                          setTimeout(function() {
+                              win.webContents.send('whiteboard-updated')
+                          }, 50);      
+                        }else{
+                            errLog.error(`whiteboard file doesn't exist or connection to v: lost`)
+                        }
+                        
+                    });
+        }, 100);
+    }else{
+        errLog.error('rootStorage (v:) not mapped')
+        app.quit()
+    }    
+        
+    }catch(e){
+        log.info(e)
+    }
+
+    
+}
 
 
 //function to create database if it doesn't exist
@@ -252,20 +336,19 @@ function createDatabase(file){
     return db;
 }
 app.on('ready', ()=>{
-
+    createUpdateWindow()
     // prompt restart if app was left open on previous day
+    
     
     checkDate = setInterval(function (){
         let currentDay = dayOfYear(new Date());
         (appStartDay == currentDay) ? console.log(`app opened today ${currentDay}`) : restartApp();
     }, 3600000)
-    
+    readyApp()
     //check for updates
-    try{
+    
     //autoUpdater.checkForUpdates()
-    }catch(e){
-        console.log(e)
-    }
+    
     
     // ready the files. create folder for year and day if it doesn't exist and then
     // copy log files to the directory and empty the daily logs
@@ -281,204 +364,160 @@ app.on('ready', ()=>{
     
 
     
-    fs.readdir(logLocation, function(err, data) {
-        if (data.length == 0) {
-            
-            // create activity log
-            fs.closeSync(fs.openSync(broadcaster,'w'))
-            // create error log
-            fs.closeSync(fs.openSync(errorLog,'w'))
-            //create archive folder for today
-            fs.mkdirSync(logArchive, {
-                recursive: true
-            });  
-
-        } else {
-            
-            let needsActivityLog = true
-            let needsErrorLog = true
-            let doy
-            let oldPath
-            let newPath
-            // iterate through items in logs folder
-            data.forEach(file => {
-                // if item is a file and not year directory i.e. 2021
-                if(file.length>4){
-                    doy = file.slice(file.indexOf('g')+1,file.indexOf('g')+4)
-                    console.log(doy)
-                    
-                    
-                    if(file.includes(`activityLog${today}`)){
-                        
-                        needsActivityLog = false
-                    }
-                    if(file.includes(`errorLog${today}`)){
-                        needsErrorLog = false
-                    }
-                    if(doy != today){
-                     let lastDay = (isLeapYear(y)) ? 366 : 365   
-                        switch(file.slice(0,1)){
-                            case 'a':
-                                oldALogPath = path.join(logLocation, `activityLog${doy}.txt`)
-                                if(doy == "365" || doy =="366"){
-                                    if (!fs.existsSync(`${logLocation}${y-1}/${doy}/`)){ 
-                                        fs.mkdirSync(`${logLocation}${y-1}/${doy}/`, {
-                                            recursive: true
-                                        });  
-                                    }
-                                    newALogPath = path.join(logLocation, `${y-1}/${doy}/activityLog.txt`)                                                               
-                                }else{
-                                    if (!fs.existsSync(`${logLocation}${y}/${doy}/`)){ 
-                                        fs.mkdirSync(`${logLocation}${y}/${doy}/`, {
-                                            recursive: true
-                                        });  
-                                    }
-                                    newALogPath = path.join(logLocation, `${y}/${doy}/activityLog.txt`)                                    
-                                }
-                                fs.rename(oldALogPath, newALogPath, function (err) {
-                                    if (err) throw err
-                                    console.log('Successfully moved to '+newALogPath)
-                                })
-                                break;
-                            case 'e':
-                                oldELogPath = path.join(logLocation, `errorLog${doy}.txt`)
-                                if(doy == lastDay){
-                                    if (!fs.existsSync(`${logLocation}${y-1}/${doy}/`)){ 
-                                        fs.mkdirSync(`${logLocation}${y-1}/${doy}/`, {
-                                            recursive: true
-                                        });  
-                                    }                                   
-                                    newELogPath = path.join(logLocation, `${y-1}/${doy}/errorLog.txt`)                           
-                                }else{
-                                    if (!fs.existsSync(`${logLocation}${y}/${doy}/`)){ 
-                                        fs.mkdirSync(`${logLocation}${y}/${doy}/`, {
-                                            recursive: true
-                                        });  
-                                    }                                     
-                                    newELogPath = path.join(logLocation, `${y}/${doy}/errorLog.txt`)
-                                }
-                                fs.rename(oldELogPath, newELogPath, function (err) {
-                                    if (err){ 
-                                        console.log(err)
-                                    }else{
-                                        console.log('Successfully moved to '+newELogPath)
-                                    }
-                                    
-                                })
-                                break;
-                            default:
-                                break;
-                        }
-                        
-                        
-                        
-                        
-                        
-                       
-                    }
-
-                }
-                
-                
-            });
-
-            if(needsActivityLog){
-                fs.closeSync(fs.openSync(broadcaster,'w'))
+    
+   
+    
+    
+       
+})
+function readyFolders(){
+    try{
+        fs.readdir(logLocation, function(err, data) {
+            if(err){
+                console.log(err)
             }
-            if(needsErrorLog){
+            if (data.length == 0) {
+                
+                // create activity log
+                fs.closeSync(fs.openSync(activityLog,'w'))
+                // create error log
                 fs.closeSync(fs.openSync(errorLog,'w'))
-            }
-        
-            if (!fs.existsSync(logArchive)){ 
+                //create archive folder for today
                 fs.mkdirSync(logArchive, {
                     recursive: true
                 });  
-            }
-        }
-        //watch file for changes
-        //try{
-            fs.watch(broadcaster, (event, filename) => {
-            
-                if (filename) {        
-                    if (fsWait) return;    
-                    fsWait = setTimeout(() => {
-                        fsWait = false;      
-                    }, 5);      
-                    
-                    setTimeout(function() {
+    
+            } else {
+                
+                let needsActivityLog = true
+                let needsErrorLog = true
+                let doy
+                let oldPath
+                let newPath
+                // iterate through items in logs folder
+                data.forEach(file => {
+                    // if item is a file and not year directory i.e. 2021
+                    if(file.length>4){
+                        doy = file.slice(file.indexOf('g')+1,file.indexOf('g')+4)
+                        console.log(doy)
                         
-                        win.webContents.send('update')
-                    }, 5);      
-                }
-                
-            });
-        // }catch(e){
-        //     fs.watch(broadcaster, (event, filename) => {
-            
-        //         if (filename) {        
-        //         if (fsWait) return;    
-        //         fsWait = setTimeout(() => {
-        //             fsWait = false;      
-        //         }, 5);      
-                
-        //         setTimeout(function() {
+                        
+                        if(file.includes(`activityLog${today}`)){
+                            
+                            needsActivityLog = false
+                        }
+                        if(file.includes(`errorLog${today}`)){
+                            needsErrorLog = false
+                        }
+                        if(doy != today){
+                         let lastDay = (isLeapYear(y)) ? 366 : 365   
+                            switch(file.slice(0,1)){
+                                case 'a':
+                                    oldALogPath = path.join(logLocation, `activityLog${doy}.txt`)
+                                    if(doy == "365" || doy =="366"){
+                                        if (!fs.existsSync(`${logLocation}${y-1}/${doy}/`)){ 
+                                            fs.mkdirSync(`${logLocation}${y-1}/${doy}/`, {
+                                                recursive: true
+                                            });  
+                                        }
+                                        newALogPath = path.join(logLocation, `${y-1}/${doy}/activityLog.txt`)                                                               
+                                    }else{
+                                        if (!fs.existsSync(`${logLocation}${y}/${doy}/`)){ 
+                                            fs.mkdirSync(`${logLocation}${y}/${doy}/`, {
+                                                recursive: true
+                                            });  
+                                        }
+                                        newALogPath = path.join(logLocation, `${y}/${doy}/activityLog.txt`)                                    
+                                    }
+                                    fs.rename(oldALogPath, newALogPath, function (err) {
+                                        if (err) throw err
+                                        console.log('Successfully moved to '+newALogPath)
+                                    })
+                                    break;
+                                case 'e':
+                                    oldELogPath = path.join(logLocation, `errorLog${doy}.txt`)
+                                    if(doy == lastDay){
+                                        if (!fs.existsSync(`${logLocation}${y-1}/${doy}/`)){ 
+                                            fs.mkdirSync(`${logLocation}${y-1}/${doy}/`, {
+                                                recursive: true
+                                            });  
+                                        }                                   
+                                        newELogPath = path.join(logLocation, `${y-1}/${doy}/errorLog.txt`)                           
+                                    }else{
+                                        if (!fs.existsSync(`${logLocation}${y}/${doy}/`)){ 
+                                            fs.mkdirSync(`${logLocation}${y}/${doy}/`, {
+                                                recursive: true
+                                            });  
+                                        }                                     
+                                        newELogPath = path.join(logLocation, `${y}/${doy}/errorLog.txt`)
+                                    }
+                                    fs.rename(oldELogPath, newELogPath, function (err) {
+                                        if (err){ 
+                                            console.log(err)
+                                        }else{
+                                            console.log('Successfully moved to '+newELogPath)
+                                        }
+                                        
+                                    })
+                                    break;
+                                default:
+                                    break;
+                            }
+                            
+                            
+                            
+                            
+                            
+                           
+                        }
+    
+                    }
                     
-        //             win.webContents.send('update')
-        //         }, 5);      
-        //         }
+                    
+                });
+    
+                if(needsActivityLog){
+                    fs.closeSync(fs.openSync(activityLog,'w'))
+                }
+                if(needsErrorLog){
+                    fs.closeSync(fs.openSync(errorLog,'w'))
+                }
+            
+                if (!fs.existsSync(logArchive)){ 
+                    fs.mkdirSync(logArchive, {
+                        recursive: true
+                    });  
+                }
+            }
+            //watch file for changes
+            
+                fs.watch(activityLog, (eventType, filename) => {
                 
-        //     });
-        //     console.log(e)
-        // }
-    })
-
+                    if (filename) {        
+                        if (fsWait) return;    
+                        fsWait = setTimeout(() => {
+                            fsWait = false;      
+                        }, 5);      
+                        
+                        setTimeout(function() {
+                            
+                            win.webContents.send('update')
+                        }, 5);      
+                    }else{
+                        errLog.error(`activityLog file doesn't exist or connection to v: lost`)
+                    }
+                    
+                });
+           
+        })
     
-   
-    
-    
-        // if (fs.existsSync(logArchive)){             
-                
-        //         fs.copyFile(broadcaster, logArchive+'activityLog.txt', fs.constants.COPYFILE_EXC, (err)=>{
-        //             if (err) {
-        //                 console.log("Error Found:", err);
-        //             }
-        //             else {
-        //                 console.log('File copied to '+logArchive)
-        //                 fs.truncate(broadcaster,()=>{
-        //                     console.log('Activity Log archived and emptied')
-        //                 })
-        //             }
-        //         });
-            
-            
-        //         fs.copyFile(errorLog, logArchive+'errorLog.txt', fs.constants.COPYFILE_EXC, (err)=>{
-        //             if (err) {
-        //                 console.log("Error Found:", err);
-        //             }
-        //             else {
-        //                 console.log('File copied to '+logArchive)
-        //                 fs.truncate(errorLog,()=>{
-        //                     console.log('Error Log archived and emptied')
-        //                 })
-        //             }
-        //         });
-            
-        // }else{
-        //     fs.mkdirSync(logArchive, {
-        //         recursive: true
-        //     });    
-        // }
-   
-
-    
-    //launch app by creating the main window
-    //createMainWindow();
-    createUpdateWindow()
-})
-
+    }catch(e){
+        console.log(e)
+    }
+}
 function initiateFSWatcher(){
     try{
-        fs.watch(broadcaster, (event, filename) => {
+        fs.watch(activityLog, (event, filename) => {
               
             if (filename) {        
                 if (fsWait) return;    
@@ -509,7 +548,7 @@ function initiateFSWatcher(){
             
         });
     }catch(e){
-        initiateFSWatcher()
+       
         console.log(e)
     }
 }
@@ -527,38 +566,27 @@ app.on('activate', () => {
 
 
 //watches for changes on whiteboard text file and reloads page with changed file
-try{
-fs.watch(white_board, (event, filename) => {
-    if (filename) {        
-      if (fsWait) return;    
-      fsWait = setTimeout(() => {
-        fsWait = false;      
-      }, 200);      
+// try{
+
+// fs.watch(white_board, (event, filename) => {
+//     if (filename) {        
+//       if (fsWait) return;    
+//       fsWait = setTimeout(() => {
+//         fsWait = false;      
+//       }, 200);      
       
-      setTimeout(function() {
-          win.webContents.send('whiteboard-updated')
-      }, 50);      
-    }
+//       setTimeout(function() {
+//           win.webContents.send('whiteboard-updated')
+//       }, 50);      
+//     }
     
-});
-}catch(e){
+// });
+// }catch(e){
     
-        fs.watch(white_board, (event, filename) => {
-            if (filename) {        
-              if (fsWait) return;    
-              fsWait = setTimeout(() => {
-                fsWait = false;      
-              }, 200);      
-              
-              setTimeout(function() {
-                  win.webContents.send('whiteboard-updated')
-              }, 50);      
-            }
-            
-        });
-        console.log(e)
+       
+//         console.log(e)
     
-}
+// }
 
 /***********************************************************************
  * 
@@ -572,16 +600,112 @@ fs.watch(white_board, (event, filename) => {
  * communication with main workflow page js index.js
  * 
  ************************************/
+ipcMain.on('create-new-database',(event)=>{
+    createDatabase(workflowDB)
+})
+ipcMain.on('get-backups',(event)=>{
+    let arrBackups = new Array()
+    
+    fs.readdir(backupFolder, function (err, files) {
+        if (err) {
+          console.error("Could not list the directory.", err);
+          process.exit(1);
+        }
+        
+        files.forEach(function (file, index){
+            var fromPath = path.join(backupFolder, file);
+            let objBackups = new Object()
+            objBackups.stats = fs.statSync(fromPath)
+            objBackups.fileName = file
+            arrBackups.push(objBackups)
 
+        })
+        console.log(arrBackups)
+        event.returnValue = arrBackups
+    })
+})
+const renameDB = async (oldName,newName)=>{
+    
+    return await fsp.rename(oldName, newName)
+}
+ipcMain.on('restore-database',(event,restorePoint)=>{
+    let arrBackups
+    let newDB = path.join(backupFolder, restorePoint)
+    let corruptedDB = path.join(dataFolder, 'curruptWorkflow.db')
+    
+    renameDB(workflowDB,corruptedDB).then((res) => {
+        console.log(`${res} renamed`);
+    }).catch(e =>{console.log(e)})
+    
+    try{
+        
+        let dboRestore = new sqlite3.Database(newDB, (err)=>{
+            if(err){
+                console.error('Cant create connection'+err.message)
+            }
+            
+        })
+       
+
+        /**
+         * setTimeout used to allow renameDB to complete before trying to make backup.
+         * Without the delay a SQL_CANT_OPEN  error is thrown because the the workflow_app.db
+         * still exists when the dboRestore.backup() is trying to create the new db from the 
+         * backup file
+         */
+
+        setTimeout(() => {
+            
+        
+            let restore=dboRestore.backup(path.join(dataFolder, 'workflow_app.db'), (err)=>{
+            if(err){
+                console.log('yo momma'+err)
+            }else{
+                let NPAGES = -1
+                let h = setInterval(() => {
+                    
+                    
+                    if(restore.idle){
+                        NPAGES++
+                        restore.step(restore.pageCount)
+                        console.log('page count = '+restore.pageCount)
+                        console.log('pages remaining = '+restore.remaining)
+                        
+                    }
+                    if(restore.completed || restore.failed){
+                        clearInterval(h)
+                        console.log(restore.pageCount)
+                        console.log('completed = ' +restore.completed)
+                        console.log('failed = '+restore.failed)
+                        console.log(restore.retryErrors)
+
+                        dboRestore.close()
+                        win.webContents.send('update')
+                        logActivity('restored')
+                    }
+                
+                }, 250);
+                     }
+                 })
+        }, 200);
+    }catch(e){
+        errLog.info(e)
+    }
+    
+})
 ipcMain.on('log-error', (event,args)=>{
-    console.log('your mom')
+    
     errLog.info(args)
-    //logErr(args)
+    
 })
 ipcMain.on('start-app',(event)=>{
     updateWin.close()
     createMainWindow()
     
+})
+ipcMain.on('no-updates', (event)=>{
+    updateWin.close()
+    createMainWindow()
 })
 
  ipcMain.on('get-whiteboard', (event, args1, args2)=>{
@@ -928,44 +1052,47 @@ async function getCustomerName(args){
     async function logActivity(args1, args2, args3){
         console.log(`args2 in logActivity = ${JSON.stringify(args3)}`)
         let jobCustomer
-        const actLog = fs.createWriteStream(broadcaster, { flags: 'a' });      
+        const actLog = fs.createWriteStream(activityLog, { flags: 'a' });      
         let date = new Date()
         let action = args1
         let logEvent
-        let k = Object.keys(args2)
-        let v = Object.values(args2)
+        let k
+        let v
+        let place
         let change =""
         let timeStamp = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
 
-
-        let lt 
-        if(args2.shop_location != undefined && args2.shop_location != ""){
-            lt = args2.shop_location.substring(0,3)
-        }else{
-            if(args2.status == 'wfw') lt = 'wfw';
-            if(args2.status == 'sch') lt = 'sch';
-            if(args2.status == 'wpu') lt = 'wpu';
-        }
-        
-        let place
-        switch(lt){
-            case 'wfw':
-                place = 'the lot'
-            break;
-            case 'wip':
-                place = 'the shop'
-            break;
-            case 'sch':
-                place = 'scheduled'
-            break;
-            case 'wpu':
-                place = 'completed'
-            default:
-                
-            break;
-        }
+        if(args2){
+            k = Object.keys(args2)
+            v = Object.values(args2)
+            let lt 
+            if(args2.shop_location != undefined && args2.shop_location != ""){
+                lt = args2.shop_location.substring(0,3)
+            }else{
+                if(args2.status == 'wfw') lt = 'wfw';
+                if(args2.status == 'sch') lt = 'sch';
+                if(args2.status == 'wpu') lt = 'wpu';
+            }
+            
+            
+            switch(lt){
+                case 'wfw':
+                    place = 'the lot'
+                break;
+                case 'wip':
+                    place = 'the shop'
+                break;
+                case 'sch':
+                    place = 'scheduled'
+                break;
+                case 'wpu':
+                    place = 'completed'
+                default:
+                    
+                break;
+            }
        
-       
+        }
         
             
         
@@ -1000,6 +1127,9 @@ async function getCustomerName(args){
                 break;
             case 'delete':
                 logEvent = `${args2.user.user_name} Deactivated job-ID ${args2.job_ID} at ${timeStamp}\n`
+                break;
+            case 'restored':
+                logEvent = 'restored database'
                 break;
                 default:
                     logEvent = "error"
@@ -1076,9 +1206,12 @@ async function getCustomerName(args){
        
     }
     function sendStatusToWindow(text) {
-        errLog.info(text)
-        log.info(text);
+        //errLog.info(text)
+        //log.info(text);
+        //console.log(text)
+        if(updateWin){
         updateWin.webContents.send('updater', text);
+        }
       }
 
 
@@ -1819,6 +1952,40 @@ function createReportWindow(){
           })
 
           reportWin.webContents.focus()
+         
+          
+    
+}
+
+function createRestoreWindow(){
+    
+    restoreWin = new BrowserWindow({
+            parent: win,
+            modal: true,
+            width:415,
+            height:550,
+            autoHideMenuBar: true,
+            show: true,
+            webPreferences: {
+                nodeIntegration: true,
+                webSecurity: false,
+                contextIsolation: false,
+                enableRemoteModule: true
+    
+            }
+            
+          })
+          restoreWin.loadURL(url.format({
+            pathname: path.join(__dirname, '../pages/restoreDB.html'),
+            protocol: 'file',
+            slashes:true
+        }))
+        restoreWin.once('ready-to-show', () => {
+            
+            
+          })
+
+          restoreWin.webContents.focus()
          
           
     
@@ -2684,9 +2851,15 @@ ipcMain.on('open-login-window', function(){
  ********/
  const shell = electron.shell
  const os = require('os')
+
 ipcMain.on('open-report-window',(event,args)=>{
     createReportWindow()
 }) 
+
+ipcMain.on('open-restore', (event,args)=>{
+    createRestoreWindow()
+})
+
 ipcMain.on('print-to-pdf', function (event) {
     try{
             console.log('print-to-pdf called')
@@ -2739,6 +2912,141 @@ ipcMain.on('open-calendar',(event,args,args2)=>{
    
 })  
 
+ipcMain.on('get-version', (event)=>{
+    event.returnValue = app.getVersion()
+})
 
+async function backupDB(){
+    let today = false
+    
+
+    
+
+
+        let current = new Date()
+        let currentTime = current.toLocaleTimeString('en-US',{hourCycle:'h23'})
+        let hour = current.getHours()
+        console.log(currentTime)
+        console.log(current.getHours())
+        let whichDB = ""
+        try{
+        switch(hour){
+            case 7:
+                whichDB = 'v:/backup/backup07.db'
+                break;
+            case 8:
+                whichDB = 'v:/backup/backup08.db'
+                break;
+            case 9:
+                whichDB = 'v:/backup/backup09.db'
+                break;
+            case 10:
+                whichDB = 'v:/backup/backup10.db'
+                break;
+            case 11:
+                whichDB = 'v:/backup/backup11.db'
+                break;
+            case 12:
+                whichDB = 'v:/backup/backup12.db'
+                break;
+            case 13:
+                whichDB = 'v:/backup/backup13.db'
+                break;
+            case 14:
+                whichDB = 'v:/backup/backup14.db'
+                break;
+            case 15:
+                whichDB = 'v:/backup/backup15.db'
+                break;
+            case 16:
+                
+                whichDB = 'v:/backup/backup16.db'
+                break;
+           default:
+               whichDB = 'v:/backup/backup20.db'
+                break;
+        }
+    }catch(e){
+        errLog.info(e)
+    }
+    
+    const objStats = await fsp.stat(whichDB).catch(e =>{
+         errLog.info(e)
+         
+    })
+    if(objStats){
+        //let whichDB = (currentTime > '11:06:00 PM')?'v:/backup1.db':'v:/backup2.db'
+        console.log(current.toLocaleTimeString('en-US',{hourCycle:'h23'}))
+        
+        
+        //let objStats = new Object()
+        
+            
+            let date = new Date();
+            today = (objStats.mtime.getDate() == date.getDate())? true :false
+            
+        // if(fs.existsSync(whichDB)){
+        //     objStats = fs.statSync(whichDB)
+        //     // fs.statSync(whichDB, (err, stats) => {
+        //     //     if(err) {
+        //     //         console.log(err)
+        //     //         throw err;
+        //     //     }
+        //     //     let date = new Date();     
+        //     //     console.log('day modified = '+stats.mtime.getDate());       
+        //     //     today = (stats.mtime.getDate() == date.getDate())? true :false
+        //     //     console.log('filewas modified today = '+today)
+                
+                
+        //     // });
+        //     let date = new Date();
+        //     today = (objStats.mtime.getDate() == date.getDate())? true :false
+        // }
+        errLog.info('already modified today = '+today)
+    }
+        if(!today){
+            try{
+                let dboBackup = new sqlite3.Database(workflowDB, (err)=>{
+                    if(err){
+                        console.error(err.message)
+                    }
+                    
+                })
+                let backup=dboBackup.backup(whichDB)
+                let NPAGES = -1
+                let h = setInterval(() => {
+                    
+                    //console.log(backup.idle)
+                    if(backup.idle){
+                        NPAGES++
+                        backup.step(backup.pageCount)
+                        console.log('page count = '+backup.pageCount)
+                        console.log('pages remaining = '+backup.remaining)
+                        
+                    }
+                    if(backup.completed || backup.failed){
+                        clearInterval(h)
+                        console.log(backup.pageCount)
+                        console.log('completed = ' +backup.completed)
+                        console.log('failed = '+backup.failed)
+                        backup.finish()
+                        
+                        dboBackup.close()
+                    }
+                
+                }, 250);
+            }catch(e){
+                errLog.info(e)
+            }
+        
+        }else{
+        //dboBackup.close()
+        }
+        setTimeout(() => {
+            backupDB()
+            
+        }, 3600000);
+    
+}
     
     
