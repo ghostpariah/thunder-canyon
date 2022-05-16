@@ -30,9 +30,15 @@ const dayOfYear = date =>
     Math.floor((date - new Date(date.getFullYear(),0 ,0)) / (1000 * 60 * 60 * 24));
 let today = dayOfYear(new Date()); 
 const appStartDay = today
-
+/**
+ * rootStorage is set to a mapped network drive of v:/ in order for many instances to share
+ * the same data
+ * If going to use as a single instance on a computer without mapping to a drive on the server,
+ * set rootStorage to the local storage using electron's app.getPath('userData')
+ */
 //const rootStorage = app.getPath('userData')
 const rootStorage = 'v:/'
+
 const backupFolder = path.join(rootStorage,'/backup/')
 const dataFolder = path.join(rootStorage, `/data/`)
 const workflowDB = path.join(rootStorage, '/data', 'workflow_app.db')
