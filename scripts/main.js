@@ -9,6 +9,7 @@ const fsp = require('fs/promises')
 const {autoUpdater} = require('electron-updater')
 const log = require('electron-log');
 const errLog = log.create('anotherInstance')
+const defaultErrLog = log.create('anotherInstance')
 
 const process = require('process')
 
@@ -48,7 +49,7 @@ const logArchive = path.join(rootStorage, `/data/logs/${y}/${today}/`)
 const logLocation = path.join(rootStorage, `/data/logs/`)
 const activityLog = path.join(rootStorage, '/data/logs', `activityLog${today}.txt`)
 const errorLog = path.join(rootStorage, '/data/logs', `errorLog${today}.txt`)
-
+const defaultErrorLog = path.join(app.getPath('userData'), '/logs', `errorLog${today}.txt`)
 
 
 
@@ -74,11 +75,13 @@ onload operations
 *************************/
 //set path to errorLog files
 errLog.transports.file.resolvePath = () => errorLog;
+defaultErrLog.transports.file.resolvePath = () => defaultErrorLog;
 async function readyUpdates(){
    
     autoUpdater.logger = log;
     autoUpdater.logger.transports.file.level = 'info';
     log.info('App starting...');
+    
 
     autoUpdater.on('checking-for-update', () => {
         sendStatusToWindow('Checking for update...');
@@ -96,14 +99,16 @@ async function readyUpdates(){
     })
     autoUpdater.on('download-progress', (progressObj) => {
         let log_message = "Download speed: " + progressObj.bytesPerSecond;
-        log_message = log_message + ' - Downloaded ' + progressObj.percent.toFixed() + '%';
+        log_message = log_message + ' - Downloaded ' + Math.floor(progressObj.percent) + '%';
         log_message = log_message + ' (' + progressObj.transferred.toFixed() + "/" + progressObj.total.toFixed() + ')';
-        sendStatusToWindow(log_message);
+        //sendStatusToWindow(log_message);
+        sendStatusToWindow("Download progress",Math.floor(progressObj.percent));
     })
     autoUpdater.on('update-downloaded', (info) => {
         sendStatusToWindow('Update downloaded');
         autoUpdater.quitAndInstall();
     });
+    
 }
 process.on('uncaughtException', (err, origin) => {
     uncaughtCount++
@@ -144,8 +149,8 @@ function createFolder(dir, isRecursive){
 async function checkForFolder(dir, isRecursive){
     try {
         const files = await fsp.readdir(dir);
-        for (const file of files)
-          console.log(`${dir} ${file}`);
+        //for (const file of files)
+        //  console.log(`${dir} ${file}`);
     } catch (err) {        
         return createFolder(dir,isRecursive)
     }
@@ -161,7 +166,9 @@ async function checkForDB(db){
     const info = await fsp.stat(db)
     }catch(e){
         //updateWin.webContents.send('new-database')
-        return createDatabase(db)
+        //await createDatabase(db)
+        console.log('&&&&&&&&&&'+e)
+        return await createDatabase(db)
     }
 }
 
@@ -171,31 +178,47 @@ async function checkForWhiteboard(){
     console.log(wb)    
 }
 async function checkForPathToRootStorage(path){
+    
     try {
-        const files = await fsp.readdir(rootStorage);
+        sendStatusToWindow('Checking for v: drive mapping...');
+        
+        await fsp.readdir(rootStorage)
         return true
+       
         
     } catch (err) {
-        log.info(err)
+        
         console.error(err);
-        app.quit()
-        return 
+        
+        return false
     }
+    
 }
 async function readyApp(){
     
     try{
-    await readyUpdates().catch(e =>{errLog.info(e)})
     
-    if(await checkForPathToRootStorage(rootStorage)){
     
+    let driveExists = await checkForPathToRootStorage(rootStorage)
+    console.log(driveExists)
+    if(driveExists){
+        await checkForFolder(logLocation, true) 
+        console.log('************log location done')  
         await checkForFolder(backupFolder, false)
-        await checkForFolder(logLocation, true)        
-        await checkForDB(workflowDB)
+        console.log('************backup folder done')
+             
+       
+        await checkForWhiteboard().catch(e=>{
+
+        })
+        console.log('************whiteboard done')
         readyFolders()
+
+       
         
+        console.log('************database done')
         setTimeout(() => {
-            checkForWhiteboard()
+            
             backupDB()
             fs.watch(white_board, (event, filename) => {
                         if (filename) {        
@@ -212,12 +235,22 @@ async function readyApp(){
                         }
                         
                     });
-        }, 100);
+            createMainWindow()
+        }, 2000);
+        await readyUpdates().catch(e =>{errLog.info(e)})
+        console.log('************updates done')
     }else{
-        errLog.error('rootStorage (v:) not mapped')
-        app.quit()
-    }    
+        updateWin.webContents.send('no-mapped-drive')
         
+        defaultErrLog.error('rootStorage (v:) not mapped')
+        
+    }   
+   
+    await checkForDB(workflowDB)
+    .catch(e=>{
+        console.log('error creating database')
+    })
+    
     }catch(e){
         log.info(e)
     }
@@ -227,7 +260,7 @@ async function readyApp(){
 
 
 //function to create database if it doesn't exist
-function createDatabase(file){
+async function createDatabase(file){
     console.log('createDatabase triggered')
     //build sql statements
     let customersSQL = `CREATE TABLE "customers" (
@@ -350,7 +383,10 @@ app.on('ready', ()=>{
         let currentDay = dayOfYear(new Date());
         (appStartDay == currentDay) ? console.log(`app opened today ${currentDay}`) : restartApp();
     }, 3600000)
-    readyApp()
+    setTimeout(() => {
+        readyApp()
+    }, 1000);
+    
     //check for updates
     
     //autoUpdater.checkForUpdates()
@@ -380,18 +416,18 @@ function readyFolders(){
     try{
         fs.readdir(logLocation, function(err, data) {
             if(err){
-                console.log(err)
-            }
-            if (data.length == 0) {
-                
+                console.log('error reading loglocation')
                 // create activity log
-                fs.closeSync(fs.openSync(activityLog,'w'))
+                
+                fs.closeSync(fs.openSync(activityLog,'wx+'))
                 // create error log
                 fs.closeSync(fs.openSync(errorLog,'w'))
                 //create archive folder for today
                 fs.mkdirSync(logArchive, {
                     recursive: true
                 });  
+                
+             
     
             } else {
                 
@@ -497,7 +533,7 @@ function readyFolders(){
             }
             //watch file for changes
             
-                fs.watch(activityLog, (eventType, filename) => {
+                let actLogWatcher = fs.watch(activityLog, (eventType, filename) => {
                 
                     if (filename) {        
                         if (fsWait) return;    
@@ -514,11 +550,12 @@ function readyFolders(){
                     }
                     
                 });
+                console.log(actLogWatcher)
            
         })
     
     }catch(e){
-        console.log(e)
+        console.log(`catch in readyFolders triggered ${e}`)
     }
 }
 function initiateFSWatcher(){
@@ -704,14 +741,20 @@ ipcMain.on('log-error', (event,args)=>{
     errLog.info(args)
     
 })
+ipcMain.on('quit', (event)=>{
+    app.quit();
+})
 ipcMain.on('start-app',(event)=>{
     updateWin.close()
-    createMainWindow()
+    //createMainWindow()
     
 })
 ipcMain.on('no-updates', (event)=>{
-    updateWin.close()
-    createMainWindow()
+    
+        updateWin.close()
+       
+    
+    
 })
 
  ipcMain.on('get-whiteboard', (event, args1, args2)=>{
@@ -1211,14 +1254,13 @@ async function getCustomerName(args){
        log.close()
        
     }
-    function sendStatusToWindow(text) {
-        //errLog.info(text)
-        //log.info(text);
-        //console.log(text)
+    function sendStatusToWindow(text, val) {
+        
         if(updateWin){
-        updateWin.webContents.send('updater', text);
+            (val) ? updateWin.webContents.send('updater', text, val) : updateWin.webContents.send('updater', text);
+        
         }
-      }
+    }
 
 
 
@@ -2938,38 +2980,38 @@ async function backupDB(){
         try{
         switch(hour){
             case 7:
-                whichDB = 'v:/backup/backup07.db'
+                whichDB = `${backupFolder}backup07.db`
                 break;
             case 8:
-                whichDB = 'v:/backup/backup08.db'
+                whichDB = `${backupFolder}backup08.db`
                 break;
             case 9:
-                whichDB = 'v:/backup/backup09.db'
+                whichDB = `${backupFolder}backup09.db`
                 break;
             case 10:
-                whichDB = 'v:/backup/backup10.db'
+                whichDB = `${backupFolder}backup10.db`
                 break;
             case 11:
-                whichDB = 'v:/backup/backup11.db'
+                whichDB = `${backupFolder}backup11.db`
                 break;
             case 12:
-                whichDB = 'v:/backup/backup12.db'
+                whichDB = `${backupFolder}backup12.db`
                 break;
             case 13:
-                whichDB = 'v:/backup/backup13.db'
+                whichDB = `${backupFolder}backup13.db`
                 break;
             case 14:
-                whichDB = 'v:/backup/backup14.db'
+                whichDB = `${backupFolder}backup14.db`
                 break;
             case 15:
-                whichDB = 'v:/backup/backup15.db'
+                whichDB = `${backupFolder}backup15.db`
                 break;
             case 16:
                 
-                whichDB = 'v:/backup/backup16.db'
+                whichDB = `${backupFolder}backup16.db`
                 break;
            default:
-               whichDB = 'v:/backup/backup20.db'
+               whichDB = `${backupFolder}backup20.db`
                 break;
         }
     }catch(e){
@@ -2981,7 +3023,7 @@ async function backupDB(){
          
     })
     if(objStats){
-        //let whichDB = (currentTime > '11:06:00 PM')?'v:/backup1.db':'v:/backup2.db'
+        
         console.log(current.toLocaleTimeString('en-US',{hourCycle:'h23'}))
         
         
@@ -3042,7 +3084,7 @@ async function backupDB(){
                 
                 }, 250);
             }catch(e){
-                errLog.info(e)
+                errLog.info(`catch triggered in backupDB ${e}`)
             }
         
         }else{

@@ -238,6 +238,7 @@ function saveWhiteBoard(wb){
  function loadJobs(args){
 	fillScheduleGlimpse(args)
 	createCompleted(args)
+	console.log(`args passed into loadJobs() is ${args}`)
 	for (var member in args){ 
 		placeElement(args[member]);			
 	}
