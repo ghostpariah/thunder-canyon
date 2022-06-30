@@ -4,7 +4,9 @@ body{
     color:#5e81ad;
     font-family: 'Arial Narrow';
 }	
-
+#addBlock{
+  width:528px;
+}
 
 #custNameWrapper  ul{
     list-style: none;
@@ -128,19 +130,24 @@ select {
   select optgroup[label]{
     font-size: 1.25em;
     MARGIN-LEFT:0PX;
+    color:black;
+    background-color:rgb(214, 212, 212);
   }
   optgroup option{
-    font-size: .85em;
+    font-size: .70em;
+    font-weight:900;
+    text-indent:20px;
     padding-left:50px;
-    
+    color:black;
+    background-color:white;
     
   }
   select option[disabled]{
     
-    color:rgb(33, 33, 180);/*rgb(77, 57, 50);*/
+    color:rgb(77, 76, 76);/*rgb(77, 57, 50);*/
     font-size: 20px;
     font-weight:100;
-    
+    border-bottom:1px solid;
     
   }
  
@@ -189,6 +196,7 @@ select {
 #formButtons{
     width: 100%;
     margin-left: 20px;
+    
 }
 #formButtons input{
     margin:5px;
@@ -202,4 +210,19 @@ input[type="text"], select{
 #contactsList{
     float: right;
     width:185px;
+}
+.btn{
+  float:right;
+  border:1px solid #5e81ad;
+  background-color:#5e81ad;
+  margin: 3px;;/* */
+  padding:1px 3px;
+  cursor:pointer;
+  color: black;
+  width: 100px;
+  text-align: center;  
+}
+.btn:hover{
+  color:white;
+  
 }

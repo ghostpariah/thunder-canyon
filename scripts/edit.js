@@ -74,8 +74,9 @@ ipcEdit.on('edit-data', async (event,args, args2, args3)=>{
 ipcEdit.on('contacts-updated', (event,args,args2)=>{
 	console.log(args)
 	console.log('passed item ID '+args2)
+	fillContacts(args)
 	setTimeout(() => {
-        fillContacts(args)
+        
 		for(var i=0; i<selContacts.options.length;i++) {
 			if(selContacts.options[i].id == args2) {
 				selContacts.selectedIndex = i;

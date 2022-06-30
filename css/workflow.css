@@ -317,15 +317,22 @@ margin-right: px;
 .colorBlock{
 	font-size: 11px;
 	font-family:Arial, Helvetica, sans-serif;
-	border-radius: 25%;
-	color: white;
+	border-radius: 25%;	
 	float:left;
 	padding:3px;
 }
+.am{
+	color:aliceblue;
+}
+.pm{
+	color:black;
+}
 .glimpseCustomer{
 	width:85%;
+	height:18px;
 	float:left;
-	
+	display:flex;
+	align-items:center;
 	font-size: 13px;
 	font-weight:bold;
 	color: black;

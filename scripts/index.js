@@ -404,7 +404,7 @@ function fillScheduleGlimpse(args){
 			schedItem.setAttribute('class', 'glimpseItem')
 			let jobType = document.createElement('div')
 			let color
-			jobType.setAttribute('class', 'colorBlock')
+			
 			switch(v[j][i].job_type){
 				case 'Spring':
 					color = '#5e81ad';
@@ -424,13 +424,26 @@ function fillScheduleGlimpse(args){
 				default:
 					break;
 			}
-
-			jobType.setAttribute('style','background-color:'+color)
+			let textColor
+			console.log(v[j][i].time_of_day)
+			switch(v[j][i].time_of_day){
+				case 'am':
+					textColor = "am";
+					break;
+				case 'pm':
+					textColor = "pm";
+					break;
+					default:
+						break;
+			}
+			// jobType.setAttribute('style','color:'+textColor);
+			jobType.setAttribute('class', `colorBlock ${textColor}`)
+			jobType.setAttribute('style',`background-color:${color}`)
 			let n 
 			let name = document.createElement('div')
 			name.setAttribute('class','glimpseCustomer')
 			
-			let tJT = document.createTextNode(v[j][i].time_of_day);
+			let tJT = document.createTextNode(v[j][i].time_of_day.toUpperCase());
 			for(member in objCustomerNames){
 				if(objCustomerNames[member].customer_ID == v[j][i].customer_ID){
 					n=objCustomerNames[member].customer_name

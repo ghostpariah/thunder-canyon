@@ -2208,6 +2208,11 @@ ipcMain.on('close-window', (event,args)=>{
         case 'Add Job':
             addJobWin.close()
             break;
+        case 'Contacts':
+            contactWin.close()
+            break;
+            default:
+                break;
     }
 })
 ipcMain.on('delete-scheduled', (event,args,args2)=>{
@@ -2633,7 +2638,7 @@ ipcMain.on('get-contacts', (event, args)=>{
     }//end main if
    
 })
-ipcMain.on('edit-phone', (event,args)=>{
+ipcMain.on('edit-phone', (event,args,args2)=>{
     let dboPhone = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
@@ -2650,12 +2655,13 @@ ipcMain.on('edit-phone', (event,args)=>{
             return console.error(err.message);
         }
         console.log(`Row(s) updated: ${this.changes}`);
+        contactWin.webContents.send('contact-edited',args2)
         dboPhone.close() 
         });
           
 })
 
-ipcMain.on('edit-email', (event,args)=>{
+ipcMain.on('edit-email', (event,args,args2)=>{
     let dboEmail = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
@@ -2672,6 +2678,7 @@ ipcMain.on('edit-email', (event,args)=>{
             return console.error(err.message);
         }
         console.log(`Row(s) updated: ${this.changes}`);
+        contactWin.webContents.send('contact-edited',args2)
         dboEmail.close() 
         }); 
          
@@ -2695,7 +2702,7 @@ ipcMain.on('edit-primary-contact', (event, args1, args2)=>{
         dboCN.close() 
         });  
 })
-ipcMain.on('edit-contact-name', (event,args)=>{
+ipcMain.on('edit-contact-name', (event,args,args2)=>{
     let dboCN = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
@@ -2731,6 +2738,7 @@ ipcMain.on('edit-contact-name', (event,args)=>{
             return console.error(err.message);
         }
         console.log(`Row(s) updated: ${this.changes}`);
+        contactWin.webContents.send('contact-edited',args2)
         dboCN.close() 
         });  
         
@@ -2765,6 +2773,7 @@ ipcMain.on('add-phone', (event,args)=>{
              console.log(err.message)
          }
          console.log(`${this.changes} items inserted at row: ${this.lastID}`)
+         contactWin.webContents.send('item-added',this.lastID)
          dboNewPhone.close()
         }) 
         

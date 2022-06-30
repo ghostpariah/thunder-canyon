@@ -188,15 +188,18 @@ function fillCustomerDataList(){
 			chosenCompanyID =null
 			val = this.value;
 			chosenCompany = val.trim()
+			chosenCompany = chosenCompany.replace(/  +/g, ' ');
+			$('#txtContacts').text = chosenCompany;
 			console.log(chosenCompany)
-			chosenCompanyID = ipc.sendSync('get-customer-ID', this.value)
+			chosenCompanyID = ipc.sendSync('get-customer-ID', chosenCompany)
 			console.log(chosenCompanyID)
 			console.log(this.value)
 
 			// if 'get-customer-ID' returned false or null
-			if(!chosenCompanyID){			
+			if(chosenCompanyID === false || chosenCompanyID === null){			
 				//call fill contacts with false value
 				fillContacts(this.value)
+				console.log('chosenCompanyID was'+chosenCompanyID)
 
 			}else{
 				//pull contacts with chosenCompanyID
@@ -214,6 +217,13 @@ function fillCustomerDataList(){
 	});
 	
 	
+}
+// function to validate that company name only has one space inbetween words and no spaces at beginning and end
+function validateCompanyName(s) {
+    if (/(\w+\s?)*\s*$/.test(s)) {
+        return s.replace(/\s+$/, '');
+    }
+    return 'NOT ALLOWED';
 }
 
 async function clearContacts(){
@@ -360,7 +370,7 @@ function addJob (){
 	
 	
 	//build job object
-	objNewJob.customer_ID =(chosenCompanyID != null && chosenCompanyID != '') ? chosenCompanyID : ipc.sendSync('add-new-customer', txtCN.value.trim())
+	objNewJob.customer_ID =(chosenCompanyID != null && chosenCompanyID != '') ? chosenCompanyID : ipc.sendSync('add-new-customer', txtCN.value.trim().replace(/  +/g, ' '))
 	objNewJob.customer_name = ipc.sendSync('db-get-customer-name',objNewJob.customer_ID)
 	if(txtCon.options[txtCon.selectedIndex].getAttribute("method")=="phone"){
 		objNewJob.number_ID = txtCon.options[txtCon.selectedIndex].id
