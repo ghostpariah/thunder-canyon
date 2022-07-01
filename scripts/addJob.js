@@ -140,25 +140,24 @@ function fillCustomerDataList(){
 		var newOption=document.createElement("OPTION");
 		
 		newOption.setAttribute("value",customerList[i].customer_name.toUpperCase());
-		newOption.setAttribute("id", customerList[i].customer_ID)
+		newOption.setAttribute("id", customerList[i].customer_ID)		
 		element.appendChild(newOption);		
 		
 	}
 	var val
+	for (let option of element.options) {
+		console.log(option)
+		option.style.display = 'block'
+		option.onclick = function () {
+		  this.value = option.value;
+		//   element.style.display = 'none';
+		  this.style.borderRadius = "5px";
+		}
+	}
 	$("#txtCustomerName").on({
 		
 		'keydown': function (event) {
-			// chosenCompanyID = null
-			// val = this.value;	
 			
-			// if(event.keyCode == 13 || event.keyCode == 9) {			
-				
-			// 		chosenCompany = val
-					
-			// 		//fillContacts(chosenCompany)
-			// 		$('#txtContacts').focus()			
-				
-			// }
 		 },
 		'keyup': function(){
 			//reset contacts if backspacing to empty field
@@ -212,10 +211,10 @@ function fillCustomerDataList(){
 			//clear the input field and contacts when clicked in or tabbing to
 			clearContacts()
 			this.value = ""
+			
 		}
 		
 	});
-	
 	
 }
 // function to validate that company name only has one space inbetween words and no spaces at beginning and end

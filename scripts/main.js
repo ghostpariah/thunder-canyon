@@ -1035,6 +1035,25 @@ ipcMain.on('get-jobs', (event,args)=>{
     
       
 })
+
+ipcMain.on("edit-customer-name", (event, args1, args2)=>{
+    console.log(`args1 in edit-customer-name is ${args1} and args2 is ${args2}`)
+    let dboCustomerName = new sqlite3.Database(workflowDB, (err)=>{
+        if(err){
+            console.error(err.message)
+        }
+        
+    })
+    let sql = `UPDATE customers SET customer_name='${args1}' WHERE customer_ID= ${args2}`;
+
+    dboCustomerName.run(sql, function(err) {
+        if (err) {
+            return console.error(err.message);
+        }
+        contactWin.webContents.send('customer-name-updated',args1,args2)
+    }) 
+    dboCustomerName.close()
+})
 ipcMain.on('db-get-customer-name',(event, args)=>{
     
     let dboCustomerName = new sqlite3.Database(workflowDB, (err)=>{
@@ -1051,7 +1070,7 @@ ipcMain.on('db-get-customer-name',(event, args)=>{
             return err
         }else{
             //console.log(args)
-            //console.log(`from db-get-customer-name row= ${row[0].customer_name}`)
+            // console.log(`from db-get-customer-name row= ${row[0].customer_name}`)
             event.returnValue = row[0]?.customer_name
         }
         dboCustomerName.close()
@@ -1099,7 +1118,7 @@ async function getCustomerName(args){
     
     
     async function logActivity(args1, args2, args3){
-        console.log(`args2 in logActivity = ${JSON.stringify(args3)}`)
+        //console.log(`args2 in logActivity = ${JSON.stringify(args3)}`)
         let jobCustomer
         const actLog = fs.createWriteStream(activityLog, { flags: 'a' });      
         let date = new Date()

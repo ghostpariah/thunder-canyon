@@ -238,7 +238,7 @@ function saveWhiteBoard(wb){
  function loadJobs(args){
 	fillScheduleGlimpse(args)
 	createCompleted(args)
-	console.log(`args passed into loadJobs() is ${args}`)
+	//console.log(`args passed into loadJobs() is ${args}`)
 	for (var member in args){ 
 		placeElement(args[member]);			
 	}
@@ -425,7 +425,7 @@ function fillScheduleGlimpse(args){
 					break;
 			}
 			let textColor
-			console.log(v[j][i].time_of_day)
+			//console.log(v[j][i].time_of_day)
 			switch(v[j][i].time_of_day){
 				case 'am':
 					textColor = "am";
@@ -442,7 +442,7 @@ function fillScheduleGlimpse(args){
 			let n 
 			let name = document.createElement('div')
 			name.setAttribute('class','glimpseCustomer')
-			
+			//let tJT = (v[j][i].time_of_day == 'am')? `<img src="../images/afternoon2.png">`: `<i class="fa-solid fa-moon"></i>`;
 			let tJT = document.createTextNode(v[j][i].time_of_day.toUpperCase());
 			for(member in objCustomerNames){
 				if(objCustomerNames[member].customer_ID == v[j][i].customer_ID){
@@ -451,7 +451,7 @@ function fillScheduleGlimpse(args){
 				}
 			}
 			let tName = document.createTextNode(n.toUpperCase())
-			
+			//jobType.innerHTML = tJT
 			jobType.appendChild(tJT)			
 			schedItem.appendChild(jobType)
 			name.appendChild(tName)
@@ -865,42 +865,32 @@ function allowDrop(ev) {
 
 function drag(ev) {
 	try{
-	//console.log(ev.target.id)
-	//ev.currentTarget.firstChild.style.display = 'none';
-	let img = new Image()
-	img.src="../images/semi3.png"
-	ev.dataTransfer.setData("Text", ev.target.id);
-	ev.dataTransfer.setDragImage(img, 0, 0);
 	
+	let img = new Image()
+	img.src="../images/logoMedium.png"
+	ev.dataTransfer.setData("Text", ev.target.id);
 	document.getElementById(ev.currentTarget.childNodes[1].id).style.display = "none";
-	document.getElementById('context-Menu-'+ev.currentTarget.id.substr(4))
+	document.getElementById('context-Menu-'+ev.currentTarget.id.substr(4)).style.display="none"
+	ev.dataTransfer.setDragImage(img, -20, -20);
+	
+	
 	}catch(e){
 		logError(e);
 	}
 }
 
-
-function drop(ev) {
+function changeLocation(targetID,cellOccupied,data){
 	try{
-		ns = ev.target.id;
-		let newStatus;
+		ns = targetID;
+		let newStatus;		
 		
-		let data = ev.dataTransfer.getData("Text");
 		let id = data.substr(4)
 		
 		let oldStatus = document.getElementById(data).parentNode.id.substr(0, 3).toLowerCase(); 
 		
-		let newLocation 
-		
-		
-		
-		let cellOccupied = (document.getElementById(ev.target.id))?document.getElementById(ev.target.id).hasChildNodes():true;	
-		
-		ev.stopPropagation();
-		ev.preventDefault();
+		let newLocation 		
 
-		let thisJob
-		
+		let thisJob		
 		
 		let objMoving = new Object()
 		
@@ -940,14 +930,12 @@ function drop(ev) {
 		}
 		else{
 			newStatus = ns.substring(0, 3).toLowerCase();
-			newLocation = ev.target.id
+			newLocation = ns;//ev.target.id
 			objMoving.status = newStatus;
 			objMoving.shop_location = newLocation
 			objMoving.designation = 'On the Lot'
 			
-			document.getElementById(newLocation).appendChild(document.getElementById(data))
 			
-
 			// determine whether the job is being dragged from scheduled to on the lot
 			// and set date_in accordingly. 
 			if(oldStatus == 'sch' && newStatus != 'sch'){
@@ -971,8 +959,9 @@ function drop(ev) {
 					
 				}
 			}
-			document.getElementById(data).remove()
+			
 			let cn = ipc.sendSync('db-get-customer-name',custID)
+			
 			let editedJob = ipc.sendSync('edit-location-drop', objMoving, currentUser,cn)
 			
 
@@ -1021,9 +1010,48 @@ function drop(ev) {
 	}catch(e){
 		logError(e)
 	}
+	
 }
+  function drop(ev) {
+  }
+	
 
+let dragged = null;
 
+document.addEventListener("dragstart", event => {
+  // store a ref. on the dragged elem
+  dragged = event.target;
+});
+
+document.addEventListener("dragover", event => {
+  // prevent default to allow drop
+  event.preventDefault();
+});
+document.addEventListener("drop", event => {
+	// prevent default action (open as link for some elements)
+	event.preventDefault();
+	event.stopPropagation();
+	
+		let cellOccupied = (document.getElementById(event.target.id))?document.getElementById(event.target.id).hasChildNodes():true;
+		let isJobIndicator = (document.getElementById(event.target.id).classList.contains('jobIndicator'))? true : false;
+		let isJobCat = (document.getElementById(event.target.id).classList.contains('jobCat'))? true : false;
+		if(cellOccupied || isJobIndicator || isJobCat){
+			console.log('has kids')
+		}else{
+			console.log(dragged)
+			let draggedID = dragged.id;
+			let targetID = event.target.id;
+			console.log(draggedID)
+			dragged.parentNode.removeChild(dragged);
+			event.target.appendChild(dragged);
+			setTimeout(() => {
+				changeLocation(targetID,cellOccupied,draggedID);
+			}, 50);
+			
+		}
+	  
+	
+  });
 
 
 

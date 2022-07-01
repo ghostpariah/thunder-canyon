@@ -37,7 +37,27 @@
 
       <datalist id="lstCustomer" class="classic"></datalist>
     </div>
-
+    <div id="editCustNameWrapper">
+      <input
+        id="inpCompanyNameEdit"
+        autocomplete="on"
+        tabindex="1"        
+        type="text"
+        style="z-index: 20000"
+      />
+      <input 
+        type="button" 
+        value="save" 
+        class="button medium"
+        onclick="editCustomerName()"
+      />
+      <input 
+      type="button" 
+      value="cancel" 
+      class="button medium"
+      onclick="cancelCustomerNameEdit()"
+    />
+    </div>
     <div id="companyHeader"></div>
     <div id="contactsMain">
       <div id="contactsHeader">
@@ -85,7 +105,7 @@
                 id="btnSubmit"
                 type="button"
                 value="SUBMIT"
-                class="largeButton"
+                class="button large"
                 onclick="newAdd()"
               />
             </div>
@@ -94,7 +114,7 @@
                 id="btnCancel"
                 type="button"
                 value="CANCEL"
-                class="largeButton"
+                class="button large"
                 onclick="cancelAdd()"
               />
             </div>
@@ -103,14 +123,13 @@
       </div>
     </div>
     <script>
+      //node.js variables
       const conElectron = require("electron");
       const conIPC = conElectron.ipcRenderer;
-      const path = require("path");
-      const url = require("url");
-      const remote = require("electron").remote;
-      const customerNameWrapper = document.getElementById(
-        "customerNameWrapper"
-      );
+      
+
+      //DOM element variables
+      const customerNameWrapper = document.getElementById("customerNameWrapper");
       const contactForm = document.getElementById("newContactFormContainer");
       const companyHeader = document.getElementById("companyHeader");
       const contactsMain = document.getElementById("contactsMain");
@@ -120,11 +139,13 @@
       const inpLastname = document.getElementById("txtLastName");
       const inpPhoneNumber = document.getElementById("txtPhoneNumber1");
       const inpEmail = document.getElementById("txtEmail");
+      const inpPrimary = document.getElementById("cbPrimary");
       const dataList = document.getElementById("lstCustomers");
-      
+      const ecnWrapper = document.getElementById("editCustNameWrapper")
+      const CNEI = document.getElementById("inpCompanyNameEdit")
       const contactContent = document.getElementById("currentContacts");
-      const mainUL = document.getElementById("l");
-      const dt = new Date();
+     
+      //global variables
       let companyIsNew = false;
       let contactExists = false;
       let conID;
@@ -135,7 +156,7 @@
       let nameForHeader;
       let pageLauncher;
       let currentPrimary
-
+      let companyID
       let allowChar = false;
       let contactMethodIndex;
       let addCN;
@@ -163,22 +184,21 @@
         let isEmpty;
         let isAnEdit;
         let notNumeric;
-
         let areaCode;
         let prefix;
         let postfix;
         let ext;
-
         let isAreaCode;
         let isPrefix;
         let isPostfix;
         let isExt;
-
         let firstDash;
         let secondDash;
         let firstSpace;
         let secondSpace;
         let extLabel;
+
+
         /*define event listeners for input field that are applying formatPN*/
         $(inp).on({
           /* 'keydown' is the first event fired when typing a key*/
@@ -255,7 +275,7 @@
           let allCheckboxes = document.getElementsByClassName('cbPrimary')
           let all = document.getElementsByClassName('divPrimaryCheckbox')
           
-          //if(buttonList.length < 1)  throw new Error(``)
+          
           //reset buttons to default style        
           for(i=0;i<buttonList.length;i++){
             buttonList[i].setAttribute('class','mainContactButton buttonUnselected')
@@ -312,15 +332,36 @@
         }
         
       }
+
       conIPC.on('item-added', (event,args)=>{
               objC = conIPC.sendSync("get-contacts", globalObjectContact.customer_ID);
               
+
               if(pageLauncher == 'edit'){
                 conIPC.send("pass-contact", objC,args);
-                //conIPC.hide();
+               
               }
-        //addedItemID = args;
+        
       })
+
+      /*************************
+       * communication sent from main when the contacts page has been requested to open
+       * @param args1 --page that originated opening. 
+       *        "main page" -- (clicking 'contacts; button), 
+       *        "add job page" -- (when adding a new job and either adding a new contact or editing one)
+       *        "edit page" -- (when editing an existing job and either adding a new contact or editing one)
+       * 
+       * @param args2 -- customer name
+       * @param args3 -- boolian value stating  whether its a brand new customer or existing customer
+       * @param args4 -- contact first name
+       * @param args5 -- contact last name
+       * @param args6 -- existing contact ID
+       * @param args7 -- index of contact method (phone or email) ||NOT currently in use
+       * @param args8 -- user object for logging
+       * 
+       * 
+       ************************/ 
+
       conIPC.on(
         "name-chosen",
         (event, args1, args2, args3, args4, args5, args6, args7, args8) => {
@@ -414,42 +455,89 @@
           if (argCount == 0) {
             customerNameWrapper.style.display = "block";
           }
-          
+          loadContactsPage();
         
-      }catch(e){
-        conIPC.send('log-error',e)
-      }
+        }catch(e){
+          conIPC.send('log-error',e)
+        }
     });
       
 
-      setTimeout(() => {
-        loadContactsPage();
-      }, 200);
-      function factoryReset(){
-        companyHeader.style.display = "none";
-        customerNameWrapper.style.display = "block";
-        contactContent.style.display = "none";
-        document.getElementById("txtCustomerName").value="";
-      }
+    // setTimeout(() => {
+    //   loadContactsPage();
+    // }, 200);
+
+
+    function factoryReset(){
+      companyHeader.style.display = "none";
+      customerNameWrapper.style.display = "block";
+      contactContent.style.display = "none";
+      document.getElementById("txtCustomerName").value="";
+    }
+
+    function showCompanyNameEditInput(name){
+      companyHeader.style.display = "none";
+      customerNameWrapper.style.display = "none";
+      ecnWrapper.style.display="flex";
+      CNEI.value = name;
+      CNEI.focus()
+    }
+    function cancelCustomerNameEdit(){
+      companyHeader.style.display = "block";
+      ecnWrapper.style.display="none";
+    }
+
+    function editCustomerName(){
+      let c =CNEI.value.toUpperCase();
+      console.log(c)
+      conIPC.send('edit-customer-name',c,Number(companyID))
+    }
+
+    conIPC.on('customer-name-updated', (event,args1,args2)=>{
+      conIPC.send('update-main-page')
+      document.getElementById(args2).innerHTML = args1
+      pullContacts(args2)
+      companyHeader.style.display = "block";
+      ecnWrapper.style.display="none";
+      
+      
+    })
+
+
       function loadHeader(arg) {
         //gaurdian clause to exit function if arg is undefined
+        console.log(`companyName is ${arg} and companyID is ${companyID}`)
         if(arg == undefined || arg == null ) return console.log(`arg was undefined line 414 in loadHeader()`)
-
         
-         
+        companyID = conIPC.sendSync('get-customer-ID', arg);
+        console.log(`companyName is ${arg} and companyID is ${companyID} after guardian clause`)
         
         //create header
         companyHeader.innerHTML = "";
+        let h2Container = document.createElement("section")
         let compH2 = document.createElement("div");
+
+        let editCompanyNameLink = document.createElement('span')
+        let linkText = document.createTextNode('edit')
+        editCompanyNameLink.appendChild(linkText)
+        editCompanyNameLink.setAttribute('class','actionLink')
+        editCompanyNameLink.addEventListener("click", (e) => {
+          showCompanyNameEditInput(arg.toUpperCase())
+        });
+
         let compHeadText = document.createTextNode(
           arg.toUpperCase()
         );
         compH2.appendChild(compHeadText);
-        compH2.addEventListener("click", () => {
-          factoryReset();
-        });
+        // compH2.addEventListener("click", (e) => {
+        //   showCompanyNameEditInput(arg.toUpperCase())
+        // });
         compH2.setAttribute("class", "compHeader");
-        companyHeader.appendChild(compH2);
+        compH2.setAttribute('id',companyID)
+        h2Container.appendChild(compH2)
+        h2Container.appendChild(editCompanyNameLink)
+        h2Container.setAttribute('class','headerContainer')
+        companyHeader.appendChild(h2Container);
 
         //create button container
         let bc = document.createElement('div')
@@ -484,6 +572,13 @@
         btnAddCompanyContact.appendChild(btnAddText);
 
         btnAddCompanyContact.addEventListener("click", () => {
+          //clear fields
+          inpPrimary.checked = false;
+          inpFirstname.value="";
+          inpLastname.value="";
+          inpPhoneNumber.value="";
+          inpEmail.value=""
+
           state = "add"
           let selectedCompany = document.getElementById("txtCustomerName"); 
           togglePageView("add");
@@ -556,6 +651,7 @@
               
 
               chosenCompany = val;
+              
               loadHeader(chosenCompany);
               customerNameWrapper.style.display ="none"
               let cusID = opt.length
@@ -565,6 +661,7 @@
                 : "NO OPTION";
               contactContent.style.display="block";
               contactContent.innerHTML = "";
+              companyID = cusID;
               pullContacts(cusID);
               
             } else {
@@ -624,40 +721,7 @@
         }
         
       }
-      // function edit(data) {
-      //   let editData = new Object();
-      //   let whatToEdit = data.conMethod;
-        
-      //   console.log(data);
-      //   try {
-      //     if (data.companyID != undefined) {
-      //       editData.companyID = data.companyID;
-      //     }
-      //     if (data.contactID) {
-      //       editData.contactID = data.contactID;
-      //     }
-      //     switch (whatToEdit) {
-      //       case "email":
-      //         editData.email = data.email;
-      //         break;
-      //       case "phone":
-      //         editData.phoneNumber = data.phoneNumber;
-      //         break;
-      //       case "name":
-      //         editData.firstName = data.firstName;
-      //         editData.lastName = data.lastName;
-      //         break;
-      //       case "primary":
-      //         editData.primary = data.primary
-      //         break;
-      //       default:
-      //         break;
-      //     }
-      //     conIPC.send("test-dit", data);
-      //   } catch (e) {
-      //     console.log(e);
-      //   }
-      // }
+      
       
       //function for adding contact
       function newAdd() {
@@ -720,7 +784,7 @@
         }
       }
       function cancelAdd() {
-        if(pageLauncher=='edit'){
+        if(pageLauncher!='main'){
           conIPC.send('close-window');
         }
         contactContent.style.display = "block";
@@ -908,20 +972,7 @@
           
          
 
-          // objData.companyID = Number(
-          //   saveButton.parentNode.parentNode.parentNode.parentNode.id
-          // );
-          // objData.customerName = "";
-          // objData.contactID = Number(
-          //   saveButton.parentNode.parentNode.id.substr(6, 13)
-          // );
-          
-          // objData.phoneNumber = saveButton.parentNode.firstChild.value;
-
-          // objData.email = "";
-          // objData.lastName = "";
-          // objData.firstName = "";
-          // objData.method = cm;
+         
           if(pageLauncher!="edit"){
             setTimeout(function () {
                   pullContacts(

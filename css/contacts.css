@@ -20,12 +20,29 @@ datalist{
     margin-left:calc(100%/3);
 }
 #customerNameWrapper{
-    display: none;
-    float:left;
+    display:none;
+    
     
     width:100%;
-    margin:auto;
+    /* margin:auto; */
+    margin-bottom:10px;
     
+}
+#editCustNameWrapper{
+    display:none;
+    flex-direction: row;
+    justify-content: right;
+    align-items: center;
+    gap:5px;
+    width:100%;
+    
+    margin-top:25px;
+    
+  }
+#inpCompanyNameEdit{
+    margin:0;
+    display:flex;
+    height:2.5em;
 }
 #newContactFormContainer{
     display:none;
@@ -249,6 +266,27 @@ ul li ul li{
     color:#5e81ad;
     
 }
+.button{
+    float:right;
+    border:1px solid #5e81ad;
+    background-color:#5e81ad;
+    margin: 3px;;/* */
+    padding:1px 3px;
+    cursor:pointer;
+    color: black;
+    width: 70px;
+    text-align: center;  
+}
+.button:hover{
+    color:white;
+    background: #5e81ad;   
+}
+.large{
+    width:100px;
+}
+.medium{
+    width:70px;
+}
 .largeButton{
     float:right;
     border:1px solid #5e81ad;
@@ -270,10 +308,17 @@ ul li ul li{
     font-size:2em;
     margin: 10px 10px 10px 0;
     font-weight: 800;
-    width:100%;
+    
     text-align: center;
     border-bottom: 1px solid black;
-    cursor: pointer;
+    
+}
+.headerContainer{
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    width:100%;
+    
 }
 .mainContactButton{
     float:right;
