@@ -479,7 +479,9 @@
       companyHeader.style.display = "none";
       customerNameWrapper.style.display = "none";
       ecnWrapper.style.display="flex";
-      CNEI.value = name;
+      console.log(CNEI.value)
+      let val =(CNEI.value =="")?name:CNEI.value;
+      CNEI.value = val.toUpperCase();
       CNEI.focus()
     }
     function cancelCustomerNameEdit(){
