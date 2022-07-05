@@ -63,16 +63,19 @@ body{
 }
 
 .jobWalletLeft{
+    
     border:2px solid #1b1a1a;
     height:auto;
     width:300px;
     position:absolute;
     color:whitesmoke;
     left:-200px;
+    
     bottom: 40px;    
     background-color: black;
     z-index: 1;
     padding:0;
+    
     
 }
 .top{

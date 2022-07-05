@@ -38,8 +38,8 @@
 						Add New
 					</div>
 				</div>
-				<div id="headerMiddle">
-					<img id="logo" src="../images/wordmark3.png"/>
+				<div id="headerMiddle">.
+					<!-- <img id="logo" src="../images/wordmark3.png"/>-->
 				</div>
 				<div id="headerRight">
 					<div id= 'topCounts'>
@@ -114,7 +114,10 @@
 					<span style="background-color:#ff2d00;">Frame</span>
 				</div>
 				<div id="legend-statuses">
-					<img src="../images/dollarSignSmaller.jpg"/> = Cash Customer <b>|</b>&nbsp; 
+					<div class="legend-status">
+						<img src="../images/dollarSignSmaller.jpg"/>
+						<span> = Cash Customer <b>|</b>&nbsp; </span>
+					</div>
 					<img src="../images/iconWaiting.png"/> = Customer Waiting <b>|</b>&nbsp; 
 					<img src="../images/iconParts.png"/> = Waiting For Parts <b>|</b>&nbsp;
 					<img src="../images/iconApproval.png"/> = Waiting For Approval <b>|</b>&nbsp;
@@ -194,6 +197,7 @@
 						<div class="header" id="wfwHeader">
 							On the Lot
 						</div>
+						<div id="buckets">
 						<div class="bucket" id="sBucket">
 						<div class="job" id="wfw0" name="holder" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
 						<div class="job" id="wfw1" name="holder" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
@@ -264,7 +268,7 @@
 							<div class="job" id="wfw58" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
 							<div class="job" id="wfw59" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
 							</div>
-						
+						</div>
 					</div>
 
 				</div>
@@ -276,34 +280,45 @@
 						<div class="headerShop">
 							Back Shop
 						</div>
-						<div id="wip0" class="job" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
-						<div id="wip1" class="job" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+						<div class="shop-section">
+							<div id="wip0" class="job" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+							<div id="wip1" class="job" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+						</div>
 						<div class="headerShop">
 							Alignment
 						</div>
-						<div id="wip2" class="job" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
-						<div id="wip3" class="job" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+						<div class="shop-section">
+							<div id="wip2" class="job" ondrop="drop(event)" ondragover="allowDrop(event)"></div>						
+							<div id="wip3" class="job" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+						</div>
 						<div class="headerShop">
 							Frame
 						</div>
-						<div id="wip4" class="job" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
-						<div id="wip5" class="job" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+						<div class="shop-section">
+							<div id="wip4" class="job" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+							<div id="wip5" class="job" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+						</div>
 						<div class="headerShop">
 							Pit 2
 						</div>
-						<div id="wip6" class="job" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
-						<div id="wip7" class="job" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+						<div class="shop-section">
+							<div id="wip6" class="job" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+							<div id="wip7" class="job" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+						</div>
 						<div class="headerShop">
 							Pit 1
 						</div>
-						<div id="wip8" class="job" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
-						<div id="wip9" class="job" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+						<div class="shop-section">
+							<div id="wip8" class="job" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+							<div id="wip9" class="job" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+						</div>
 						<div class="headerShop">
 							Floor
 						</div>
-						<div id="wip10" class="job" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
-						<div id="wip11" class="job" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
-
+						<div class="shop-section">
+							<div id="wip10" class="job" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+							<div id="wip11" class="job" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+						</div>
 					</div>
 					<div id="bottom">
                     

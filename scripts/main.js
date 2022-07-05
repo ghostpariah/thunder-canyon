@@ -1,6 +1,6 @@
 
 const electron = require('electron')
-const {app, BrowserWindow, ipcMain, Menu, MenuItem, globalShortcut} = require('electron')
+const {app, BrowserWindow, ipcMain, Menu, MenuItem, globalShortcut,session} = require('electron')
 const path = require('path')
 const url = require('url')
 const fs = require('fs')
@@ -10,7 +10,7 @@ const {autoUpdater} = require('electron-updater')
 const log = require('electron-log');
 const errLog = log.create('anotherInstance')
 const defaultErrLog = log.create('anotherInstance')
-
+const Store = require('electron-store')
 const process = require('process')
 
 
@@ -55,7 +55,7 @@ const defaultErrorLog = path.join(app.getPath('userData'), '/logs', `errorLog${t
 
 let objList
 let win 
-
+let zoomLevel
 let fsWait = false;
 let loginWin
 let contactWin
@@ -68,11 +68,38 @@ var checkDate
 let updateWin
 let uncaughtCount = 0
 
+// const userSchema ={
+//     user_ID:{
+
+//     },
+//         userName:{
+//             type: 'string',
+//             default: 'userName'
+//         },
+//         password:{ 
+//             type: 'string',
+//             default: 'password'
+            
+//         },
+//         loggedIn:{
+//             type: 'boolean',
+//             default: false
+//         } 
+
+//     }
+    
+
+// };
+const userStore = new Store()
+
 /***********************
 ********
 onload operations
 **********
 *************************/
+
+
+
 //set path to errorLog files
 errLog.transports.file.resolvePath = () => errorLog;
 defaultErrLog.transports.file.resolvePath = () => defaultErrorLog;
@@ -112,13 +139,19 @@ async function readyUpdates(){
 }
 process.on('uncaughtException', (err, origin) => {
     uncaughtCount++
-    console.log(err)
-    logErr(err)
-    logErr(origin)
+    console.log(`error syscall is ${err}`)
+    console.log(origin)
+    if(err.code == 'ECONNRESET'){
+        console.log('the error code for the uncaught exception is '+err.code)
+        
+    }
+    // logErr(err)
+    // logErr(origin)
     if(uncaughtCount<2){
-        restartApp()
+        //restartApp()
     }
   });
+
 
 
 /**
@@ -374,44 +407,28 @@ async function createDatabase(file){
        
     return db;
 }
+function logout(){
+    const dateLog = new Date()
+    userStore.set('loggedIn',false)
+    userStore.set('time-out', dateLog.getTime())
+}
 app.on('ready', ()=>{
     createUpdateWindow()
-    // prompt restart if app was left open on previous day
-    
-    
-    checkDate = setInterval(function (){
-        let currentDay = dayOfYear(new Date());
+
+    // interval to check every hour and restart if app was left open on previous day
+    //interval cleared in restartApp()
+    checkDate = setInterval(function (){        
         (appStartDay == currentDay) ? console.log(`app opened today ${currentDay}`) : restartApp();
     }, 3600000)
-    setTimeout(() => {
-        readyApp()
-    }, 1000);
+    readyApp()
+    // setTimeout(() => {
+    //     readyApp()
+    // }, 1000);
     
-    //check for updates
-    
-    //autoUpdater.checkForUpdates()
-    
-    
-    // ready the files. create folder for year and day if it doesn't exist and then
-    // copy log files to the directory and empty the daily logs
-
-    //check if logs/ directory is empty
-
-    // create activityLog and archive folders if activityLog doesn't exist (this
-    // means the app is opened for the first time)
-
-
-    
-
-    
-
-    
-    
-   
-    
-    
+      
        
 })
+
 function readyFolders(){
     try{
         fs.readdir(logLocation, function(err, data) {
@@ -643,6 +660,9 @@ app.on('activate', () => {
  * communication with main workflow page js index.js
  * 
  ************************************/
+ipcMain.on('zoom-level',(event,args)=>{
+    zoomLevel = args
+})
 ipcMain.on('create-new-database',(event)=>{
     createDatabase(workflowDB)
 })
@@ -1081,6 +1101,8 @@ ipcMain.on('db-get-customer-name',(event, args)=>{
 function restartApp(){
     console.log('restarting app');
     clearInterval(checkDate);
+    /*--@logout --uncomment function call below to force logout on app restart*/
+    //logout();
     app.relaunch();
     app.quit();
 }
@@ -1787,8 +1809,8 @@ ipcMain.on('db-get-contact-name',(event, args1, args2)=>{
 function createMainWindow(){
     
     win = new BrowserWindow({
-        width: 1620,
-        height: 841,  
+        width: 1200,//1620
+        height: 600, //841 
         hasShadow: false,   
         icon: path.join(__dirname, '../images/logo.ico'),
         autoHideMenuBar: true,
@@ -1809,7 +1831,17 @@ function createMainWindow(){
         protocol: 'file',
         slashes:true
     }))
+    console.log("main window has loaded this is just before the session is create")
     
+    // let mainSession = win.webContents.session;
+    // mainSession.cookies.get({url: "http://www.github.com"})
+    // .then((cookies)=>{
+    //     console.log(cookies)
+    // }).catch((error)=>{
+    //     console.log(error)
+    // })
+    
+    win.maximize()
     win.on('ready', ()=>{
         
        
@@ -2162,28 +2194,39 @@ function createContactsWindow(args1, args2, args3, args4, args5,args6,args7,args
         })
 
         contactWin.on('closed', ()=>{
-            contactsWin = null
+            contactWin = null
             win.focus()
         })
         
     
 }
 function createCalendarWindow(args,args2){
-    calendarWin = new BrowserWindow({
-            parent: win,
-            modal: true,
-            width:1087,//1140
-            height: 477,//600
-            autoHideMenuBar: true,
-            show: false,
-            webPreferences: {
-                nodeIntegration: true,
-                webSecurity: false,
-                contextIsolation: false
     
-            }
-            
-          })
+    const opts = {
+        parent: win,
+        modal: true,
+        width:1087,//1140
+        height: 477,//600
+        autoHideMenuBar: true,
+        show: false,
+        webPreferences: {
+            nodeIntegration: true,
+            webSecurity: false,
+            contextIsolation: false
+
+        }
+        
+      }
+      
+    
+    
+        if(zoomLevel == 1.5){
+            Object.assign(opts, {
+                x: 100,
+                y: 10,
+                });
+        }
+    calendarWin = new BrowserWindow(opts)
           calendarWin.loadURL(url.format({
             pathname: path.join(__dirname, '../pages/calendar.html'),
             protocol: 'file',
@@ -2191,8 +2234,7 @@ function createCalendarWindow(args,args2){
         }))
         calendarWin.once('ready-to-show', () => {
             calendarWin.show()
-            //win.preventDefault
-            //attachDatePicker()
+           
             
           })
 
@@ -2902,25 +2944,65 @@ ipcMain.on('delete-item', (event,args)=>{
 ipcMain.on('open-create-user', (event,args)=>{
     createCreateUserWindow()
 })
-
+ipcMain.on('logout',(event,args)=>{
+    logout()
+})
 
 ipcMain.on('login-success',(event, args)=>{
-    
-    if(args.role == 'admin'){
-     win.webContents.send('show-admin-elements', args)
-    }else{
-        win.webContents.send('show-user-elements', args)
-      
+    console.log('line:2944 args.role is '+args.role)
+    if(args.user){
+        console.log(args.user)
+        return
     }
-    loginWin.hide()
-    loginWin.close()
-    loginWin = null
+   try{
+     if(args.role == 'admin'){
+      win.webContents.send('show-admin-elements', args)
+     }else{
+         win.webContents.send('show-user-elements', args)
+       
+     }
+   }catch(e){
+    console.log(e)
+   }
+     
+    userStore.set({
+         
+            'user_ID': args.user_ID,          
+            'user_name': args.user_name,
+            'password': args.password,
+            'role':args.role,
+            'active': args.active,
+            'loggedIn': true,
+            'time-in' : date.getTime(),
+            'time-out': date.getTime()               
+         
+        
+    })
+    if(loginWin!=null){
+        loginWin.hide()
+        loginWin.close()
+        loginWin = null
+    }
+    
 })
 
 
 ipcMain.on('open-login-window', function(){
     createLoginWindow()
 })
+
+ipcMain.on('get-logged-in-user', (event)=>{
+    let objUser= new Object;
+    objUser.user_ID  = userStore.get('user_ID') 
+    objUser.user_name = userStore.get('user_name')
+    objUser.role = userStore.get('role')
+    objUser.password = userStore.get('password')
+    objUser.active = userStore.get('active')
+    objUser.loggedIn = userStore.get('loggedIn')
+    
+    event.returnValue = objUser
+})
+
 
 /********
  * communications regarding reports

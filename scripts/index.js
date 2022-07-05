@@ -27,12 +27,13 @@ const arrBottomHalf = ['wfw7','wfw8','wfw9','wfw10','wfw11',
 
 const arrShopLocations = ['wip0','wip1','wip2','wip3','wip4','wip5','wip6','wip7','wip8','wip9','wip10','wip11']
 let popupDate
-let loggedIn = false
+let objLoggedInUser
 let admin = false
 let totalCount = 0
 let lotCount = 0
 let scheduledCount = 0
 let completedCount = 0
+
 let openContent = createOpenContent();
 let accessGrantedContent
 let allJobs
@@ -56,16 +57,35 @@ var largestBucket = 0;
  ************/
 
 window.onload = () =>{
+	console.log(window.devicePixelRatio)
+	let pr = window.devicePixelRatio
+	ipc.send('zoom-level',pr)
 	 try{
-	allJobs = ipc.sendSync('pull_jobs')		
-	accessGrantedContent = document.getElementById('contentArea').innerHTML	
-	document.getElementById('contentArea').innerHTML = openContent;	
+		objLoggedInUser = getLoggedInObject()
+		allJobs = ipc.sendSync('pull_jobs')		
+		accessGrantedContent = document.getElementById('contentArea').innerHTML	
+		console.log(objLoggedInUser)
+		if(objLoggedInUser.loggedIn == true){
+			console.log('from index.html onload in if statement')
+			ipc.send('login-success', objLoggedInUser)
+			
+		 }else{	
+		console.log('from onload...not logged in')
+		document.getElementById('contentArea').innerHTML = openContent;	
+		document.getElementById('contentArea').style.display = 'flex'
+		 }
+		
+	
 	 }catch(e){
 		 logError(e)
 	 }
 	
+	
 } 
-
+getLoggedInObject = ()=>{
+	return ipc.sendSync('get-logged-in-user')
+	
+}
 
 $('body').on('focus',".popup", function(){
     $(this).datepicker();
@@ -129,14 +149,17 @@ ipc.on('placeNewJob', (event, args)=>{
 
 //show admin elements for admin user
 ipc.on('show-admin-elements', (event, args)=>{
+	console.log('show-admin triggered')
 	currentUser = args	
 	admin = true;
+	
 	document.getElementById('contentArea').innerHTML = accessGrantedContent;
+	document.getElementById('contentArea').style.display = 'flex'
 	document.getElementById("btnLogin").innerHTML='Log Out'
 	document.getElementById('login-message').innerHTML=`<b> ${args.user_name.charAt(0).toUpperCase() + args.user_name.slice(1)}</b>`
-	document.getElementById('topCounts').style.display = 'block';	
-	document.getElementById('btnContacts').style.display = 'inline-block';	
-	document.getElementById("addNewJob").style.display = "block";
+	document.getElementById('topCounts').style.display = 'flex';	
+	document.getElementById('btnContacts').style.display = 'flex';	
+	document.getElementById("addNewJob").style.display = "flex";
 	countStatuses()	
 	toggleAdminElements(admin)
 	loadJobs(allJobs)
@@ -146,13 +169,13 @@ ipc.on('show-admin-elements', (event, args)=>{
 ipc.on('show-user-elements', (event, args)=>{
 	admin = false
 	currentUser = args
-	document.getElementById('contentArea').innerHTML = accessGrantedContent	
-	
-	document.getElementById('topCounts').style.display = 'block';
-	document.getElementById('btnContacts').style.display = 'inline-block';
+	document.getElementById('contentArea').innerHTML = accessGrantedContent		
+	document.getElementById('contentArea').style.display = 'flex'
+	document.getElementById('topCounts').style.display = 'flex';
+	document.getElementById('btnContacts').style.display = 'flex';
 	document.getElementById("btnLogin").innerHTML='Log Out'
-	document.getElementById('login-message').innerHTML=`Welcome ${args.user_name}!`	
-	document.getElementById("addNewJob").style.display = "block";
+	document.getElementById('login-message').innerHTML=`${args.user_name.charAt(0).toUpperCase() + args.user_name.slice(1)}`	
+	document.getElementById("addNewJob").style.display = "flex";
 	countStatuses()
 	toggleAdminElements(admin)
 	loadJobs(allJobs)
@@ -168,20 +191,37 @@ ipc.on('whiteboard-updated', (event,args)=>{
  * functions for opening modal windows
  ******************/
 
- function openLoginWindow(){	
-	if(!loggedIn){		
-		loggedIn = true
-		ipc.send('open-login-window')
-	 }else{
-		loggedIn= false
-		document.getElementById("btnLogin").innerHTML='Log In'
+ function openLoginWindow(){
+	objLoggedInUser = getLoggedInObject()	
+
+	switch(objLoggedInUser.loggedIn){
+		case undefined:
+			console.log('loggedIn is undefined')
+			ipc.send('open-login-window')
+			break;
+		case true:
+			console.log('loggedIn is true')
+			ipc.send('logout')
+			logOutReset()
+			break;
+		case false:
+			console.log('loggedIn is false')
+			ipc.send('open-login-window')
+	}
+	
+	
+		
+		
+	 
+}
+function logOutReset(){
+	document.getElementById("btnLogin").innerHTML='Log In'
 	 	document.getElementById("btnAdmin").style.display = "none";
 		document.getElementById("t").style.display = "none";
 		document.getElementById('btnContacts').style.display = 'none';
 		document.getElementById('addNewJob').style.display="none";
 		document.getElementById('login-message').innerHTML="&nbsp;"
 		document.getElementById('contentArea').innerHTML = openContent		
-	 }
 }
 
 function openContacts(){
@@ -762,7 +802,7 @@ function displaySubMenu(objCaller, pc){
 		//methods
 		let showSubMenu = function() {	
 				
-			document.getElementById(cID+'subMenu').style.display = 'block'
+			//document.getElementById(cID+'subMenu').style.display = 'block'
 			subMenuOpen = true
 			
 		}
@@ -867,7 +907,7 @@ function drag(ev) {
 	try{
 	
 	let img = new Image()
-	img.src="../images/logoMedium.png"
+	img.src="../images/semi4.png"
 	ev.dataTransfer.setData("Text", ev.target.id);
 	document.getElementById(ev.currentTarget.childNodes[1].id).style.display = "none";
 	document.getElementById('context-Menu-'+ev.currentTarget.id.substr(4)).style.display="none"
@@ -1479,8 +1519,8 @@ function refresh() {
 
 function toggleAdminElements(admin){
 	if(admin){
-		document.getElementById("btnAdmin").style.display = "inline-block";
-		document.getElementById('t').style.display = 'inline-block';
+		document.getElementById("btnAdmin").style.display = "flex";
+		document.getElementById('t').style.display = 'flex';
 		
 	}else{
 		document.getElementById("btnAdmin").style.display = "none";
