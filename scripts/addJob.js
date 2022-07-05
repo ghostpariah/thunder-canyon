@@ -173,7 +173,7 @@ function fillCustomerDataList(){
 			 if($('#lstCustomer option').filter(function(){
 			 	return this.value.toUpperCase() === val.toUpperCase();        
 			 }).length) {
-				
+			//if(val )	
 				// chosenCompany = val
 				// clearContacts()
 				// chosenCompanyID = ipc.sendSync('get-customer-ID', chosenCompany)				
@@ -203,6 +203,7 @@ function fillCustomerDataList(){
 			}else{
 				//pull contacts with chosenCompanyID
 				pullContacts(chosenCompanyID)
+				//document.getElementById('no_show').style.display ="flex";
 				
 			}
 			$('#txtContacts').focus()

@@ -40,7 +40,9 @@
                     <datalist id="lstCustomer" class="classic">
                         
                       </datalist>
+                      
                 </div>
+                <div id="no_show"></div>
                 <div class="visibleInput" id="custNameWrapper">
                     
                     <label for="txtContacts">Contacts:&nbsp;</label>
@@ -133,13 +135,14 @@
                 <legend>Notes</legend>
                 <div class="visibleInput" id="notesWrapper">
                 
-                    <textarea id="txtNotes" rows="5" cols="58" tabindex="16" type="text" style="vertical-align:middle;"></textarea>
+                    <textarea id="txtNotes" rows="5" cols="46" tabindex="16" type="text" style="vertical-align:middle;"></textarea>
                 </div>
             </fieldset>
                 <div id="formButtons" class="hiddenInput">
-                    <input id="frmCancel" type="button" class="btn" tabindex="19" value="Cancel" onclick="cancelAdd()"/>
+                    <input id="frmSubmit" type="button" class="btn" tabindex="17" value="Add Job"onclick="addJob()"/>                    
                     <input id="frmReset" type="reset" class="btn tabindex="18" value="Reset" onclick="reset()"/>
-                    <input id="frmSubmit" type="button" class="btn" tabindex="17" value="Add Job"onclick="addJob()"/>
+                    <input id="frmCancel" type="button" class="btn" tabindex="19" value="Cancel" onclick="cancelAdd()"/>
+                    
                 </div>
             
         

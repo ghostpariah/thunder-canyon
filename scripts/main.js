@@ -127,13 +127,16 @@ async function readyUpdates(){
     autoUpdater.on('download-progress', (progressObj) => {
         let log_message = "Download speed: " + progressObj.bytesPerSecond;
         log_message = log_message + ' - Downloaded ' + Math.floor(progressObj.percent) + '%';
-        log_message = log_message + ' (' + progressObj.transferred.toFixed() + "/" + progressObj.total.toFixed() + ')';
+        log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
         //sendStatusToWindow(log_message);
         sendStatusToWindow("Download progress",Math.floor(progressObj.percent));
     })
     autoUpdater.on('update-downloaded', (info) => {
         sendStatusToWindow('Update downloaded');
-        autoUpdater.quitAndInstall();
+        setTimeout(() => {
+            autoUpdater.quitAndInstall();
+        }, 2000);
+        
     });
     
 }
@@ -268,7 +271,7 @@ async function readyApp(){
                         }
                         
                     });
-            createMainWindow()
+            //createMainWindow()
         }, 2000);
         await readyUpdates().catch(e =>{errLog.info(e)})
         console.log('************updates done')
@@ -618,8 +621,8 @@ app.on('window-all-closed', ()=>{
     }
 })
 app.on('activate', () => {
-    checkForData()
-    createMainWindow()
+    //checkForData()
+    //createMainWindow()
     
 })
 
@@ -766,7 +769,7 @@ ipcMain.on('quit', (event)=>{
 })
 ipcMain.on('start-app',(event)=>{
     updateWin.close()
-    //createMainWindow()
+    createMainWindow()
     
 })
 ipcMain.on('no-updates', (event)=>{
@@ -2090,22 +2093,28 @@ function createRestoreWindow(){
     
 }
 function createAddJobWindow(args, launcher){
-    addJobWin = new BrowserWindow({
-            parent: win,
-            modal: true,            
-            width:570,
-            height: 950,
-            
-            autoHideMenuBar: true,
-            show: false,
-            webPreferences: {
-                nodeIntegration: true,
-                webSecurity: false,
-                contextIsolation: false
-    
-            }
-            
-          })
+    const opts = {
+        parent: win,
+        modal: true,            
+        width:500,
+        height: 850,
+        
+        autoHideMenuBar: true,
+        show: false,
+        webPreferences: {
+            nodeIntegration: true,
+            webSecurity: false,
+            contextIsolation: false
+
+        }
+        
+      }
+      if(zoomLevel == 1.5){
+        Object.assign(opts, {
+            defaultFontSize: 12
+            });
+      }
+    addJobWin = new BrowserWindow(opts)
           addJobWin.loadURL(url.format({
             pathname: path.join(__dirname, '../pages/addJob.html'),
             protocol: 'file',

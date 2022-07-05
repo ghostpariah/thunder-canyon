@@ -733,13 +733,39 @@ function makeCalenderJobContainers(e){
         };
    
 
-        //job_type should be customer name. just used job_type to test
+        
+        /**
+         * create elements for jobwallet
+         * -customer name element
+         * -unti element
+         * -notes element
+         */
+
+        //create customer name box
+        let cnBox = document.createElement('span')
+        let cnText = document.createTextNode(thisDaysSchJobs[j].customer_name.toUpperCase())
+        cnBox.setAttribute('class','cnBox')
+        cnBox.appendChild(cnText)
+        cnBox.style.color = "#1a1a1a";
+
+        //create unit box
+        let unitBox = document.createElement('span')
+        let unitText = document.createTextNode(thisDaysSchJobs[j].unit.toUpperCase())
+        unitBox.setAttribute('class','cnBox')
+        unitBox.appendChild(unitText)
+
+        //create notes box
+        let notesBox = document.createElement('span')
+        let notesText = document.createTextNode(thisDaysSchJobs[j].notes)
+        notesBox.setAttribute('class','cnBox')
+        notesBox.appendChild(notesText)
+    
         let cuN = "<b class='customerName'>"+thisDaysSchJobs[j].customer_name.toUpperCase()+'</b><br/>'
         let u = (thisDaysSchJobs[j].unit == null || thisDaysSchJobs[j].unit == '')?'': '<b>Unit: </b>'+thisDaysSchJobs[j].unit+'</br>'
-        let jcJT = thisDaysSchJobs[j].job_type.toUpperCase()
-        jobContainer.innerHTML=`${cuN}
-        ${u}
-        ${jcJT}`
+        let jcNotes = thisDaysSchJobs[j].notes//job_type.toUpperCase()
+        // jobContainer.innerHTML=`${cuN}
+        // ${u}
+        // ${jcNotes}`
         
         if(thisDaysSchJobs[j].waiting_customer=="-1"){
             jobContainer.innerHTML+="<br/>Customer will be waiting";
@@ -747,38 +773,43 @@ function makeCalenderJobContainers(e){
             switch(schJobType){
                 case "Spring":
 
-                    jobContainer.style.color="#5e81ad";                
+                    // jobContainer.style.color="#5e81ad";                
                     jobContainer.style.borderColor="#5e81ad";
+                    cnBox.style.backgroundColor = "#5e81ad";
                     
                 break;
                 case "Check All":
 
                     jobContainer.style.color="#ff9e0c";                  
                     jobContainer.style.borderColor="#ff9e0c";  
-                                
+                    cnBox.style.backgroundColor = "#ff9e0c";          
                     break;
                     
                 case "Alignment":
 
                     jobContainer.style.color="#ad5ea8";
                     jobContainer.style.borderColor="#ad5ea8";
-                    
+                    cnBox.style.backgroundColor = "#ad5ea8";
                     break;
                 case "King Pin":
 
                     jobContainer.style.color="#5ead63";                
                     jobContainer.style.borderColor="#5ead63"; 
-                    
+                    cnBox.style.backgroundColor = "#5ead63";
                     break;
                 case "Frame":
 
                     jobContainer.style.color="#ff2d00";                
                     jobContainer.style.borderColor="#ff2d00";
-                    
+                    cnBox.style.backgroundColor = "#ff2d00";
                     break;
                 default:
                     break;
             }
+         //append boxes to jobContainer
+         jobContainer.appendChild(cnBox)
+         jobContainer.appendChild(unitBox)
+         jobContainer.appendChild(notesBox)
             
         if(thisDaysSchJobs[j].time_of_day=="am"){
             document.getElementById("container0").appendChild(jobContainer);

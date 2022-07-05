@@ -1,11 +1,20 @@
 body{
-    width:420px;
+  margin:auto;
+    width:450px;
     background-color: black;
     color:#5e81ad;
     font-family: 'Arial Narrow';
 }	
+@media (-webkit-device-pixel-ratio: 1.5) { 
+  body{
+    font-size:12px;
+  }
+}
 #addBlock{
-  width:528px;
+  display:flex;
+  flex-direction: column;
+  justify-content: space-around;
+  width:100%;/*528px;*/
 }
 
 #custNameWrapper  ul{
@@ -18,6 +27,8 @@ body{
     margin-block-start: 0;
 }
 #radioContainer{
+  display:flex;
+  justify-content: right;
   margin-top: 10px;
   height: 25px;
 }
@@ -29,7 +40,7 @@ input[type='text'] {
     border-radius: 4px;
     display: inline-block;
     font: inherit;
-    line-height: 1.5em;
+    line-height: .5vw;
     padding: 0.5em 3.5em 0.5em 1em;
     text-transform: uppercase;
   
@@ -49,8 +60,9 @@ input[type='text'] {
     border: thin solid blue;
     border-radius: 4px;
     display: inline-block;
-    font: inherit;
-    line-height: 1.5em;
+    /* font: inherit; */
+    /* line-height: .5em; */
+    font-size:9px;
     padding: 0.5em 0.5em 0.5em 0.5em;
   
     /* reset */
@@ -73,7 +85,7 @@ select {
     border-radius: 4px;
     display: inline-block;
     font: inherit;
-    line-height: 1.5em;
+    line-height: 1em;
     padding: 0.5em 3.5em 0.5em 1em;
   
     /* reset */
@@ -95,8 +107,8 @@ select {
       linear-gradient(135deg, blue 50%, transparent 50%),
       linear-gradient(to right, skyblue, skyblue);
     background-position:
-      calc(100% - 20px) calc(1em + 2px),
-      calc(100% - 15px) calc(1em + 2px),
+      calc(100% - 20px) calc(1em),
+      calc(100% - 15px) calc(1em),
       100% 0;
     background-size:
       5px 5px,
@@ -186,15 +198,15 @@ select {
 	display:block;
 	float:right;
   
-	margin:5px;
+	margin:3px;
 	clear: both;
 	
 }
 .visibleFieldset{
-    display: block;	
+    display: block;
 	margin:5px;
 	clear: both;	
-  width:500px;
+  width:400px;
 }
 .hiddenInput{
         display:none;
@@ -204,7 +216,18 @@ select {
 #customerNameWrapper{
         
         overflow: hidden;
-        height: 2.75em;
+        height: 2.5em;
+}
+#no_show{
+  display:none;
+  justify-content: right;
+  color:red;
+  width:100%;
+  margin-right:20px;
+
+}
+#no_show::before{
+  content:'*';
 }
 
 #contactsIcon{
@@ -218,12 +241,14 @@ select {
         cursor: pointer;
 }
 #h {
-    text-align:right;
+    text-align:left;
 }
 
 #formButtons{
+  display:flex;
+  justify-content: center;
     width: 100%;
-    margin-left: 20px;
+    
     
 }
 #formButtons input{

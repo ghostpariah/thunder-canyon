@@ -49,6 +49,7 @@ body{
     
 }
 .jobWallet{
+   
     border:2px solid #1b1a1a;
     height:auto;
     width:300px;
@@ -60,6 +61,12 @@ body{
     z-index: 1;
     padding:0;
     
+}
+/* customer name box in jobwallet job */
+.cnBox{
+    
+    width:100%;
+    color:black;
 }
 
 .jobWalletLeft{
@@ -269,6 +276,8 @@ body{
 	
 }
 .calJobContainer{
+    display:flex;
+    flex-direction: column;
     position:relative; 
     width:95%;
     border: 1px solid #cecece;
