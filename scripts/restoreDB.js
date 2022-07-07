@@ -31,7 +31,7 @@ function createButtons(){
 Are you sure you would like to roll back to the restore point?`)
             if(confirmed) restoreDB(button.id)
         })
-        let buttonText = document.createTextNode(allBackups[i].stats.mtime)
+        let buttonText = document.createTextNode(`${allBackups[i].stats.mtime} File Size: ${allBackups[i].stats.size}`)
         button.appendChild(buttonText)
         container.appendChild(button)
 

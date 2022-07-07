@@ -134,12 +134,15 @@ async function readyUpdates(){
     autoUpdater.on('update-downloaded', (info) => {
         sendStatusToWindow('Update downloaded');
         setTimeout(() => {
-            autoUpdater.quitAndInstall();
+            //autoUpdater.quitAndInstall();
         }, 2000);
         
     });
     
 }
+ipcMain.on('install-updates',(event)=>{
+    autoUpdater.quitAndInstall();
+})
 process.on('uncaughtException', (err, origin) => {
     uncaughtCount++
     console.log(`error syscall is ${err}`)

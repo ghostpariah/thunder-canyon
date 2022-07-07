@@ -25,7 +25,7 @@
 <body>
     <div id="addBlock">
        
-        
+        <form id="addForm">
             <fieldset class="visibleFieldset"id="h">
                 <legend>
                     Required Job Info
@@ -43,12 +43,31 @@
                       
                 </div>
                 <div id="no_show"></div>
+                <div class="visibleInput" id="originWrapper"> <label for="selOrigin">Designation:&nbsp;</label>
+                    <select id="selOrigin" class='classic' tabindex="2" onchange="openInput(event,this,'customerNameWrapper','dateWrapper')">
+                        <option value="None"></option>
+                        <option value="On the Lot">On the Lot</option>
+                        <option value="Scheduled">Scheduled</option>
+                        
+                    </select> 
+                </div>
+                <div id="dateWrapper" class="hiddenInput">
+                    <label>Schedule Date: &nbsp;</label>
+                    <input type="text" id="datepicker" tabindex="3" placeholder="mm/dd/yyyy" pattern="^(0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])[- /.](19|20)\d\d$">
+                    <br/>
+                    <div id="radioContainer">
+                        <label>AM</label>
+                        <input type='radio' id="radAM" tabindex='4'name='ampm2' value='am'>
+                        <label>PM</label>
+                        <input type='radio' id="radPM" tabindex='5' name='ampm2' value='pm'>
+                    </div> 
+                </div>
                 <div class="visibleInput" id="custNameWrapper">
                     
                     <label for="txtContacts">Contacts:&nbsp;</label>
                     
                   
-                    <select id="txtContacts" class="classic" tabindex="2" onchange="tellParent(this)" type="text" style="z-index:20000;">
+                    <select id="txtContacts" class="classic" tabindex="6" onchange="tellParent(this)" type="text" style="z-index:20000;">
                     
                     </select>
                     
@@ -58,27 +77,9 @@
                 </div>
                 <div class="visibleInput" id="unitWrapper">
                     <label>Unit#:&nbsp;</label>
-                    <input id="txtUnit" tabindex="3" onkeyup= "openInput(event,this,'jobTypeWrapper')" type="text"/>
+                    <input id="txtUnit" tabindex="7" onkeyup= "openInput(event,this,'jobTypeWrapper')" type="text"/>
                 </div>
-                <div class="visibleInput" id="originWrapper"> <label for="selOrigin">Designation:&nbsp;</label>
-                    <select id="selOrigin" class='classic' tabindex="4" onchange="openInput(event,this,'customerNameWrapper','dateWrapper')">
-                        <option value="None"></option>
-                        <option value="On the Lot">On the Lot</option>
-                        <option value="Scheduled">Scheduled</option>
-                        
-                    </select> 
-                </div>
-                <div id="dateWrapper" class="hiddenInput">
-                    <label>Schedule Date: &nbsp;</label>
-                    <input type="text" id="datepicker" tabindex="5" placeholder="mm/dd/yyyy" pattern="^(0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])[- /.](19|20)\d\d$">
-                    <br/>
-                    <div id="radioContainer">
-                        <label>AM</label>
-                        <input type='radio' id="radAM" tabindex='6'name='ampm2' value='am'>
-                        <label>PM</label>
-                        <input type='radio' id="radPM" tabindex='7' name='ampm2' value='pm'>
-                    </div> 
-                </div>
+               
                 
                 
 
@@ -144,7 +145,7 @@
                     <input id="frmCancel" type="button" class="btn" tabindex="19" value="Cancel" onclick="cancelAdd()"/>
                     
                 </div>
-            
+         </form>   
         
     </div> 
 </body>

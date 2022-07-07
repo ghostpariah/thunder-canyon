@@ -170,7 +170,7 @@ function fillCustomerDataList(){
 	$("#txtCustomerName").on({
 		
 		'keydown': function (event) {
-			
+			// document.getElementById('no_show').innerHTML =''
 		 },
 		'keyup': function(){
 			//reset contacts if backspacing to empty field
@@ -181,7 +181,9 @@ function fillCustomerDataList(){
 			}
 		},
 		'input' : function(){
+			
 			val = this.value;
+			
 			//sort datalist to display entries that match what is typed
 			 if($('#lstCustomer option').filter(function(){
 			 	return this.value.toUpperCase() === val.toUpperCase();        
@@ -195,13 +197,18 @@ function fillCustomerDataList(){
 				
 			}
 		},
-		"blur": function(){			
+		"change": function(){
+			console.log('change fired on customer name field')
+			//console.log(checkForNoShows(chosenCompanyID))
+		},
+		"blur": function(){	
+			document.getElementById('no_show').innerHTML =''		
 			clearContacts()
 			chosenCompanyID =null
 			val = this.value;
 			chosenCompany = val.trim()
 			chosenCompany = chosenCompany.replace(/  +/g, ' ');
-			$('#txtContacts').text = chosenCompany;
+			// $('#txtContacts').text = chosenCompany;
 			
 			chosenCompanyID = ipc.sendSync('get-customer-ID', chosenCompany)
 			
@@ -215,8 +222,9 @@ function fillCustomerDataList(){
 			}else{
 				if(checkForNoShows(chosenCompanyID)){
 					//create message section to alert of no shows
+					
 					let message = document.createElement('span')
-					let text = document.createTextNode('CUSTOMER HAS NO SHOWS ON RECORD')
+					let text = document.createTextNode('CUSTOMER HAS NO-SHOW ON RECORD')
 					message.appendChild(text)
 					let link = document.createElement('span')
 					let linkText = document.createTextNode('view')
@@ -229,7 +237,7 @@ function fillCustomerDataList(){
 					
 					document.getElementById('no_show').appendChild(message)
 					
-						document.getElementById('no_show').appendChild(link)
+					document.getElementById('no_show').appendChild(link)
 					
 					 
 					document.getElementById('no_show').style.display ="flex";
@@ -237,15 +245,19 @@ function fillCustomerDataList(){
 				//pull contacts with chosenCompanyID
 				pullContacts(chosenCompanyID)
 				//document.getElementById('no_show').style.display ="flex";
-				
+				document.getElementById('selOrigin').focus()
 			}
-			$('#txtContacts').focus()
+			
 		},
 		"focus": function(){
 			//clear the input field and contacts when clicked in or tabbing to
 			clearContacts()
 			this.value = ""
 			
+			
+		},
+		"click": function(){
+			document.getElementById('no_show').style.display ="none";
 		}
 		
 	});
@@ -490,8 +502,9 @@ function cancelAdd(){
 	window.close()
 }
 function reset(){
-	window.close()
-	ipc.send('open-add-job')
+	document.getElementById('addForm').reset()
+	// window.close()
+	// ipc.send('open-add-job')
 }
 
 
