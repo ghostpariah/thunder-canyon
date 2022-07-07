@@ -656,7 +656,7 @@ function showJobs(e){
         return da % 2 == 0
     });
     
-    (arrRightSide.includes(element.id.substring(8)))? schJobWallet.setAttribute("class","jobWalletLeft"): schJobWallet.setAttribute("class","jobWallet");
+    (arrRightSide.includes(element.id.substring(8)))? schJobWallet.setAttribute("class","jobWalletLeft speechArrowLeft"): schJobWallet.setAttribute("class","jobWallet speechArrowRight");
         
       
     //schJobWallet.setAttribute("class","jobWallet");    
@@ -723,11 +723,11 @@ function makeCalenderJobContainers(e){
             
         };
         jobContainer.oncontextmenu = function (event){
-            if(event.target.nodeName == "A" || event.target.nodeName == 'B'){
+            //if(event.target.nodeName == "A" || event.target.nodeName == 'B'){
                 openContextMenu(event.target.parentNode);
-            }else{
-            openContextMenu(event.target);
-            }
+           // }else{
+            //openContextMenu(event.target);
+            //}
             console.log(event.target.nodeName)
             return false;
         };
@@ -750,7 +750,8 @@ function makeCalenderJobContainers(e){
 
         //create unit box
         let unitBox = document.createElement('span')
-        let unitText = document.createTextNode(thisDaysSchJobs[j].unit.toUpperCase())
+        
+        let unitText = (thisDaysSchJobs[j].unit)? document.createTextNode(thisDaysSchJobs[j].unit.toUpperCase()): document.createTextNode('');
         unitBox.setAttribute('class','cnBox')
         unitBox.appendChild(unitText)
 
@@ -820,12 +821,26 @@ function makeCalenderJobContainers(e){
         }
         
     }
-    var element = e;    
+    let jw = document.getElementById('jobWallet')
+    var element = e;  
+    let rect = jw.getBoundingClientRect()  
     var height = Math.floor($("#jobWallet").height());    
-    let shift = Math.floor((height-40)-element.offsetTop)*-1
-    
-    if(height>element.offsetTop){       
-        document.getElementById("jobWallet").style.bottom = shift+"px";        
+    //let shift = Math.floor((height-40)-element.offsetTop)*-1
+    //console.log(window.innerHeight + '  '+rect.bottom)
+    if(rect.bottom>window.innerHeight){ 
+        let shift = (rect.bottom - window.innerHeight)*-1 
+        //console.log(`height = ${height} offsetTop = ${element.offsetTop}`)  
+        if(jw.classList.contains('jobWalletLeft')){
+            jw.classList.add('varJobWalletLeft')
+        }else{
+            jw.classList.add('varJobWalletRight')
+        }
+        
+        jw.style.top = shift+'px'; 
+        document.body.style.setProperty(
+            '--speech-arrow-offset', 
+             ((shift-40)*-1)+'px'
+        );       
     }
     
 }
@@ -859,13 +874,13 @@ function openContextMenu(e){
             //is it on the top row and on the right side (fri or sat)
             ? (arrWeekendContext.includes(thisDay))
                 //if on top row and the right side
-                ?  cmList.setAttribute("class","cm_list left top")
+                ?  cmList.setAttribute("class","cm_list")//"cm_list left top"
                 //on top row but not the right side
-                : cmList.setAttribute("class","cm_list top")
+                : cmList.setAttribute("class","cm_list")//"cm_list top"
             //not on top
             : (arrWeekendContext.includes(thisDay))
                 //not on top row but on the right side
-                ? cmList.setAttribute("class","cm_list left")
+                ? cmList.setAttribute("class","cm_list")//"cm_list left"
                 //not on top row or the right side
                 : cmList.setAttribute("class","cm_list")
 

@@ -31,6 +31,7 @@ setTimeout(()=>{
 				
 			});
 			$('#txtCustomerName').focus()
+			
 	
 },200)
 ipc.on('user-data',(event,args, args2)=>{
@@ -102,7 +103,19 @@ ipc.on('new-contact-for-new-company', (event, args)=>{
 	newCompanyContact = args
 	
 })
+function formatDate(date){
+	let pieces = date.split('/');
+	if(pieces[0].length>2 || Number(pieces[0])>12) return [false,date]
+	if(pieces[1].length>2) return [false,date]
+	if(pieces[2].length>4 || pieces[2].length < 2 || pieces[2].length == 3) return [false,date]
 
+	let month = (pieces[0].length <2) ? '0'+pieces[0] : pieces[0];
+	let day = (pieces[1].length <2) ? '0'+pieces[1] : pieces[1];
+	let year = (pieces[2].length ==2) ? '20'+pieces[2] : pieces[2];
+	console.log(`${month}/${day}/${year}`)
+	return [true, `${month}/${day}/${year}`]
+	
+}
 
 function jDate(ds){
 	
@@ -146,7 +159,7 @@ function fillCustomerDataList(){
 	}
 	var val
 	for (let option of element.options) {
-		console.log(option)
+		// console.log(option)
 		option.style.display = 'block'
 		option.onclick = function () {
 		  this.value = option.value;
@@ -189,18 +202,38 @@ function fillCustomerDataList(){
 			chosenCompany = val.trim()
 			chosenCompany = chosenCompany.replace(/  +/g, ' ');
 			$('#txtContacts').text = chosenCompany;
-			console.log(chosenCompany)
+			
 			chosenCompanyID = ipc.sendSync('get-customer-ID', chosenCompany)
-			console.log(chosenCompanyID)
-			console.log(this.value)
+			
 
 			// if 'get-customer-ID' returned false or null
 			if(chosenCompanyID === false || chosenCompanyID === null){			
 				//call fill contacts with false value
 				fillContacts(this.value)
-				console.log('chosenCompanyID was'+chosenCompanyID)
+				
 
 			}else{
+				if(checkForNoShows(chosenCompanyID)){
+					//create message section to alert of no shows
+					let message = document.createElement('span')
+					let text = document.createTextNode('CUSTOMER HAS NO SHOWS ON RECORD')
+					message.appendChild(text)
+					let link = document.createElement('span')
+					let linkText = document.createTextNode('view')
+					link.setAttribute('class','actionLink')
+					link.appendChild(linkText)
+					link.addEventListener('click',()=>{
+						
+						ipc.send('open-report-window',currentUser.role, chosenCompanyID,"no_shows")
+					})
+					
+					document.getElementById('no_show').appendChild(message)
+					
+						document.getElementById('no_show').appendChild(link)
+					
+					 
+					document.getElementById('no_show').style.display ="flex";
+				}
 				//pull contacts with chosenCompanyID
 				pullContacts(chosenCompanyID)
 				//document.getElementById('no_show').style.display ="flex";
@@ -217,6 +250,10 @@ function fillCustomerDataList(){
 		
 	});
 	
+}
+//function to check if the company has a no show on record
+function checkForNoShows(id){
+	return ipc.sendSync('check-for-no-shows',id)
 }
 // function to validate that company name only has one space inbetween words and no spaces at beginning and end
 function validateCompanyName(s) {
@@ -491,6 +528,20 @@ function openInput(e, active, inputID1, inputID2) {
 				
 				case "Scheduled":
 					document.getElementById(inputID2).className = "visibleInput";
+					$('#datepicker').on({
+						'blur': ()=>{
+							let dp = document.getElementById('datepicker');
+							let formatted = formatDate(dp.value)
+							
+							if(formatted[0] === true){
+								dp.value = formatted[1]
+							}else{
+								dp.value = `please choose date`
+								dp.focus()
+							}
+
+						}
+					})
 					break;
 				case "On the Lot":
 					

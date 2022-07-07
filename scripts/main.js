@@ -200,6 +200,9 @@ async function checkForFolder(dir, isRecursive){
 async function checkForDB(db){    
     try{
     const info = await fsp.stat(db)
+    if(info){
+        console.log('the size of the db is '+info.size)
+    }
     }catch(e){
         //updateWin.webContents.send('new-database')
         //await createDatabase(db)
@@ -420,7 +423,8 @@ app.on('ready', ()=>{
 
     // interval to check every hour and restart if app was left open on previous day
     //interval cleared in restartApp()
-    checkDate = setInterval(function (){        
+    checkDate = setInterval(function (){   
+        let currentDay = dayOfYear(new Date());     
         (appStartDay == currentDay) ? console.log(`app opened today ${currentDay}`) : restartApp();
     }, 3600000)
     readyApp()
@@ -1470,6 +1474,33 @@ async function getCustomerName(args){
     dboUser.close()
   })
 
+  ipcMain.on('check-for-no-shows', (event, args)=>{
+    let dboNoShow = new sqlite3.Database(workflowDB, (err)=>{
+        if(err){
+            console.error(err.message)
+        } 
+    })
+
+    let sql = `SELECT * FROM jobs WHERE customer_ID = ${args} AND no_show = 1`
+
+    dboNoShow.all(sql, function(err, row){
+        if(err){
+            console.log(err.message)
+            return err
+        }
+            if(row?.length>0){
+                event.returnValue = true
+            }else{
+                event.returnValue = false
+            } 
+        
+            
+        
+                    
+                    
+    })
+    dboNoShow.close()
+  })
   
 
   ipcMain.on('get-no-shows', (event, args)=>{
@@ -1829,6 +1860,7 @@ function createMainWindow(){
 
         }
     })
+    
     win.loadURL(url.format({
         pathname: path.join(__dirname, '../pages/workflow.html'),
         protocol: 'file',
@@ -2025,7 +2057,7 @@ function createLoginWindow(){
     
     
 }
-function createReportWindow(){
+function createReportWindow(args,args2,args3){
     
     reportWin = new BrowserWindow({
             parent: win,
@@ -2052,9 +2084,12 @@ function createReportWindow(){
             
             
           })
-
+          reportWin.webContents.once('did-finish-load',()=>{
+          console.log('role for report window is: '+args)
+          reportWin.webContents.send('role',args,args2,args3)
+          })
           reportWin.webContents.focus()
-         
+          
           
     
 }
@@ -2214,7 +2249,7 @@ function createCalendarWindow(args,args2){
     const opts = {
         parent: win,
         modal: true,
-        width:1087,//1140
+        width:1200,//1087
         height: 477,//600
         autoHideMenuBar: true,
         show: false,
@@ -3019,8 +3054,9 @@ ipcMain.on('get-logged-in-user', (event)=>{
  const shell = electron.shell
  const os = require('os')
 
-ipcMain.on('open-report-window',(event,args)=>{
-    createReportWindow()
+ipcMain.on('open-report-window',(event,args,args2,args3)=>{
+    console.log('open-reports triggered')
+    createReportWindow(args,args2,args3)
 }) 
 
 ipcMain.on('open-restore', (event,args)=>{
@@ -3152,23 +3188,7 @@ async function backupDB(){
             let date = new Date();
             today = (objStats.mtime.getDate() == date.getDate())? true :false
             
-        // if(fs.existsSync(whichDB)){
-        //     objStats = fs.statSync(whichDB)
-        //     // fs.statSync(whichDB, (err, stats) => {
-        //     //     if(err) {
-        //     //         console.log(err)
-        //     //         throw err;
-        //     //     }
-        //     //     let date = new Date();     
-        //     //     console.log('day modified = '+stats.mtime.getDate());       
-        //     //     today = (stats.mtime.getDate() == date.getDate())? true :false
-        //     //     console.log('filewas modified today = '+today)
-                
-                
-        //     // });
-        //     let date = new Date();
-        //     today = (objStats.mtime.getDate() == date.getDate())? true :false
-        // }
+        
         errLog.info('already modified today = '+today)
     }
         if(!today){

@@ -221,6 +221,8 @@ select {
 #no_show{
   display:none;
   justify-content: right;
+  flex-direction: row;
+  align-items: center;
   color:red;
   width:100%;
   margin-right:20px;
@@ -229,7 +231,19 @@ select {
 #no_show::before{
   content:'*';
 }
+.actionLink{
+  font-size: .8rem;
+  cursor: pointer;
+  margin: 3px;
+  color: lime;
+  text-decoration-line:none;
+  margin-left:10px;
+  
+}
+.actionLink:hover{
+  color: rgb(180, 134, 180);
 
+}
 #contactsIcon{
         display:inline-block;
         background-color: white;

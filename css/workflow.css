@@ -26,9 +26,9 @@ body {
 	display:flex;
 	
 	flex-direction:column;
+	width: 1600px;
+	/* width:clamp(1200px,100%,1600px); */
 	
-	width:clamp(1200px,100%,1600px);
-	min-width: 1200px;/*1600px;*/
 	/* max-width:1600px; */
 	/* height:100%; */
 	/* min-height: 800px; */
@@ -675,6 +675,9 @@ div.lineItem:first-child{
 	
 }
 #btnContacts{
+	display:none;
+}
+#btnReports{
 	display:none;
 }
 .adminMenu{	

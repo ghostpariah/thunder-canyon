@@ -160,9 +160,24 @@ function pullLog(date){
 }
 ipcReport.on('close-window', (event)=>{
     setTimeout(() => {
-       // window.close()
+       window.close()
     }, 500);
     
+})
+ipcReport.on('role',(event,role,companyID,reportType)=>{
+    console.log('role: '+role)
+    //if more args were sent then open specific report
+    if(companyID){
+        document.getElementById('option3').click()
+        document.getElementById('searchCriteriaNS').value = ipcReport.sendSync('db-get-customer-name',companyID)
+        document.getElementById('searchInputButtonNS').click()
+
+    }
+    if(role =="user"){
+        document.getElementById('option1').style.display = 'none';
+        document.getElementById('option2').style.display = 'none';
+        document.getElementById('option4').style.display = 'none';
+    }
 })
     
 
@@ -604,12 +619,12 @@ function displayNoShows(){
     //build report
     for(member in objNoshows){
         let name = ipcReport.sendSync('db-get-customer-name', objNoshows[member].customer_ID)
-        console.log(objNoshows[member].number_ID)
+        //console.log(objNoshows[member].number_ID)
         
         let phoneNumber = (objNoshows[member].number_ID != null && objNoshows[member].number_ID != undefined && objNoshows[member].number_ID != 'null')? ipcReport.sendSync('db-get-phone', objNoshows[member].number_ID):{'number' :'no number entered'}
-        console.log('phone number'+phoneNumber)
+       // console.log('phone number'+phoneNumber)
         let objContact = (phoneNumber.p_contact_ID != null && phoneNumber.p_contact_ID != undefined)? ipcReport.sendSync('db-get-contact', phoneNumber.p_contact_ID):{'first_name' :'no first name','last_name':'no last name'}
-        console.log(objContact.first_name)
+        //console.log(objContact.first_name)
         let strData = `${name} was a no show for a ${objNoshows[member].job_type} job scheduled for ${objNoshows[member].date_scheduled} set up by ${objContact.first_name} ${objContact.last_name} from [${phoneNumber.number}]`
         lineItems+= `${strData}\n`
         strForDisplay += `${strData}<br/><br/>`
@@ -703,7 +718,7 @@ function fillCustomerDataList(){
 				chosenCompanyID = ipcReport.sendSync('get-customer-ID', chosenCompany)
 				let jobs = ipcReport.sendSync('get-jobs',chosenCompanyID)
 				
-                
+                console.log('input triggered')
                 displayHistory(jobs)
 				
 			}

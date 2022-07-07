@@ -61,6 +61,12 @@ window.onload = () =>{
 	let pr = window.devicePixelRatio
 	ipc.send('zoom-level',pr)
 	 try{
+		if(pr == 1){
+			window.resizeTo(1600, 700)
+		}else if(pr == 1.5){
+			window.moveTo(0, 0);
+			window.resizeTo(screen.width, screen.height)
+		}
 		objLoggedInUser = getLoggedInObject()
 		allJobs = ipc.sendSync('pull_jobs')		
 		accessGrantedContent = document.getElementById('contentArea').innerHTML	
@@ -244,7 +250,8 @@ function openReports(){
 	attachDatePicker()
 	$('#datepickerReport').focus()
 	$("#datepickerReport").value = todayIs()
-	ipc.send('open-report-window')	   
+	console.log(currentUser.role)
+	ipc.send('open-report-window',currentUser.role)	   
 } 
 
 function openAddJob() {
@@ -1521,9 +1528,11 @@ function toggleAdminElements(admin){
 	if(admin){
 		document.getElementById("btnAdmin").style.display = "flex";
 		document.getElementById('t').style.display = 'flex';
+		document.getElementById("btnReports").style.display="none";
 		
 	}else{
 		document.getElementById("btnAdmin").style.display = "none";
+		document.getElementById("btnReports").style.display="flex";
 		document.getElementById('t').style.display = 'none';		
 	}
 }
