@@ -1057,22 +1057,14 @@ input {
 	font-size: 15px;
 }
 .vehicle:hover .tooltip {/* NEW */
+	
 	color: black;
 	
 	max-width: 250px;
 	display: block;
 	z-index:4;
 }
-.tooltip::before{
-	transform: skewX(-45deg);
-    content: "";
-    position: absolute;
-    top: 100%;
-    right: 100%;
-    border-width: 20px 10px 0 0;
-    border-style: solid;
-    border-color: #1b1a1a transparent;
-}
+
 .vehicle:hover .toolTipBottom {/* NEW */
 	color: black;
 	
@@ -1148,6 +1140,7 @@ input {
 	display: none; /* NEW */
 	background: white;
 	border: 1px solid #5e81ad;
+	
 	
 	margin-left: 115px;
 	margin-top:30px;
