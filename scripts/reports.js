@@ -616,6 +616,7 @@ function displayNoShows(){
     let strForDisplay=""
     let lineItems =""
     let strData =""
+    let arrData = new Array()
     //build report
     for(member in objNoshows){
         let name = ipcReport.sendSync('db-get-customer-name', objNoshows[member].customer_ID)
@@ -625,10 +626,14 @@ function displayNoShows(){
        // console.log('phone number'+phoneNumber)
         let objContact = (phoneNumber.p_contact_ID != null && phoneNumber.p_contact_ID != undefined)? ipcReport.sendSync('db-get-contact', phoneNumber.p_contact_ID):{'first_name' :'no first name','last_name':'no last name'}
         //console.log(objContact.first_name)
-        let strData = `${name} was a no show for a ${objNoshows[member].job_type} job scheduled for ${objNoshows[member].date_scheduled} set up by ${objContact.first_name} ${objContact.last_name} from [${phoneNumber.number}]`
-        lineItems+= `${strData}\n`
-        strForDisplay += `${strData}<br/><br/>`
+        let strData = `${name} was a no show for a ${objNoshows[member].job_type} job scheduled for ${objNoshows[member].date_scheduled} set up by ${objContact.first_name} ${objContact.last_name} on ${objNoshows[member].date_called} from phone number [${phoneNumber.number}]`
+        arrData.push(strData)
+        lineItems = `${strData}\n` + lineItems
+        //strForDisplay += `${strData}<br/><br/>`
        
+    }
+    for(i=arrData.length-1;i>=0;i--){
+        strForDisplay+= `${arrData[i]}<br/><br/>`
     }
     resultBox.innerHTML = strForDisplay
     noshows = lineItems

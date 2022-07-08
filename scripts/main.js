@@ -2241,8 +2241,8 @@ function createContactsWindow(args1, args2, args3, args4, args5,args6,args7,args
         })
 
         contactWin.on('closed', ()=>{
-            contactWin = null
-            win.focus()
+            //contactWin = null
+            //win.focus()
         })
         
     
@@ -2604,7 +2604,7 @@ ipcMain.on('get-customer-ID', (event,args)=>{
 ipcMain.on('open-contacts', (event,args1,args2, args3, args4, args5, args6, args7,args8)=>{
     //test to see which page launched the contacts page
     //right now the options are 'add job page' from addJob.js and 'main page' from index.js
-    if(args1 == 'add job page'){
+    if(args1 == 'add job page' && !args6){
         let dboCustomers = new sqlite3.Database(workflowDB, (err)=>{
             if(err){
                 console.error(err.message)
@@ -2613,6 +2613,7 @@ ipcMain.on('open-contacts', (event,args1,args2, args3, args4, args5, args6, args
         })
         var data = []
         //make sql query for dboContacts
+        
         let sql = `SELECT customer_ID FROM customers WHERE UPPER(customer_name) =?`
         
         dboCustomers.all(sql,args2.toUpperCase(), function (err, row){
@@ -2620,8 +2621,8 @@ ipcMain.on('open-contacts', (event,args1,args2, args3, args4, args5, args6, args
             if(err){
                 return err
             }
-            
-            createContactsWindow(args1,args2, args3, args4,args5,row[0].customer_ID,args7,args8)        
+            console.log(`has args onw and args 6. returns ${row[0].customer_ID}`)
+            //createContactsWindow(args1,args2, args3, args4,args5,row[0].customer_ID,args7,args8)        
    
                 return row[0].customer_ID
                 
@@ -2631,9 +2632,10 @@ ipcMain.on('open-contacts', (event,args1,args2, args3, args4, args5, args6, args
         })
         
         
-    }
-    
-         createContactsWindow(args1,args2, args3, args4,args5,args6,args7,args8)        
+    }else{
+        console.log(args1,args2, args3, args4,args5,args6,args7,args8)
+        createContactsWindow(args1,args2, args3, args4,args5,args6,args7,args8)  
+    }      
     
 })
 
@@ -2881,7 +2883,10 @@ ipcMain.on('add-phone', (event,args)=>{
              console.log(err.message)
          }
          console.log(`${this.changes} items inserted at row: ${this.lastID}`)
-         contactWin.webContents.send('item-added',this.lastID)
+         if(!args.closingWindow){
+            contactWin.webContents.send('item-added',this.lastID)
+         }
+         event.returnValue = this.lastID
          dboNewPhone.close()
         }) 
         
@@ -2920,6 +2925,10 @@ ipcMain.on('add-email', (event,args)=>{
              console.log(err.message)
          }
          console.log(`${this.changes} items inserted at row: ${this.lastID}`)
+         if(!args.closingWindow){
+            contactWin.webContents.send('item-added',this.lastID)
+         }
+         event.returnValue = this.lastID
          dboNewEmail.close()
         }) 
         

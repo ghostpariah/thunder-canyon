@@ -30,7 +30,8 @@ setTimeout(()=>{
 				dateFormat : "mm/dd/yy"
 				
 			});
-			$('#txtCustomerName').focus()
+			//$('#txtCustomerName').focus()
+			$('#selOrigin').focus()
 			
 	
 },200)
@@ -46,12 +47,13 @@ ipc.on('user-data',(event,args, args2)=>{
 	
 })
 ipc.on('refresh',(event,args,args2,args3)=>{
+	console.log('refresh page called')
 	clearContacts()
 	if(args = "go"){
-		
+		console.log(args2)
 		
 		pullContacts(args2)
-		
+		console.log('after pullcontacts called')
 		document.getElementById("txtContacts").selectedIndex =document.getElementById("txtContacts").options.length
 		
 		var values = Array.from(document.getElementById("txtContacts").options).map(e => e.id);
@@ -245,7 +247,7 @@ function fillCustomerDataList(){
 				//pull contacts with chosenCompanyID
 				pullContacts(chosenCompanyID)
 				//document.getElementById('no_show').style.display ="flex";
-				document.getElementById('selOrigin').focus()
+				//document.getElementById('selOrigin').focus()
 			}
 			
 		},
@@ -319,16 +321,17 @@ function tellParent(choice){
 			con_name = conOps.options[conOps.selectedIndex].parentElement.label.split(' ')
 			index = conOps.options[conOps.selectedIndex].index
 			conMeth = "phone"
-			con_ID = Number(conOps.options[conOps.selectedIndex].parentElement.getAttribute('contactID'))
-			ipc.send('open-contacts','add job page',chosenCompany, isNewCustomer(chosenCompany.toUpperCase()), con_name[0], con_name[1], con_ID, conMeth)
+			con_ID = Number(conOps.options[conOps.selectedIndex].parentElement.getAttribute('contactid'))
+			console.log(con_ID)
+			ipc.send('open-contacts','add job page',chosenCompany, isNewCustomer(chosenCompany.toUpperCase()), con_name[0], con_name[1], con_ID, conMeth,currentUser)
 			
 			break;
 		case '+ add email':
 			con_name = conOps.options[conOps.selectedIndex].parentElement.label.split(' ')
 			index = conOps.options[conOps.selectedIndex].index
 			conMeth = "email"
-			con_ID = Number(conOps.options[conOps.selectedIndex].parentElement.getAttribute('contactID'))
-			ipc.send('open-contacts','add job page',chosenCompany, isNewCustomer(chosenCompany.toUpperCase()), con_name[0], con_name[1], con_ID, conMeth)
+			con_ID = Number(conOps.options[conOps.selectedIndex].parentElement.getAttribute('contactid'))
+			ipc.send('open-contacts','add job page',chosenCompany, isNewCustomer(chosenCompany.toUpperCase()), con_name[0], con_name[1], con_ID, conMeth,currentUser)
 			
 			break;
 		default:

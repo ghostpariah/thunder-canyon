@@ -360,6 +360,7 @@
        * @param args8 -- user object for logging
        * 
        * 
+       * 
        ************************/ 
 
       conIPC.on(
@@ -374,10 +375,16 @@
             case "main page":
               customerNameWrapper.style.display = "block";
               pageLauncher = "main";
+              loadContactsPage(true)
+              return
               break;
             case "add job page":
+              console.log(`${args1} ${args2} ${args3} ${args4} ${args5} ${args6} ${args7} ${args8}`)
+           
               pageLauncher = "add job";
-              pullContacts(args6);
+            
+              
+              pullContacts(conIPC.sendSync('get-customer-ID',args2));
               setTimeout(() => {
               togglePageView("add");
               }, 50);
@@ -444,6 +451,11 @@
             addCM = args7;
             contactMethodIndex = args7;
             argCount += 1;
+            if(args7 == 'phone'){
+              inpPhoneNumber.focus()
+            }else{
+              inpEmail.focus()
+            }
           }
 
           //logged in user object
@@ -455,7 +467,7 @@
           if (argCount == 0) {
             customerNameWrapper.style.display = "block";
           }
-          loadContactsPage();
+          loadContactsPage(false);
         
         }catch(e){
           conIPC.send('log-error',e)
@@ -610,11 +622,15 @@
       }
 
       //control function to set up page
-      function loadContactsPage() {
+      function loadContactsPage(firstInstance) {
+        console.log(pageLauncher)
+        if(!firstInstance){
+
         
+        console.log('the customer id in loadContactsPage is '+addCID)
         loadHeader(addCN);
-        pullContacts(addCN)
-        
+        pullContacts(conIPC.sendSync('get-customer-ID',addCN))//addCN
+        }
         var val;
         
         $("#txtCustomerName").on({
@@ -729,7 +745,24 @@
       function newAdd() {
         let cn = companyHeader.firstChild.innerText        
         let data = new Object();
-        
+        let itemID
+
+         
+        if(addCID){
+          data.customer_ID = companyHeader.firstChild.childNodes[0].id
+          data.contact_ID = addCID
+          data.closingWindow = true
+          data.active = 1
+          if(addCM == 'phone'){
+            data.text = inpPhoneNumber.value
+            
+            itemID = conIPC.sendSync('add-phone',data)
+          }else if(addCM == 'email'){
+            data.text = inpEmail.value
+            
+            itemID = conIPC.sendSync('add-email',data)
+          }
+        }else{
         data.customer_name = cn;
         
         if (inpFirstname.value != "") {
@@ -748,11 +781,14 @@
           data.primary_contact = 1
         }
         data.active = 1
-        data.customer_ID = conIPC.sendSync("get-customer-ID", cn); 
+        
+        
+        
+        data.customer_ID = conIPC.sendSync("get-customer-ID", cn);
         console.log(`customer name is ${cn}`)
         console.log(`customer ID is ${data.customer_ID}`)
-        let itemID = conIPC.sendSync("db-contact-add", data);
-        
+        itemID = conIPC.sendSync("db-contact-add", data);
+      }
         switch (pageLauncher) {
           case "main":           
             
@@ -1182,16 +1218,16 @@
               if(cont[i].contact_ID == p.substring(1)){
                 
                 //compare list of numbers with numbers in jobs  
-                console.log('phonenumbers length is'+cont[i].phonenumbers.length)
+                //console.log('phonenumbers length is'+cont[i].phonenumbers.length)
                
-                for(j=0;j<cont[i].phonenumbers.length;j++){
+                for(member in cont[i].phonenumbers){//for(j=0;j<cont[i].phonenumbers.length;j++){
                   let objD = new Object()
                   pJobs = new Array()
-                  console.log(j)  
-                  console.log(cont[i].phonenumbers[j].phone_ID)
+                    
+                  console.log(cont[i].phonenumbers[member].phone_ID)
                   objD.method = method
                   objD.contact_ID = contact_ID
-                  objD.methodID = cont[i].phonenumbers[j].phone_ID 
+                  objD.methodID = cont[i].phonenumbers[member].phone_ID 
                   objD.searchGroup = 'p'
                   console.log(objD)                 
                   pJobs = checkJobsForItem(objD)

@@ -50,7 +50,7 @@ function fillContacts(cont){
 
 			 contactContent.appendChild(optGroup);
 			 let dashOpt = document.createElement('option')					
-			 let dash = document.createTextNode("Phone Numbers")
+			 let dash = document.createTextNode("")//did say Phone Numbers
 			 dashOpt.setAttribute("disabled","disabled")
 			 dashOpt.setAttribute('class','cmHeader')
 			 dashOpt.appendChild(dash)
@@ -80,7 +80,7 @@ function fillContacts(cont){
 				}			
 			}
 			let eDashOpt = document.createElement('option')					
-			let eDash = document.createTextNode("EMAIL")
+			let eDash = document.createTextNode("")//did say EMAIL
 			eDashOpt.setAttribute("disabled","disabled")
 			eDashOpt.appendChild(eDash)
 			optGroup.appendChild(eDashOpt)

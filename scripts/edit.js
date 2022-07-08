@@ -3,6 +3,7 @@
  */
 const electron = require('electron')
 const ipcEdit = electron.ipcRenderer
+const inpDateIn = document.getElementById('datepickerIn')
 const inpCustomer = document.getElementById('txtCustomerName')
 const selContacts = document.getElementById('txtContacts')
 const inpUnit = document.getElementById('txtUnit')
@@ -30,7 +31,8 @@ window.onload = ()=>{
     
 }
 setTimeout(()=>{		
-    $("#datepicker").datepicker({dateFormat : "mm/dd/yy"});  
+    $("#datepicker").datepicker({dateFormat : "mm/dd/yy"}); 
+	$("#datepickerIn").datepicker({dateFormat : "mm/dd/yy"}); 
 },1000);
 
 /**
@@ -104,7 +106,7 @@ function loadData(objJobToEdit){
 	}else{
 		d = objJobToEdit
 	}
-    
+    inpDateIn.value = d?.date_in
 	try{
     inpCustomer.value = ipcEdit.sendSync('db-get-customer-name',d?.customer_ID);
 	}catch(e){
@@ -260,6 +262,7 @@ function showLabel() {
 
 function updateJob (){
 	//alias input fields for easier programming
+	
 	let txtCN = document.getElementById('txtCustomerName')
 	let txtCon = document.getElementById('txtContacts')
 	let txtCost =document.getElementById('txtCost')
@@ -357,7 +360,11 @@ function updateJob (){
         :'no change to time_of_day';
     }
 		
+	if(editData.date_in.localeCompare(document.getElementById('datepickerIn').value)!=0){
+		objNewJob.date_In = document.getElementById('datepickerIn').value
 		
+	  
+	  }	
 	
     if(txtUnit.value.trim().length){
 		if(editData.unit!= null && editData.unit!= undefined){
