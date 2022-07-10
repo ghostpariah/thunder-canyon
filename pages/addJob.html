@@ -36,10 +36,11 @@
                         <option value="On the Lot">On the Lot</option>
                         <option value="Scheduled">Scheduled</option>
                         
+                        
                     </select> 
                 </div>
                 <div id="dateWrapper" class="hiddenInput">
-                    <label>Schedule Date: &nbsp;</label>
+                    <label>Scheduled Date: &nbsp;</label>
                     <input type="text" id="datepicker" tabindex="2" placeholder="mm/dd/yyyy" pattern="^(0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])[- /.](19|20)\d\d$">
                     <br/>
                     <div id="radioContainer">
@@ -105,12 +106,14 @@
                         Optional Job Info: Check all that apply
                     </legend>
                     <div class="visibleInput">Cash Customer:
-                        <input type="checkbox" id="cbCash" tabindex="10" onchange="openInput(event,this,'est')"/>
+                        <input type="checkbox" id="cbCash" tabindex="10"/>
                     </div>
+                    <!--
                     <div id="est" class="hiddenInput">
                         <label>Estimated cost:</label>
                         <input id="txtCost" type="text" tabindex="11"/>
                     </div>
+                    -->
                     <div class="visibleInput">
                         <label>Parts Needed:</label>
                         <input id="cbParts" type="checkbox" tabindex="12"/>
@@ -123,13 +126,24 @@
                         <label>Checked:</label>
                         <input id="cbChecked" type="checkbox" tabindex="14"/>
                     </div>
-                    <div class="visibleInput">
-                        <label>Comeback:</label>
-                        <input id="cbComeback"type="checkbox" tabindex="15"/>
+                    <div id="OTL_SCHEDULED" class="visibleInput">
+                        <label>On the Lot & Scheduled:</label>
+                        <input id="cbComeback"type="checkbox" tabindex="15" onchange="openInput(event,this,'dateWrapper_OTL_SCHEDULED')"/>
                     </div>
+                    <div id="dateWrapper_OTL_SCHEDULED" class="hiddenInput">
+                    <label>Scheduled Date: &nbsp;</label>
+                    <input type="text" id="datepickerOTL" tabindex="16" placeholder="mm/dd/yyyy" pattern="^(0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])[- /.](19|20)\d\d$">
+                    <br/>
+                    <div id="radioContainer">
+                        <label>AM</label>
+                        <input type='radio' id="radAM_OTL" tabindex='17'name='ampmOTL' value='am'>
+                        <label>PM</label>
+                        <input type='radio' id="radPM_OTL" tabindex='18' name='ampmOTL' value='pm'>
+                    </div> 
+                </div>
                     <div class="visibleInput">
                         <label>Waiting:</label>
-                        <input id="cbWaiting" type="checkbox" tabindex="16"/>
+                        <input id="cbWaiting" type="checkbox" tabindex="19"/>
                     </div>
                     
                 </fieldset>

@@ -305,7 +305,7 @@ function getScheduled(){
     allJobs = calIPC.sendSync('pull_jobs')
     for(member in allJobs){
 
-		(allJobs[member].status == 'sch')? arrScheduledJobs.push(allJobs[member]):'';
+		(allJobs[member].status == 'sch' || allJobs[member].comeback_customer == 1)? arrScheduledJobs.push(allJobs[member]):'';
 	}
     console.log(arrScheduledJobs)
    for(i=0;i<arrScheduledJobs.length;i++){

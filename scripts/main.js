@@ -236,6 +236,73 @@ async function checkForPathToRootStorage(path){
     }
     
 }
+
+/**
+ * function to uncheck "On the Lot & Scheduled" for expired scheduled dates
+ */
+function deselectExpiredOTL_Scheduled(){
+    let dboUpdate = new sqlite3.Database(workflowDB, (err)=>{
+        if(err){
+            console.error(err.message)
+        }
+        
+    })
+    let pull = `SELECT * FROM jobs WHERE comeback_customer = 1 AND active = 1`
+    //let update = `UPDATE jobs SET ${strColumns} WHERE job_ID = ${args.job_ID}`
+    let today= new Date().getTime()
+    
+    dboUpdate.serialize(()=>{
+        dboUpdate.all(pull, function(err,row) {
+            if (err) {
+                return console.error(err.message);
+            }
+            console.log(`OTL jobs ${row.length}`);
+            row.forEach((item)=>{
+                let update = `UPDATE jobs SET comeback_customer = 0 WHERE job_ID = ${item.job_ID}`
+                let scheduledDate = new Date(item.date_scheduled).getTime()
+                if(today>scheduledDate){
+                    dboUpdate.run(update, function(err,row){
+                        if (err) {
+                            return console.error(err.message);
+                        }
+                    })
+                }
+            })
+
+            
+        })
+        .all(pull, function(err,row) {
+            if (err) {
+                return console.error(err.message);
+            }
+            console.log(row.length)
+        })
+
+        
+    });
+    dboUpdate.close()
+}
+ipcMain.on('deselect-OTL',(event,args)=>{
+    console.log('deselect triggered')
+    let dboUpdate = new sqlite3.Database(workflowDB, (err)=>{
+        if(err){
+            console.error(err.message)
+        }
+        
+    })
+    let update = `UPDATE jobs SET comeback_customer = 0 WHERE job_ID = ${args}`
+
+    dboUpdate.run(update, function(err,row) {
+        if (err) {
+            return console.error(err.message);
+        }
+        console.log(this.changes)
+        win.webContents.send('update-all-jobs')
+        
+    })
+    dboUpdate.close()
+})
+
 async function readyApp(){
     
     try{
@@ -288,11 +355,11 @@ async function readyApp(){
         
     }   
    
-    await checkForDB(workflowDB)
+    await checkForDB(workflowDB)    
     .catch(e=>{
         console.log('error creating database')
     })
-    
+   
     }catch(e){
         log.info(e)
     }

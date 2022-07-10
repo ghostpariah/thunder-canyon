@@ -5,6 +5,7 @@ const ipcReport = electron.ipcRenderer
 
 //page elements
 
+let allJobs = ipcReport.sendSync('pull_jobs')
 
 let chosenJulian 
 let chosenYear
@@ -55,7 +56,7 @@ function loadModal(){
     //document.getElementById('datepickerReport').focus()
     const printPDFBtn = document.getElementById('btnReport')
 
-printPDFBtn.addEventListener('click', function (event) {
+    printPDFBtn.addEventListener('click', function (event) {
     //clean page for printing
     document.getElementById('mainMenu').style.display = "none"
     document.getElementById('ribbon4').setAttribute('class', 'ribbon hidden')
@@ -175,7 +176,7 @@ ipcReport.on('role',(event,role,companyID,reportType)=>{
     }
     if(role =="user"){
         document.getElementById('option1').style.display = 'none';
-        document.getElementById('option2').style.display = 'none';
+        // document.getElementById('option2').style.display = 'none';
         document.getElementById('option4').style.display = 'none';
     }
 })
@@ -231,7 +232,12 @@ function toggleVisibility(el){
     console.log("option status is "+optionStatus);
     (optionStatus<0) ? el.setAttribute('class','mainOption unchosen') : el.setAttribute('class', 'mainOption chosen');
     
-    
+    if(chosenOption==2){
+        // setTimeout(() => {
+            displayLotReport()
+        // }, 300);
+       
+    }
     if(chosenOption==4){
         createEODitem($('#datepickerReport'),'date')
         $('#inpACH').focus()
@@ -580,6 +586,7 @@ function createACHinputs(count){
     achBox.appendChild(spacer)
     $(`#ia${count}`).focus()
 }
+
 function handleCheck(checkbox){
     
     let achBox = document.getElementById('achBox')
@@ -605,6 +612,178 @@ function removeLineItems(list){
     }
     console.log(arr)
 
+}
+function printLotReport(){
+    
+}
+function displayLotReport(){
+    let onTheLot = new Array()
+    let inTheShop = new Array()
+    let completed = new Array()
+    let scheduled = new Array()
+    for(var member in allJobs){
+        switch(allJobs[member].status){
+            case 'wfw':
+                onTheLot.push(allJobs[member]);
+                
+                break;
+            case 'wpu':
+                onTheLot.push(allJobs[member]);
+                break;
+            case 'wip':
+                inTheShop.push(allJobs[member]);
+                break;
+            case 'pen':
+                onTheLot.push(allJobs[member])
+                break;
+            default:
+                scheduled.push(allJobs[member])
+                break;
+
+        }
+        
+    }
+    //box to append report
+    let displayBox = document.getElementById('searchResult')
+
+
+    //create report header
+    let header = document.createElement('header')
+    let headerText = document.createTextNode('Lot Report')
+    header.appendChild(headerText)
+    header.setAttribute('class','mainLotReportHeader')
+
+    //create report body
+    let reportBody = document.createElement('section')
+    reportBody.setAttribute('class','reportBody')
+
+    //create shop section
+    let shopSection = document.createElement('section')
+    shopSection.setAttribute('class','reportSection')
+
+    //create shop header
+    let shopHeader = document.createElement('div')
+    let shopHeaderText = document.createTextNode('In the Shop')
+    shopHeader.setAttribute('class','sectionHeader')
+    shopHeader.appendChild(shopHeaderText)    
+
+    //create lot section
+    let lotSection = document.createElement('section')
+    lotSection.setAttribute('class','reportSection')
+
+    //create lot header
+    let lotHeader = document.createElement('div')
+    let lotHeaderText = document.createTextNode('On the Lot')
+    lotHeader.setAttribute('class','sectionHeader')
+    lotHeader.appendChild(lotHeaderText)
+
+
+    
+
+
+    //asemble pieces
+    //--header
+    displayBox.appendChild(header)
+
+    //--shop
+    shopSection.appendChild(shopHeader)
+
+    
+    //----append line item to section
+    for(var member in inTheShop){
+        //----create report line items
+        let lineItem = document.createElement('div')
+        lineItem.setAttribute('class','lineItem')
+
+        //--check box
+        let checkbox = document.createElement('div')
+        checkbox.setAttribute('class','checkbox')
+        lineItem.appendChild(checkbox)
+
+        //--company name
+        let company = document.createElement('div')
+        let companyText = document.createTextNode(ipcReport.sendSync('db-get-customer-name',inTheShop[member].customer_ID))
+        company.setAttribute('class','lineItemCompany')
+        company.appendChild(companyText)
+        lineItem.appendChild(company)
+
+        //--unit
+        let unit = document.createElement('div')
+        let unitText = document.createTextNode(`Unit: ${inTheShop[member].unit}`)
+        unit.setAttribute('class', 'lineItemSection')
+        unit.appendChild(unitText)
+        lineItem.appendChild(unit)
+
+        //--job type
+        let jobType = document.createElement('div')
+        let jobTypeText = document.createTextNode(`Job Type: ${inTheShop[member].job_type}`)
+        jobType.appendChild(jobTypeText)
+        lineItem.appendChild(jobType)
+
+        shopSection.appendChild(lineItem)
+    }
+
+    //append section to report
+    displayBox.appendChild(shopSection)
+
+    //--lot
+    lotSection.appendChild(lotHeader)
+
+    
+    //----append line item to section
+    for(var member in onTheLot){
+        //----create report line items
+        let lineItem = document.createElement('div')
+        lineItem.setAttribute('class','lineItem')
+
+        //--check box
+        let checkbox = document.createElement('div')
+        checkbox.setAttribute('class','checkbox')
+        lineItem.appendChild(checkbox)
+
+        //--company name
+        let company = document.createElement('div')
+        let companyText = document.createTextNode(ipcReport.sendSync('db-get-customer-name',onTheLot[member].customer_ID))
+        company.setAttribute('class','lineItemCompany')
+        company.appendChild(companyText)
+        lineItem.appendChild(company)
+
+        //--unit
+        let unit = document.createElement('div')
+        let unitText = document.createTextNode(`Unit: ${onTheLot[member].unit}`)
+        unit.setAttribute('class', 'lineItemSection')
+        unit.appendChild(unitText)
+        lineItem.appendChild(unit)
+
+        //--job type
+        let jobType = document.createElement('div')
+        let jobTypeText = document.createTextNode(`Job Type: ${onTheLot[member].job_type}`)
+        jobType.appendChild(jobTypeText)
+        lineItem.appendChild(jobType)
+
+        lotSection.appendChild(lineItem)
+    }
+
+    //append section to report
+    displayBox.appendChild(lotSection)
+    
+    //register event for button click
+    const printPDFBtn = document.getElementById('printLot')
+
+    printPDFBtn.addEventListener('click', function (event) {
+    //clean page for printing
+    document.getElementById('mainMenu').style.display = "none"
+    document.getElementById('ribbon2').setAttribute('class', 'ribbon hidden')
+    document.getElementById('searchResult').style.border = "none"
+    document.getElementById('searchResult').style.backgroundColor = "white"
+
+    ipcReport.send('print-to-pdf')
+    })
+
+    
+
+
+    console.log(`OnTheLot: ${onTheLot.length} In the Shop: ${inTheShop.length} Completed: ${completed.length} Sch: ${scheduled.length}`)
 }
 
 function displayNoShows(){

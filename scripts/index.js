@@ -80,8 +80,8 @@ window.onload = () =>{
 		document.getElementById('contentArea').innerHTML = openContent;	
 		document.getElementById('contentArea').style.display = 'flex'
 		 }
-		
-	
+		 deselectExpiredOTL_Scheduled(allJobs)
+		 
 	 }catch(e){
 		 logError(e)
 	 }
@@ -98,14 +98,16 @@ $('body').on('focus',".popup", function(){
 });
 
 
-$('body').on('blur',".whiteBoardContent", function(){
-	saveWhiteBoard($(this))    
+$('body').on('keyup',".whiteBoardContent", function(){
+	// if()
+	// saveWhiteBoard($(this))    
 });
 
 $(function()
 {
     $('#datepickerScheduled').datepicker();
 });
+
 
 
 
@@ -126,8 +128,15 @@ $(function()
 	
 //  })
 
+//sent after editing an OTL scheduled jobs that have expired
+ipc.on('update-all-jobs',(event,args)=>{
+	allJobs=ipc.sendSync('pull_jobs')
+	loadJobs(allJobs)
+});
+
+
 ipc.on('update', (event, args)=>{
-	
+	console.log('update called from adding job')
 	allJobs = ipc.sendSync('pull_jobs')
 	countStatuses()
 	clearPage()
@@ -280,15 +289,62 @@ function saveWhiteBoard(wb){
 	}, 50);
 	 
 }
-	 
+function deselectExpiredOTL_Scheduled(jobs){
+	let today= new Date().getTime()
+	let count=0
+	jobs.forEach((item)=>{
+		
+		let scheduledDate = new Date(item.date_scheduled).getTime()
+		if(item.comeback_customer == 1 && today>scheduledDate){
+			ipc.send('deselect-OTL', item.job_ID)
+		}
+	})
+	
+	// console.log(count)
+
+}	 
  
  function loadJobs(args){
+	
 	fillScheduleGlimpse(args)
 	createCompleted(args)
-	//console.log(`args passed into loadJobs() is ${args}`)
-	for (var member in args){ 
-		placeElement(args[member]);			
+	//split args into scheduled and not scheduled
+	const [arrScheduled, arrOnLot] =                             
+  args
+    .reduce((result, element) => {
+      result[element.status == 'sch' ? 0 : 1].push(element); 
+      return result;
+    },
+    [[], []]); 
+	
+	//arrScheduled.sort((a, b) => a.date_scheduled.localeCompare(b.date_scheduled) || b.time_of_day - a.time_of_day);
+	arrScheduled.sort((a, b)=> {
+		if (a.date_scheduled === b.date_scheduled){
+		  return a.time_of_day < b.time_of_day ? -1 : 1
+		} else {
+		  return a.date_scheduled < b.date_scheduled ? -1 : 1
+		}
+	  })
+	//let arrSch = sortScheduled(arrScheduled)
+	for(var member in arrScheduled){
+		arrScheduled[member].shop_location = `sch${member}`
 	}
+	//console.log(arrSch)
+
+	for (var member in arrOnLot){ 
+		placeElement(arrOnLot[member]);			
+	}
+	for (var member in arrScheduled){
+		//arrSch[member].shop_location = ''
+		placeElement(arrScheduled[member])
+	}
+
+	document.querySelector('#whiteBoardContent').addEventListener('keyup',(event)=>{
+		console.log(event.key)
+		if(event.key == 'Tab' || event.key == 'Enter'){
+			saveWhiteBoard(this);
+		}
+	})
  }
 
  function createCompleted(args){
@@ -330,7 +386,7 @@ function saveWhiteBoard(wb){
 	}
  }
 
- //function to group same date schedulled items for glimpse
+ //function to group same date scheduled items for glimpse
  function groupByKey(array, key) {
 	return array
 	  .reduce((hash, obj) => {
@@ -338,6 +394,35 @@ function saveWhiteBoard(wb){
 		return Object.assign(hash, { [obj[key]]:( hash[obj[key]] || [] ).concat(obj)})
 	  }, {})
  }
+//function to sort scheduled by date and time of day
+function sortScheduled(arrToSort){
+	/**
+	 * set variable for sort function below
+	 * direction: (1 ascending() (-1 descending)
+	 * 
+	 */
+	let sortBy = [{
+		prop:'date_scheduled',
+		direction: 1
+	  },{
+		prop:'time_of_day',
+		direction: 1
+	  }];
+
+
+
+	let x = arrToSort.sort(function(a,b){
+		let i = 0, result = 0;
+		while(i < sortBy.length && result === 0) {
+		  result = sortBy[i].direction*(a[ sortBy[i].prop ].toString() < b[ sortBy[i].prop ].toString() ? -1 : (a[ sortBy[i].prop ].toString() > b[ sortBy[i].prop ].toString() ? 1 : 0));
+		  i++;
+		}
+		return result;
+	  })
+	
+	return x//groupByKey(x,'date_scheduled')
+}
+
 
  //function to fill the scheduled glimpse section with scheduled jobs
 function fillScheduleGlimpse(args){	
@@ -356,7 +441,8 @@ function fillScheduleGlimpse(args){
 	}
 	wrapper.innerHTML=''
 	for(member in args){
-		(args[member].status == 'sch')? arrScheduledStatus.push(args[member]):'';
+		//comeback_customer field is now used to display "on the lot & scheduled"
+		(args[member].status == 'sch' || args[member].comeback_customer == 1)? arrScheduledStatus.push(args[member]):'';
 	}
 
 	/**
@@ -386,28 +472,10 @@ function fillScheduleGlimpse(args){
 
 
 	
-	/**
-	 * set variable for sort function below
-	 * direction: (1 ascending() (-1 descending)
-	 * 
-	 */
-	let sortBy = [{
-		prop:'date_scheduled',
-		direction: 1
-	  },{
-		prop:'time_of_day',
-		direction: 1
-	  }];
-	let x = arrScheduledStatus.sort(function(a,b){
-		let i = 0, result = 0;
-		while(i < sortBy.length && result === 0) {
-		  result = sortBy[i].direction*(a[ sortBy[i].prop ].toString() < b[ sortBy[i].prop ].toString() ? -1 : (a[ sortBy[i].prop ].toString() > b[ sortBy[i].prop ].toString() ? 1 : 0));
-		  i++;
-		}
-		return result;
-	  })
-	let arrSD = groupByKey(x,'date_scheduled')
 	
+	
+	let arrSort = sortScheduled(arrScheduledStatus);//groupByKey(x,'date_scheduled')
+	let arrSD = groupByKey(arrSort,'date_scheduled')
 	
 	let k = Object.keys(arrSD)
 	let v = Object.values(arrSD)
@@ -637,7 +705,7 @@ function countStatuses(){
 	
 	for (let job in allJobs){ 
 		if(allJobs[job].status != 'sch'){totalCount+=1} 		  
-		if(allJobs[job].status == "wfw"){lotCount+=1}
+		if(allJobs[job].status == "wfw" || allJobs[job].status ==='pen'){lotCount+=1}
 		if(allJobs[job].status == "wip"){shopCount+=1}
 		if(allJobs[job].status == "sch"){scheduledCount+=1}
 		if(allJobs[job].status == "wpu"){completedCount+=1}
@@ -1195,12 +1263,13 @@ function openBox(e,event) {
 						
 						if (!$(event.target).closest('#schBox').length && event.target.id != 'viewAll') {
 						  document.getElementById('schBox').style.display = 'none'
+						  
 						}
 					  });
 						switch(document.getElementById("schBox").style.display) {
 							case "none":
 							case "":								
-															
+								document.getElementById('schBox').classList.add('fadeIn')						
 								document.getElementById("schBox").style.display="block";								
 								break;
 							case "block":
@@ -1255,6 +1324,7 @@ function closeBox(ev, e) {
 //function to place jobs in correct page locations
 function placeElement(args){
 	try{
+		
 		let placement = (args.shop_location != null && args.shop_location != '') ? makeJobDiv2(args) : findOpenSpace(args) 
 		
 		if(placement !=null) {
@@ -1280,7 +1350,9 @@ function findOpenSpace(args){
 	try{
 		let usedLocation = []
 		for(member in allJobs){
+			
 			usedLocation.push(allJobs[member].shop_location)
+			
 		}
 		
 		let jt=args.job_type
@@ -1294,6 +1366,7 @@ function findOpenSpace(args){
 		let alignmentBucket = ["wfw24", "wfw25", "wfw26", "wfw27", "wfw28", "wfw29", "wfw30", "wfw31", "wfw32", "wfw33", "wfw34", "wfw35"];
 		let kingpinBucket = ["wfw36", "wfw37", "wfw38", "wfw39", "wfw40", "wfw41", "wfw42", "wfw43", "wfw44", "wfw45", "wfw46", "wfw47"];
 		let frameBucket =["wfw48", "wfw49", "wfw50", "wfw51", "wfw52", "wfw53", "wfw54", "wfw55", "wfw56", "wfw57", "wfw58", "wfw59"];
+		let overFlowBucket = ["wfw60", "wfw61", "wfw62", "wfw63", "wfw64", "wfw65", "wfw66", "wfw67", "wfw68", "wfw69", "wfw70", "wfw71"];
 		let wpuBucket = []
 		let schBucket = []
 		for(i=0;i<scheduledSpots;i++){
@@ -1309,7 +1382,7 @@ function findOpenSpace(args){
 			js == "sch" || js == "SCH" ? newBucket =schBucket : newBucket = wpuBucket
 		}
 
-		bucket = newBucket
+		bucket = [...newBucket, ...overFlowBucket];
 		
 		
 		for(let i=0;i<bucket.length;i++){
@@ -1656,6 +1729,9 @@ function createContextMenu(e,objJobData,g) {
 					
 					if($(`.context-Menu:hover`).length == 0){
 						$(`.context-Menu`).fadeOut(500);
+						if(document.getElementById(e.childNodes[1].id)!= null && document.getElementById(e.childNodes[1].id) != undefined){
+							document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+					}
 					}
 				}, 7000);
 				// setTimeout(() => {
@@ -1772,6 +1848,9 @@ function createContextMenu(e,objJobData,g) {
 					
 					if($(`.context-Menu:hover`).length == 0){
 						$(`.context-Menu`).fadeOut(250);
+						if(document.getElementById(e.childNodes[1].id)!= null && document.getElementById(e.childNodes[1].id) != undefined){
+							document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
+					}
 					}
 				}, 7000);
 				// setTimeout(() => {

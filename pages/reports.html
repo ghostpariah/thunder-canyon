@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reports</title>
     <link rel="stylesheet" type="text/css" href="../css/reports.css">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200&family=Quicksand:wght@500&family=Caveat&display=swap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" media="all" href="../scripts/jquery-ui-1.11.4.custom/jquery-ui.css">
     <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
     <script src="../scripts/jquery-1.11.3.min.js"></script>
@@ -20,10 +20,11 @@
   <div id='mainMenu' class='ribbon'>
        
       <span id='option1' class='mainOption unchosen' onclick="toggleVisibility(this)">User Activity</span>      
-      <span id='option2' class='mainOption unchosen' onclick="toggleVisibility(this)">Error Log</span>
+      <span id='option2' class='mainOption unchosen' onclick="toggleVisibility(this)">On the Lot</span>
       <span id='option3' class='mainOption unchosen' onclick="toggleVisibility(this)">No Shows</span>      
       <span id='option4' class='mainOption unchosen' onclick="toggleVisibility(this)">EOD</span>
       <span id='option5' class='mainOption unchosen' onclick="toggleVisibility(this)">History</span>
+      
   </div>
   <div id='ribbon1' class= 'ribbon hidden'>
    
@@ -42,6 +43,7 @@
   </div>
   
   <div id='ribbon2' class= 'ribbon hidden'>
+    <button id="printLot" value="PRINT">PRINT</button>
     
   </div>
   <div id='ribbon3' class= 'ribbon hidden'>

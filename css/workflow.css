@@ -134,7 +134,7 @@ datalist{
 	font-size:1vw;
 	margin: -2px 0px 0px 20px;
 	text-align:right;
-	width: 7%;
+	width: 10%;
 	
 	
 	
@@ -144,6 +144,7 @@ datalist{
 #legend{
 
 	display:flex;
+	justify-content: right;
 	align-items: center;
 	width: 100%;/*1580px;*/
 	min-height:25px;
@@ -187,13 +188,13 @@ datalist{
 	font-family: "Arial Narrow";
 	color: white;
 }
-#frame {
+.frame {
 	background: red;
 }
-#spring {
+.spring {
 	background: blue;
 }
-#alignment {
+.alignment {
 	background: purple;
 }
 #kingPin {
@@ -434,7 +435,7 @@ margin-right: px;
 	z-index: 2000;
 	width: 780px;/*350px;*/
 	height: auto;/*530px;*/
-	font-size: 12px;
+	/* font-size: 12px; */
 	color: black;
 }
 #schBox .job{
@@ -444,7 +445,16 @@ margin-right: px;
 	/* margin-left:-300px; */
 	/* margin-top: 50px; */
 	box-shadow: 5px 10px 18px #888888;
+	/* opacity:0; */
+	transform:scale(0);
+
 	
+}
+.fadeIn{
+	animation: fadeIn 500ms forwards;
+}
+.fadeOut{
+	animation: fadeOut 500ms forwards;
 }
 #posBox{
 	margin-left:-200px;
@@ -637,7 +647,8 @@ div.lineItem:first-child{
 	justify-content: space-around;
 	font-size: .7vw;
 	margin-top: 2px;
-	width:50%;
+	width:65%;
+	color:white;
 	
 	
 }
@@ -657,7 +668,7 @@ div.lineItem:first-child{
 	padding-top: -10px;*/
 	/* margin: -3px 0 0 0; */
 	
-	width:20%;
+	width:25%;
 }
 .legendButton{
 	display:flex;
@@ -887,7 +898,7 @@ div.lineItem:first-child{
 	flex-grow:1;
 	width: calc(100%);
 	height:calc(100%);
-	
+	font-family:"Manrope","Arial Narrow";
 	
 	/* margin-top: -1px;
 	margin-bottom:-1px;
@@ -903,19 +914,23 @@ div.lineItem:first-child{
 	
 }
 .jobCatSpring{
-	background: #5e81ad;
+	background-color: #5e81ad;
 }
 .jobCatAlignment{
-	background: #ad5ea8;
+	background-color: #ad5ea8;
 }
 .jobCatFrame{
-	background: #ff2d00;
+	background-color: #ff2d00;
 }
 .jobCatKingPin{
-	background: #5ead63;
+	background-color: #5ead63;
 }
 .jobCatCheckAll{
-	background: #ff9e0c;
+	background-color: #ff9e0c;
+}
+.overflow{
+	background-color: black;
+	
 }
 .info {
 	width: 92%;
@@ -923,7 +938,7 @@ div.lineItem:first-child{
 	font-family: Arial, Helvetica, sans-serif;
 	flex-grow:1;
 	text-align: center;
-	font-size: 10px;
+	font-size: .65em;
 	background-repeat: no-repeat;
 	
 	height: 100%;
@@ -1124,12 +1139,26 @@ input {
 	justify-content: center;
 	align-items: center;
 	gap:5px;
-	width:18.5%;
+	width: 13%;/*18.5%;*/
 	margin: 0;
 	padding: 0;
 	height:70vh;
 	float:left;
 	padding-top:5px;
+}
+.bucketHeader{
+	font-family: 'Arial Narrow';
+	display:flex;
+	justify-content: center;
+	align-items: center;
+	
+	color: white;
+	width:100%;
+	height: 20px;
+}
+.pending{
+	
+	background-color:rgb(241, 241, 241);
 }
 #posBox:hover{
 	z-index:5;
@@ -1142,7 +1171,7 @@ input {
 	border: 1px solid #5e81ad;
 	
 	
-	margin-left: 115px;
+	margin-left: 105px;
 	margin-top:30px;
 	box-shadow: 5px 10px 18px #888888;
 	padding-left: 10px;
@@ -1241,7 +1270,7 @@ input {
 	z-index: 2000;
 	width: 320px;
 	height: auto;
-	font-size: 12px;
+	/* font-size: 12px; */
 	color: black;
 }
 .closeButton{
@@ -1422,12 +1451,23 @@ input {
 	width:150px;
 	height: 100px;
 	background: #1b1a1a;
-	margin-left: 150px;
+	/* margin-left: 150px; */
 	/* margin-top: -20px; */
-	transform: translateY(-90%);
+	transform: translate(50%,-90%);
+	/* transform:translateX(50%); */
 	/* box-shadow: 5px 10px 18px #888888; */
 	border: 1px solid black;
 	
+}
+.context-Menu::after{
+	transform: skewX(-45deg);
+    content: "";
+    position: absolute;
+    top: 100%;
+    right: 100%;
+    border-width: 15px 10px 0 0;
+    border-style: solid;
+    border-color: #1b1a1a transparent;
 }
 .left{
 	margin-left: -75px;
@@ -1531,21 +1571,55 @@ input {
 	
 }
 .jobIndicatorCash{
-	background-image: url('../images/dollarSignSmaller.jpg');
+	background-image: url('../images/cash2.svg');
+	background-size: 9px;
 }
 .jobIndicatorWaiting{
-	background-image: url('../images/iconWaiting.png');
+	background-image: url('../images/waiting.svg');
+	background-size: 9px;
 }
 
 .jobIndicatorParts{
-	background-image: url('../images/iconParts.png');
+	background-image: url('../images/parts.svg');/*iconParts.png*/
+	background-size: 9px;
 }
 .jobIndicatorApproval{
-	background-image: url('../images/iconApproval.png');
+	background-image: url('../images/approval.svg');
+	background-size: 9px;
 }
 .jobIndicatorComeback{
-	background-image: url('../images/warningLegendIcon.png');
+	background-image: url('../images/schedule4.svg');
+	background-size: 9px;
 }
 .jobIndicatorChecked{
-	background-image: url('../images/checkmark-icon.jpg');
+	background-image: url('../images/checkmark.svg');
+	background-size: 9px;
+}
+
+#footer{
+	display:flex;
+	justify-content: center;
+	align-items: center;
+	width: 100%;/*1580px;*/
+	min-height:25px;
+	max-height:30px;
+	/* height:clamp(25px,4%,30px); */
+	/* float:left; */
+	background: #5e81ad;
+	color:#525252;
+	/* padding-top: 5px; */
+	text-align: center;
+	vertical-align: middle;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size:.7vw; 
+	border-top:1px solid black;
+	/* margin:0; */
+	
+}
+@keyframes fadeIn {
+	100%{transform:scale(1);}
+	
+}
+@keyframes fadeOut {
+	100%{transform:scale(0);}
 }

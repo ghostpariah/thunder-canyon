@@ -360,7 +360,7 @@ function updateJob (){
         :'no change to time_of_day';
     }
 		
-	if(editData.date_in.localeCompare(document.getElementById('datepickerIn').value)!=0){
+	if(editData.date_in?.localeCompare(document.getElementById('datepickerIn').value)!=0){
 		objNewJob.date_In = document.getElementById('datepickerIn').value
 		
 	  

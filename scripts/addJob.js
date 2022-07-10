@@ -30,6 +30,10 @@ setTimeout(()=>{
 				dateFormat : "mm/dd/yy"
 				
 			});
+			$("#datepickerOTL").datepicker({
+				dateFormat : "mm/dd/yy"
+				
+			});
 			//$('#txtCustomerName').focus()
 			$('#selOrigin').focus()
 			
@@ -431,9 +435,12 @@ function addJob (){
 		objNewJob.email_ID = txtCon.options[txtCon.selectedIndex].id
 	}
 	(txtNotes.value.trim().length) ? objNewJob.notes = txtNotes.value : '';
-	if(document.getElementById('cbCash').checked){
-		objNewJob.cash_customer = 1
-		objNewJob.estimated_cost = txtCost.value;	
+	if(document.getElementById('cbComeback').checked){
+		objNewJob.comeback_customer = 1
+		objNewJob.date_scheduled = document.getElementById('datepickerOTL').value;
+		objNewJob.time_of_day = ($('input[type=radio]:checked').size() > 0)?$('input[name=ampmOTL]:checked').val(): 'am';
+		objNewJob.julian_date = jDate(document.getElementById('datepickerOTL').value)
+
 	}
 	objNewJob.designation = designation.options[designation.selectedIndex].value;
 	
@@ -453,10 +460,11 @@ function addJob (){
 	objNewJob.cancelled = 0
 	objNewJob.user_ID = currentUser.user_ID
 	objNewJob.job_type = jt.options[jt.selectedIndex].value;
+	(document.getElementById('cbCash').checked) ? objNewJob.cash_customer = 1 : objNewJob.cash_customer = 0;
 	(document.getElementById('cbApproval').checked) ? objNewJob.approval_needed = 1 : objNewJob.approval_needed = 0;
 	(document.getElementById('cbParts').checked) ? objNewJob.parts_needed = 1 : objNewJob.parts_needed = 0;
 	(document.getElementById('cbChecked').checked) ? objNewJob.checked = 1 : objNewJob.checked = 0;
-	(document.getElementById('cbComeback').checked) ? objNewJob.comeback_customer = 1 : objNewJob.comeback_customer = 0;
+	// (document.getElementById('cbComeback').checked) ? objNewJob.comeback_customer = 1 : objNewJob.comeback_customer = 0;
 	(document.getElementById('cbWaiting').checked) ? objNewJob.waiting_customer = 1 : objNewJob.waiting_customer= 0;
 	
 	
@@ -516,13 +524,13 @@ function openInput(e, active, inputID1, inputID2) {
 	var v = active.value;	
 	var next = document.getElementById(inputID1);
 	
-	if (active.id == "cbCash") {
+	if (active.id == "cbComeback") {
 		
 		if (active.checked == true) {
 			document.getElementById(inputID1).className = "visibleInput";
 		} else {
 
-			document.getElementById('txtCost').value = "";
+			document.getElementById('dateWrapper_OTL_SCHEDULED').value = "";
 			document.getElementById(inputID1).className = "hiddenInput";			
 		}
 	}else{
@@ -544,6 +552,9 @@ function openInput(e, active, inputID1, inputID2) {
 				
 				case "Scheduled":
 					document.getElementById(inputID2).className = "visibleInput";
+					document.getElementById('OTL_SCHEDULED').className = 'hiddenInput';
+					document.getElementById('dateWrapper_OTL_SCHEDULED').className = 'hiddenInput';
+					document.getElementById('cbComeback').checked = false
 					$('#datepicker').on({
 						'blur': ()=>{
 							let dp = document.getElementById('datepicker');
@@ -562,6 +573,7 @@ function openInput(e, active, inputID1, inputID2) {
 				case "On the Lot":
 					
 					document.getElementById("dateWrapper").className = "hiddenInput";
+					document.getElementById('OTL_SCHEDULED').className = 'visibleInput';
 					
 					break;
 				
