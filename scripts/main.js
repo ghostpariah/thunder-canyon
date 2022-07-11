@@ -2689,7 +2689,7 @@ ipcMain.on('open-contacts', (event,args1,args2, args3, args4, args5, args6, args
                 return err
             }
             console.log(`has args onw and args 6. returns ${row[0].customer_ID}`)
-            //createContactsWindow(args1,args2, args3, args4,args5,row[0].customer_ID,args7,args8)        
+            createContactsWindow(args1,args2, args3, args4,args5,row[0].customer_ID,args7,args8)        
    
                 return row[0].customer_ID
                 
@@ -2706,6 +2706,16 @@ ipcMain.on('open-contacts', (event,args1,args2, args3, args4, args5, args6, args
     
 })
 
+//seacrh for contact info associated with no-show
+ipcMain.on('search-noshows-for-contact-info', (event,args)=>{
+    let dboNoShows = new sqlite3.Database(workflowDB, (err)=>{
+        if(err){
+            console.error(err.message)
+        }
+        
+    })
+
+})
 
 ipcMain.on('move', (event, args)=>{
     

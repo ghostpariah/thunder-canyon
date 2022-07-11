@@ -126,25 +126,26 @@
                         <label>Checked:</label>
                         <input id="cbChecked" type="checkbox" tabindex="14"/>
                     </div>
-                    <div id="OTL_SCHEDULED" class="visibleInput">
-                        <label>On the Lot & Scheduled:</label>
-                        <input id="cbComeback"type="checkbox" tabindex="15" onchange="openInput(event,this,'dateWrapper_OTL_SCHEDULED')"/>
-                    </div>
-                    <div id="dateWrapper_OTL_SCHEDULED" class="hiddenInput">
-                    <label>Scheduled Date: &nbsp;</label>
-                    <input type="text" id="datepickerOTL" tabindex="16" placeholder="mm/dd/yyyy" pattern="^(0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])[- /.](19|20)\d\d$">
-                    <br/>
-                    <div id="radioContainer">
-                        <label>AM</label>
-                        <input type='radio' id="radAM_OTL" tabindex='17'name='ampmOTL' value='am'>
-                        <label>PM</label>
-                        <input type='radio' id="radPM_OTL" tabindex='18' name='ampmOTL' value='pm'>
-                    </div> 
-                </div>
                     <div class="visibleInput">
                         <label>Waiting:</label>
-                        <input id="cbWaiting" type="checkbox" tabindex="19"/>
+                        <input id="cbWaiting" type="checkbox" tabindex="15"/>
                     </div>
+                    <div id="OTL_SCHEDULED" class="visibleInput">
+                        <label>On the Lot & Scheduled:</label>
+                        <input id="cbComeback"type="checkbox" tabindex="16" onchange="openInput(event,this,'dateWrapper_OTL_SCHEDULED')"/>
+                    </div>
+                    <div id="dateWrapper_OTL_SCHEDULED" class="hiddenInput">
+                        <label>Scheduled Date: &nbsp;</label>
+                        <input type="text" id="datepickerOTL" tabindex="17" placeholder="mm/dd/yyyy" pattern="^(0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])[- /.](19|20)\d\d$">
+                        <br/>
+                        <div id="radioContainer">
+                            <label>AM</label>
+                            <input type='radio' id="radAM_OTL" tabindex='18'name='ampmOTL' value='am'>
+                            <label>PM</label>
+                            <input type='radio' id="radPM_OTL" tabindex='19' name='ampmOTL' value='pm'>
+                        </div> 
+                    </div>
+                    
                     
                 </fieldset>
                 <fieldset class="hiddenInput" id="notesFieldset">

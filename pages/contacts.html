@@ -73,7 +73,12 @@
           <div class="inline-input-group">
             <div class="input-block">
               <label>First Name</label><br />
-              <input id="txtFirstName" />
+              <input id="txtFirstName" required/>
+            </div>
+            <div id="firstname_message_container" class="inline-input-group hidden">
+              <div class="input-block">
+                  <div id="firstname_message" class="message"></div>
+              </div>
             </div>
             <div class="input-block">
               <label>Last Name</label><br />
@@ -83,13 +88,25 @@
           <div class="inline-input-group">
             <div class="input-block">
               <label>Phone Number</label><br />
-              <input id="txtPhoneNumber1" type="text" />
+              <input id="txtPhoneNumber1" type="text"/>
+            </div>
+          </div>
+          <div id="phone_message_container" class="inline-input-group hidden">
+            <div class="input-block">
+                <div id="phone_message" class="message">
+                  
+                </div>
             </div>
           </div>
           <div class="inline-input-group">
             <div class="input-block">
               <label>Email</label><br />
               <input id="txtEmail" type="text" />
+            </div>
+          </div>
+          <div id="email_message_container" class="inline-input-group hidden">
+            <div class="input-block">
+                <div id="email_message" class="message"></div>
             </div>
           </div>
           <div class="inline-input-group">
@@ -99,6 +116,11 @@
               <label>Primary Contact</label><br />
             </div>
           </div>
+          <div id="message_container" class="inline-input-group hidden">
+            <div class="input-block">
+                <div id="message" class="message"></div>
+            </div>
+          </div>
           <div class="inline-input-group">
             <div class="input-block">
               <input
@@ -106,7 +128,7 @@
                 type="button"
                 value="SUBMIT"
                 class="button large"
-                onclick="newAdd()"
+                onclick="validateForm()"
               />
             </div>
             <div class="input-block">
@@ -145,6 +167,7 @@
       const CNEI = document.getElementById("inpCompanyNameEdit")
       const contactContent = document.getElementById("currentContacts");
      
+     
       //global variables
       let companyIsNew = false;
       let contactExists = false;
@@ -170,6 +193,97 @@
       let currentUser
       let state ="view";
       let addedItemID
+      let contactInfoValid = false
+      let emailValid = false
+      let phoneValid = false
+
+
+      $(inpFirstname).on({
+        keydown: function(event){
+          let visibility = document.getElementById('firstname_message_container').style.display
+          if(visibility == 'block'){
+            document.getElementById('firstname_message_container').style.display = 'none' ;
+            document.getElementById('firstname_message').innerHTML = ''
+          }
+          
+        },
+        blur:function(){
+          console.log(' firstname blur -- contactInfoValid : '+contactInfoValid)
+        }
+      })
+
+        
+          $(inpEmail).on({ 
+            keydown: function(event){
+              //console.log(event.key)
+
+            },
+            keypress: function(event){
+
+            },
+            input: function(event){
+
+            },
+            keyup: function(event){
+              if(emailValid){
+                document.getElementById('email_message').innerHTML = "";
+                document.getElementById('email_message_container').style.display = 'none';
+              }
+              emailValid = false
+              const exp = /[^@][@]/
+              const exp2 = /[^/.][/.]/
+              
+              let hasAtSymbol = exp.test(this.value)
+              
+
+              if(hasAtSymbol){  
+                //bring string into two after @ found
+                let rest = this.value.substring(this.value.lastIndexOf("@") + 1)  
+                
+                //search the string after @ for a period
+                if(exp2.test(rest)){
+                  let afterPeriod = rest.substring(rest.lastIndexOf(".") + 1)
+                  if(afterPeriod.length>=2){
+                    emailValid = true;
+                    document.getElementById('email_message').innerHTML = "";
+                    document.getElementById('email_message_container').style.display = 'none';
+                    document.getElementById('message').innerHTML = "";
+                    document.getElementById('message_container').style.display = 'none';
+                  }
+                
+                }
+                
+              }else{
+                
+                emailValid = (this.value=="")? true:false;
+                if(emailValid){
+                  document.getElementById('email_message').innerHTML = "";
+                  document.getElementById('email_message_container').style.display = 'none';
+                  
+                }
+              }
+
+              
+            },           
+            blur: function(event){
+              console.log(' email blur -- contactInfoValid : '+contactInfoValid)
+              if(emailValid === false){
+                console.log('condition triggered');
+                
+                document.getElementById("email_message").innerText = "Invalid email";
+                document.getElementById('email_message_container').style.display = 'block';             
+                inpEmail.focus();
+                contactInfoValid = false
+            }else{
+              //TODO:insert search for no show here
+              contactInfoValid = true
+            }
+          }
+          })
+         
+        
+        
+        
       /*******
        ********
        *function to format phone number on add contact page
@@ -198,7 +312,10 @@
         let secondSpace;
         let extLabel;
 
+        let valid = false;
 
+
+        
         /*define event listeners for input field that are applying formatPN*/
         $(inp).on({
           /* 'keydown' is the first event fired when typing a key*/
@@ -228,6 +345,7 @@
 
           /* 'input' is not a keyboard event but it is fired after keypress and before keyup*/
           input: function (event) {
+            
             event.preventDefault();
 
           
@@ -236,9 +354,20 @@
            * keyup is the third keyboard event and last event fired when typing a key
            */
           keyup: function (event) {
+            if(valid){
+                document.getElementById('phone_message').innerHTML = "";
+                document.getElementById('phone_message_container').style.display = 'none';
+              }
+            valid = (inpPhoneNumber.value !="")? false: true;
+            //valid=false;
             val = this.value;
             num = val.replace(/\D/g, "");
             if (num.length >= 10) {
+              valid=true;
+              document.getElementById('phone_message').innerHTML = ""
+              document.getElementById('phone_message_container').style.display = 'none';
+              document.getElementById('message').innerHTML = "";
+              document.getElementById('message_container').style.display = 'none';
               areaCode = `(${num.substr(0, 3)}) `;
 
               prefix = `${num.substr(3, 3)}-`;
@@ -252,12 +381,33 @@
                 val = `${areaCode}${prefix}${postfix}`;
               }
               
+            }else{
+              if(this.value == ""){
+                valid=true
+                if(valid){
+                document.getElementById('phone_message').innerHTML = "";
+                document.getElementById('phone_message_container').style.display = 'none';
+                
+              }
+              }
+              
             }
             
             this.value = val;
           
           },
-          blur: function () {},
+          blur: function (event) {
+            console.log(' phone blur -- contactInfoValid : '+contactInfoValid)
+            if(!valid){
+              inpPhoneNumber.focus()
+              document.getElementById('phone_message').innerHTML = "Phone number must be at least 10 digits"
+              document.getElementById('phone_message_container').style.display = 'block';
+              contactInfoValid = false
+            }else{
+              //TODO: insert search for no shows here
+              contactInfoValid = true
+            }
+          },
         });
       }
 
@@ -266,6 +416,7 @@
       conIPC.on("open-contact-page", (event, args) => {
       customerNameWrapper.style.display = "block";
       });
+
 
      
       function togglePageView(action) {
@@ -306,6 +457,7 @@
 
               break;
             case 'cancel':
+                  clearMessageCenters()
                   if(state == "view"){
                     factoryReset();
                   }else{
@@ -320,6 +472,7 @@
                 for(i=0;i<all.length;i++){
                   all[i].style.display ='none'
                 }
+                
               break;
             default:
               console.log('default')
@@ -485,6 +638,7 @@
       customerNameWrapper.style.display = "block";
       contactContent.style.display = "none";
       document.getElementById("txtCustomerName").value="";
+      clearMessageCenters()
     }
 
     function showCompanyNameEditInput(name){
@@ -740,9 +894,29 @@
         
       }
       
+      function validateForm(){
+        console.log(`${contactInfoValid} ${inpFirstname.value} ${inpPhoneNumber.value} ${inpEmail.value}`)
+        if(contactInfoValid && inpFirstname.value != "" && (inpPhoneNumber.value!="" || inpEmail.value !="")) {
+          newAdd()
+          return
+        }
+        if(inpFirstname.value ==""){
+          document.getElementById('firstname_message_container').style.display = 'block'
+          document.getElementById('firstname_message').innerHTML = 'First name is required'
+          
+          
+        }
+        if(!contactInfoValid || (inpPhoneNumber.value=="" && inpEmail.value =="")) {
+          document.getElementById('message').innerHTML = "A valid phone number or email is required"
+          document.getElementById('message_container').style.display = 'block';
+          
+       }
       
+      }
       //function for adding contact
       function newAdd() {
+        
+        
         let cn = companyHeader.firstChild.innerText        
         let data = new Object();
         let itemID
@@ -821,12 +995,24 @@
             break;
         }
       }
+      function clearMessageCenters(){
+        document.getElementById('email_message').innerHTML = "";
+        document.getElementById('email_message_container').style.display = 'none';
+        document.getElementById('message').innerHTML = "";
+        document.getElementById('message_container').style.display = 'none';
+        document.getElementById('phone_message').innerHTML = "";
+        document.getElementById('phone_message_container').style.display = 'none';
+        document.getElementById('firstname_message').innerHTML = "";
+        document.getElementById('firstname_message_container').style.display = 'none';
+        contactInfoValid = false
+      }
       function cancelAdd() {
         if(pageLauncher!='main'){
           conIPC.send('close-window');
         }
         contactContent.style.display = "block";
         contactForm.style.display = "none";
+        clearMessageCenters();
         toggleActionLinkVisibility("on");
         togglePageView("cancel");
       }
@@ -1682,7 +1868,13 @@
         }       
         
       }
-      
+      function checkNumberForNoShows(input){
+        console.log(input.value)
+        //let contactInfoFound = ipcReport.sendSync('search-for-contact-info', input.value)
+        //if(numberNotFound()) return
+
+
+      }
      
      
      

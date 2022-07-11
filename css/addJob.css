@@ -212,9 +212,9 @@ select {
         display:none;
         float:right;
 }
-#dateWrapper_OTL_SCHEDULED{
+/* #dateWrapper_OTL_SCHEDULED{
   border:1px solid #5e81ad;
-}
+} */
 #customerNameWrapper{
         
         overflow: hidden;

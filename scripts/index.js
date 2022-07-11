@@ -1263,17 +1263,20 @@ function openBox(e,event) {
 						
 						if (!$(event.target).closest('#schBox').length && event.target.id != 'viewAll') {
 						  document.getElementById('schBox').style.display = 'none'
+						//   document.getElementById('schBox').classList.remove('fadeIn')
+						  document.getElementById('schBox').classList.add('fadeOut')
 						  
 						}
 					  });
 						switch(document.getElementById("schBox").style.display) {
 							case "none":
-							case "":								
+							case "":	
+								document.getElementById('schBox').classList.remove('fadeOut')							
 								document.getElementById('schBox').classList.add('fadeIn')						
 								document.getElementById("schBox").style.display="block";								
 								break;
 							case "block":
-								document.getElementById("schBox").style.display = "none";
+								//document.getElementById("schBox").style.display = "none";
 								break;
 						}
 						break;

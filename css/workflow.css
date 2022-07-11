@@ -1459,7 +1459,7 @@ input {
 	border: 1px solid black;
 	
 }
-.context-Menu::after{
+/* .context-Menu::after{
 	transform: skewX(-45deg);
     content: "";
     position: absolute;
@@ -1468,7 +1468,7 @@ input {
     border-width: 15px 10px 0 0;
     border-style: solid;
     border-color: #1b1a1a transparent;
-}
+} */
 .left{
 	margin-left: -75px;
 }

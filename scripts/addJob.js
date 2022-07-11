@@ -317,7 +317,7 @@ function tellParent(choice){
 			ipc.send('open-contacts','add job page',chosenCompany, isNewCustomer(chosenCompany.toUpperCase()))
 			break;
 		case '+ add new contact': 
-			
+			console.log('add new contact')
 			ipc.send('open-contacts','add job page',chosenCompany, isNewCustomer(chosenCompany.toUpperCase()))
 			
 			break;
