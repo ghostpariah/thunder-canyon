@@ -3152,11 +3152,23 @@ ipcMain.on('open-restore', (event,args)=>{
     createRestoreWindow()
 })
 
-ipcMain.on('print-to-pdf', function (event) {
+ipcMain.on('print-to-pdf', (event,args)=> {
+    let pdfName
+    switch(args){
+        case 'eod':
+            pdfName = 'eod'
+            break;
+        case 'lot':
+            pdfName = 'lot'
+            break;
+        default:
+            pdfName = 'temp'
+            break;
+    }
     try{
             console.log('print-to-pdf called')
             
-            const pdfPath = path.join(os.homedir(), 'Documents', 'temp.pdf')
+            const pdfPath = path.join(os.homedir(), 'workflow_app_reports', pdfName)
             const win = BrowserWindow.fromWebContents(event.sender)
             win.webContents.printToPDF({scaleFactor: 75}).then(data => {
                 fs.writeFile(pdfPath, data, (error) => {
@@ -3171,6 +3183,7 @@ ipcMain.on('print-to-pdf', function (event) {
             
             
         }catch(e){
+            errLog.info(e)
             console.log(e)
         }
         reportWin.webContents.send('close-window')

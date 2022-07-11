@@ -208,6 +208,10 @@ select {
 	clear: both;	
   width:400px;
 }
+.message{
+  width:100%;
+  color:red;
+}
 .hiddenInput{
         display:none;
         float:right;

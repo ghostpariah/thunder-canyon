@@ -19,7 +19,15 @@ label{
 .historyRibbon{
     height: 40px;
 }
+#mainMenu{
+    display:flex;
+    align-items: center;
+    justify-content: center;
+}
 .mainOption{
+    display:flex;
+    justify-content: center;
+    align-items: center;
     width: calc(90%/5);
     font-size: 25px;
     float: left;

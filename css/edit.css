@@ -17,6 +17,17 @@ body{
     padding-inline-start: 30px;
     margin-block-start: 0;
 }
+.message{
+  width:100%;
+  color:red;
+}
+#radioContainer{
+  display:flex;
+  justify-content: right;
+  margin-top: 10px;
+  height: 25px;
+}
+
 input[type='text'] {
 
     /* styling */

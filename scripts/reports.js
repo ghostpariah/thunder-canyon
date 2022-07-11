@@ -89,7 +89,7 @@ function loadModal(){
     div.style.fontWeight = 'bolder'
     box.appendChild(div)
        // console.log(t)
-    ipcReport.send('print-to-pdf')
+    ipcReport.send('print-to-pdf','eod')
 })
     $('#searchCriteria').on({
         keyup: function(event){
@@ -777,7 +777,7 @@ function displayLotReport(){
     document.getElementById('searchResult').style.border = "none"
     document.getElementById('searchResult').style.backgroundColor = "white"
 
-    ipcReport.send('print-to-pdf')
+    ipcReport.send('print-to-pdf', 'lot')
     })
 
     

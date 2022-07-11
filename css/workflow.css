@@ -645,6 +645,7 @@ div.lineItem:first-child{
 	display:flex;
 	flex-direction: row;
 	justify-content: space-around;
+	align-items: center;
 	font-size: .7vw;
 	margin-top: 2px;
 	width:65%;

@@ -11,9 +11,11 @@ const selDesignation = document.getElementById('selOrigin')
 const inpScheduledDate =document.getElementById('datepicker')
 const radAM = document.getElementById('radAM')
 const radPM = document.getElementById('radPM')
+const radAM_OTL = document.getElementById('radAM_OTL')
+const radPM_OTL = document.getElementById('radPM_OTL')
 const selJobType = document.getElementById('selJobType')
 const cbCash = document.getElementById('cbCash')
-const inpCost = document.getElementById('txtCost')
+//const inpCost = document.getElementById('txtCost')
 const cbParts = document.getElementById('cbParts')
 const cbApproval = document.getElementById('cbApproval')
 const cbChecked = document.getElementById('cbChecked')
@@ -33,6 +35,7 @@ window.onload = ()=>{
 setTimeout(()=>{		
     $("#datepicker").datepicker({dateFormat : "mm/dd/yy"}); 
 	$("#datepickerIn").datepicker({dateFormat : "mm/dd/yy"}); 
+	$("#datepickerOTL").datepicker({dateFormat : "mm/dd/yy"});
 },1000);
 
 /**
@@ -72,6 +75,40 @@ ipcEdit.on('edit-data', async (event,args, args2, args3)=>{
 		loadData(editData)
         
     }, 0);
+	//add event handler to cbComeback(otl&sched)
+	$(cbComeback).on({
+		change:function(){
+			if(cbComeback.checked){
+				document.getElementById('dateWrapper_OTL_SCHEDULED').style.display = 'block';
+				document.getElementById('datepickerOTL').focus()
+			}else{
+				// if(inpScheduledDate.value!=""){
+				// 	document.getElementById('dateWrapperSch').style.display = 'block';
+					
+				// }
+				document.getElementById('dateWrapper_OTL_SCHEDULED').style.display = 'none';
+			}
+		}
+	})
+
+	$(selDesignation).on({
+		change: function(event){
+			switch(this.options[this.selectedIndex].text){
+				case 'Scheduled':
+					document.getElementById('dateWrapperSch').style.display = 'block';
+					document.getElementById('OTL_wrapper').style.display = 'none';
+					document.getElementById('dateWrapper_OTL_SCHEDULED').style.display = 'none';
+					break;
+				case 'On the Lot':
+					document.getElementById('dateWrapperSch').style.display = 'none';
+					document.getElementById('OTL_wrapper').style.display = 'block';
+					//document.getElementById('dateWrapper_OTL_SCHEDULED').style.display = 'block';
+					break;
+				default:
+					break;
+			}
+		}
+	})
 })
 ipcEdit.on('contacts-updated', (event,args,args2)=>{
 	console.log(args)
@@ -114,7 +151,13 @@ function loadData(objJobToEdit){
 	}
     
     (d?.unit) ? inpUnit.value = d.unit : inpUnit.value = "";
-    (d.designation == "On the Lot" || d.desgnation == 'on the lot')? selDesignation.selectedIndex = 1 : selDesignation.selectedIndex = 2;
+    if(d.designation == "On the Lot" || d.desgnation == 'on the lot'){
+		selDesignation.selectedIndex = 1
+		document.getElementById('dateWrapperSch').style.display = 'none'
+	}else{
+		selDesignation.selectedIndex = 2;
+		}  
+	
     (d.date_scheduled != null) ? inpScheduledDate.value = d.date_scheduled : inpScheduledDate.value = "";
     (d.time_of_day == 'am')? radAM.checked = true : radAM.checked = false;
     (d.time_of_day == 'pm')? radPM.checked = true : radPM.checked = false;
@@ -126,11 +169,11 @@ function loadData(objJobToEdit){
     if(d.cash_customer != null){
         if(d.cash_customer === 1){
             cbCash.checked = true;
-            if(d.estimated_cost != null){
-                inpCost.value = d.estimated_cost;
-            }else{
-                inpCost.value = "";
-            }
+            // if(d.estimated_cost != null){
+            //     inpCost.value = d.estimated_cost;
+            // }else{
+            //     inpCost.value = "";
+            // }
         }else{            
             cbCash.checked = false;        
         }
@@ -141,7 +184,18 @@ function loadData(objJobToEdit){
     (d.parts_needed != null) ? (d.parts_needed == 1)? cbParts.checked = true : cbParts.checked = false : cbParts.checked = false;
     (d.approval_needed != null) ? (d.approval_needed == 1)? cbApproval.checked = true : cbApproval.checked = false : cbApproval.checked = false;
     (d.checked != null) ? (d.checked == 1)? cbChecked.checked = true : cbChecked.checked = false : cbChecked.checked = false;
-    (d.comeback_customer != null) ? (d.comeback_customer == 1)? cbComeback.checked = true : cbComeback.checked = false : cbComeback.checked = false;
+    if(d.comeback_customer != null){
+		if(d.comeback_customer == 1){
+			cbComeback.checked = true;
+			document.getElementById('dateWrapper_OTL_SCHEDULED').style.display = 'block';
+			if(d.date_scheduled != null){
+				document.getElementById('datepickerOTL').value = d.date_scheduled;
+				(d.time_of_day == 'am')? radAM_OTL.checked = true : radAM_OTL.checked = false;
+    			(d.time_of_day == 'pm')? radPM_OTL.checked = true : radPM_OTL.checked = false;
+			}
+
+		}
+	}// ? (d.comeback_customer == 1)? cbComeback.checked = true : cbComeback.checked = false : cbComeback.checked = false;
     (d.waiting_customer != null) ? (d.waiting_customer== 1)? cbWaiting.checked = true : cbWaiting.checked = false : cbWaiting.checked = false;
     (d.no_show != null) ? (d.no_show == 1)? cbNoShow.checked = true : cbNoShow.checked = false : cbNoShow.checked = false;
     (d.notes != null) ? txtNotes.value = d.notes : txtNotes.value = "";
@@ -265,7 +319,7 @@ function updateJob (){
 	
 	let txtCN = document.getElementById('txtCustomerName')
 	let txtCon = document.getElementById('txtContacts')
-	let txtCost =document.getElementById('txtCost')
+	//let txtCost =document.getElementById('txtCost')
 	let txtNotes = document.getElementById('txtNotes')
 	let designation = document.getElementById('selOrigin')
 	let jt = document.getElementById('selJobType')
@@ -318,12 +372,12 @@ function updateJob (){
 			: objNewJob.cash_customer = 0
 		objChangeLog.cash_customer = document.getElementById('cbCash').checked
 	}
-    if(editData.estimated_cost!=null){
-        if(editData.estimated_cost.localeCompare(txtCost.value)!=0){
-          objNewJob.estimated_cost = txtCost.value
-		  objChangeLog.estimated_cost = txtCost.value
-		}
-    }
+    // if(editData.estimated_cost!=null){
+    //     if(editData.estimated_cost.localeCompare(txtCost.value)!=0){
+    //       objNewJob.estimated_cost = txtCost.value
+	// 	  objChangeLog.estimated_cost = txtCost.value
+	// 	}
+    // }
     
     if(editData.designation.localeCompare(designation.options[designation.selectedIndex].value)!=0){
      	objNewJob.designation = designation.options[designation.selectedIndex].value	
@@ -344,6 +398,14 @@ function updateJob (){
     if(editData.date_scheduled != null){
         if(editData.date_scheduled.localeCompare(document.getElementById('datepicker').value)!=0){
           objNewJob.date_scheduled = document.getElementById('datepicker').value
+		  //if editing an existing 'On the Lot' job to an OTL & Sched job and a julian date doesnt exist, add one
+		  if(cbComeback.checked){
+				if(editData.julian_date === null || editData.julian_date ===""){
+					objNewJob.julian_date = jDate(document.getElementById('datepicker').value)
+				}
+			}
+		  
+
 		  
         
 		}
@@ -357,6 +419,11 @@ function updateJob (){
     if(editData.time_of_day != null && editData.time_of_day != ''){
         (editData.time_of_day.localeCompare($('input[name=ampm2]:checked').val())!=0)
         ? objNewJob.time_of_day = $('input[name=ampm2]:checked').val()
+        :'no change to time_of_day';
+    }
+	if(editData.time_of_day != null && editData.time_of_day != ''){
+        (editData.time_of_day.localeCompare($('input[name=ampmOTL]:checked').val())!=0)
+        ? objNewJob.time_of_day = $('input[name=ampmOTL]:checked').val()
         :'no change to time_of_day';
     }
 		
@@ -399,11 +466,24 @@ function updateJob (){
 		: objNewJob.checked = 0
     : console.log('no change to checked');
 
-    (Boolean(document.getElementById('cbComeback').checked)!=Boolean(editData.comeback_customer))
-    ? (document.getElementById('cbComeback').checked)
-		? objNewJob.comeback_customer = 1
-		: objNewJob.comeback_customer = 0
-    : console.log('no change to comeback');
+    if(Boolean(document.getElementById('cbComeback').checked)!=Boolean(editData.comeback_customer)){
+		if(document.getElementById('cbComeback').checked){			
+			
+			if(document.getElementById('datepickerOTL').value == '' || document.getElementById('datepickerOTL').value == undefined || document.getElementById('datepickerOTL').value == null || $('input[name=ampmOTL]:checked').val() == undefined){
+				
+				document.getElementById('wrapperOTL').style.display = 'block'
+				document.getElementById('OTL_message').innerHTML = 'scheduled date and time of day required'
+				return
+			}
+			objNewJob.comeback_customer = 1
+			objNewJob.date_scheduled = document.getElementById('datepickerOTL').value
+			objNewJob.time_of_day = $('input[name=ampmOTL]:checked').val()
+			objNewJob.julian_date = jDate(document.getElementById('datepickerOTL').value)
+		}else{
+			objNewJob.comeback_customer = 0
+		}
+	}
+    
 
     (Boolean(document.getElementById('cbWaiting').checked)!=Boolean(editData.waiting_customer))
     ? (document.getElementById('cbWaiting').checked)
