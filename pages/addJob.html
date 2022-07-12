@@ -10,6 +10,7 @@
     <link rel="stylesheet" type="text/css" media="all" href="../css/addJob.css">
     
     <script src='../scripts/addJob.js'></script>
+    <!--<script src='../scripts/dropDown.js' defer></script>-->
     <!--<script src="../scripts/calendar_script.js"></script>-->
 	<script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
 	<script src="../scripts/jquery-1.11.3.min.js"></script>
@@ -30,6 +31,17 @@
                 <legend>
                     Required Job Info
                 </legend>
+                <!--                
+                <div class="visibleInput"> <label>Label:&nbsp;</label>
+                    <div class="selectBox">
+                        <div id="choice" class="choice"></div>
+                        <div id='dropDownButton' class="dropDownButton"></div>
+                    </div>
+                    <div id='optionsBox' class="optionsBox">
+                   
+                    </div>
+                </div>
+                -->
                 <div class="visibleInput" id="originWrapper"> <label for="selOrigin">Designation:&nbsp;</label>
                     <select id="selOrigin" class='classic' tabindex="1" onchange="openInput(event,this,'customerNameWrapper','dateWrapper')">
                         <option value="None"></option>

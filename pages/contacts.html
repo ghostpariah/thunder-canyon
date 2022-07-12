@@ -186,6 +186,7 @@
       let addFN;
       let addLN;
       let addCID;
+      let addCustomer_ID
       let addPN;
       let addEm;
       let addCM;
@@ -518,7 +519,7 @@
 
       conIPC.on(
         "name-chosen",
-        (event, args1, args2, args3, args4, args5, args6, args7, args8) => {
+        (event, args1, args2, args3, args4, args5, args6, args7, args8, args9) => {
           
         try{  
           let argCount = 0;
@@ -532,7 +533,7 @@
               return
               break;
             case "add job page":
-              console.log(`${args1} ${args2} ${args3} ${args4} ${args5} ${args6} ${args7} ${args8}`)
+              console.log(`${args1} ${args2} ${args3} ${args4} ${args5} ${args6} ${args7} ${args8} ${args9}`)
            
               pageLauncher = "add job";
             
@@ -615,7 +616,9 @@
           if(args8){            
             currentUser = args8
           }
-
+          if(args9){
+            addCustomer_ID = args9
+          }
           //alert(argCount)
           if (argCount == 0) {
             customerNameWrapper.style.display = "block";
@@ -896,7 +899,9 @@
       
       function validateForm(){
         console.log(`${contactInfoValid} ${inpFirstname.value} ${inpPhoneNumber.value} ${inpEmail.value}`)
-        if(contactInfoValid && inpFirstname.value != "" && (inpPhoneNumber.value!="" || inpEmail.value !="")) {
+        contactInfoValid = (inpPhoneNumber.value != "")? true : (inpEmail.value !="")?true : false;
+        
+        if(contactInfoValid && inpFirstname.value != "") {
           newAdd()
           return
         }
@@ -921,7 +926,7 @@
         let data = new Object();
         let itemID
 
-         
+        
         if(addCID){
           data.customer_ID = companyHeader.firstChild.childNodes[0].id
           data.contact_ID = addCID

@@ -95,7 +95,7 @@ function pullContacts(comp){
     if(typeof comp != undefined){
 		
     	let cont = ipc.sendSync('get-contacts',comp)
-		
+		//createdropDown(cont)
 		fillContacts(cont)
 		
     }else{
