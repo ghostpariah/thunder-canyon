@@ -13,7 +13,25 @@ let activity
 let noshows
 let history
 let totalACH = 0
-
+let tabIndexes = 5
+let valid = false
+let changed = false
+// variable represents the state of EOD data
+// can be create , or edit
+// create is the default and used when creating report. 
+// edit is used when a report has already been created for the day. The saved info will populate the fields
+let state = 'create'
+    
+document.addEventListener('keydown', function(event)
+{
+  var code = event.keyCode || event.which;
+  if (code === 9) { 
+    console.log('active element is below') 
+    console.log(document.activeElement)
+    console.log(document.activeElement.tabIndex)
+  }
+  
+});
 
 $(function(){
     $("#reportStartDate").datepicker({
@@ -24,17 +42,35 @@ $(function(){
     });
     $("#datepickerReport").datepicker({
         dateFormat : "m/d/yy"        
-    }).datepicker("setDate", -1);
+    }).datepicker("setDate", getYesterday());
     console.log($('#datepickerReport').datepicker('getDate'))
-    
+    console.log("yesterday was "+getYesterday())
 })
+
+function getDaysInMonth(year, month) {
+    return new Date(year, month, 0).getDate();
+  }
 function getYesterday(){
     const objDate = new Date();
-	const day = objDate.getDate() - 1;
-	const month = objDate.getMonth() + 1;
-	const year = objDate.getFullYear();
-	const today = month + "/" + day + "/" + year;
-	return today; 
+    const todaysDay = objDate.getDate();
+    const todaysMonth = objDate.getMonth() + 1;
+    const todaysYear = objDate.getFullYear();
+    let newYear = (todaysDay === 1 && todaysMonth === 1) ? true : false;
+    let newMonth = (todaysDay === 1) ? true : false;
+    
+    //if today is the first day of a new year
+    if(newYear){
+        return `12/31/${todaysYear - 1}`
+    }
+    //if today is the first day of a new month but still the same year
+    if(newMonth){
+        return todaysMonth-1 + "/" + getDaysInMonth(todaysYear, todaysMonth-1) +"/" + todaysYear;
+    }
+	
+    //if its not the first day of a new month
+	let yesterday = `${todaysMonth}/${todaysDay -1}/${todaysYear}`;
+    console.log('yesterday is '+yesterday)
+	return yesterday; 
 }
 function todayIs() {
 
@@ -50,46 +86,154 @@ const formatToCurrency = amount => {
     console.log(amount.replace(/[^0-9.\-]/g, ''))
     return "$" + Number(amount.replace(/[^0-9.\-]/g, '')).toFixed(2);//.replace(/\d(?=(\d{3})+\.)/g, "$&,");
   };
- 
+function getEODdata(){
+    const inpBatch  = document.getElementById('inpBatch')
+    const inpCity = document.getElementById('inpCity')
+    const inpDaily  = document.getElementById('inpDaily')
+    const inpDirector = document.getElementById('inpDirector')
+    const cbACH = document.getElementById('cbACH')
+    
 
+    let data = ipcReport.sendSync('get-eod-data', getYesterday(), todayIs())
+    console.log(data)
+   //pull saved EOD data if it exists
+   
+
+   //load data into EOD form if there was data input already today
+   if(data !== undefined){
+        state = 'edit'
+       //createEODitem($('#datepickerReport'),'date')
+       inpBatch.value = data.batch
+       createEODitem(inpBatch, 'batch')
+       inpCity.value = data.city
+       createEODitem(inpCity, 'city')
+       inpDaily.value = data.daily
+       createEODitem(inpDaily, 'daily')
+       inpDirector.value = data.director
+       createEODitem(inpDirector, 'director')
+
+       if(data.achCount > 0){
+           //cbACH.checked = true
+           for(i=1;i<=data.achCount;i++){
+               let f = data['ach'+i].customer
+               let a = data['ach'+i].amount
+               createACHinputs(i)
+            //    setTimeout(() => {
+                
+            //    }, 50);
+               
+               document.getElementById('if'+i).value = f
+               document.getElementById('ia'+i).value = a
+               if(i == data.achCount){
+                totalACH = i
+                //toggleActionButton(document.getElementById(`action${i}`),true, data.achCount)
+               }
+               createEODitem(document.getElementById('if'+i), `ach`,i, a)
+           }
+           
+           //handleCheck(cbACH)
+       }
+   }
+} 
+function hasInfo(element){
+    let a = element.parentNode.childNodes[0].value
+    let f = element.parentNode.childNodes[1].value
+    
+    if(a !== "" && f !== ""){
+        return true
+    }else{
+        return false
+    }
+}
 function loadModal(){
-    //document.getElementById('datepickerReport').focus()
+    
+    $('#option4').click()
+    const achContainer = document.getElementById('achBox')
+    
     const printPDFBtn = document.getElementById('btnReport')
 
     printPDFBtn.addEventListener('click', function (event) {
-    //clean page for printing
-    document.getElementById('mainMenu').style.display = "none"
-    document.getElementById('ribbon4').setAttribute('class', 'ribbon hidden')
-    document.getElementById('searchResult').style.border = "none"
-
-    //create monthly accumulative total line
-    let box = document.getElementById("searchResult")
-    let div = document.createElement('div')
-    div.setAttribute('class', 'EODprintItem')
-    let label = document.createElement('div')
-    let labelText = document.createTextNode('Total:')
-    label.appendChild(labelText)
-    label.setAttribute('class','labelBox')
-    let result = document.createElement('div')
-    result.setAttribute('class','resultBox')
-
-    
-
-    
-    //add city and director for total
-    let c = document.getElementById('inpCity').value
-    let d = document.getElementById('inpDirector').value
-
-    let tot = Number(c.replace(/[^0-9.\-]/g, '')) + Number(d.replace(/[^0-9.\-]/g, ''))
+        //create object to store data for reuse when report is opened on the same day for reprint
+        let eodInfo = new Object()
+        eodInfo.today = todayIs()
+        eodInfo.reportDate = document.getElementById('datepickerReport').value
+        eodInfo.batch = inpBatch.value
+        eodInfo.city = inpCity.value
+        eodInfo.daily = inpDaily.value
+        eodInfo.director = inpDirector.value
         
-    let t = document.createTextNode(`$${tot.toFixed(2).replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")}`)
-    result.appendChild(t)
-    div.appendChild(label)
-    div.appendChild(result)
-    div.style.fontWeight = 'bolder'
-    box.appendChild(div)
-       // console.log(t)
-    ipcReport.send('print-to-pdf','eod')
+        
+        //if there is ACH info
+        if(totalACH>0){//if(cbACH.checked){
+            //TODO: create array of ACH objects for the amount of ACH entered. each object contains amount and company name
+            let achContainerCount = achContainer.childNodes.length
+            let validCount = 0
+            console.log('achCoutainerCount = '+achContainerCount)
+            for(i=1;i<=achContainerCount;i++){
+                if(hasInfo(document.getElementById(`action${i}`))){
+                    validCount+=1
+                    
+                }
+            }
+            eodInfo.achCount = validCount
+            eodInfo.ach = new Array()
+            console.log(validCount)
+            for( i=1;i<=validCount;i++){
+                
+                    console.log(document.getElementById(`ia${i}`).value)
+                    console.log('before i='+i)
+                    
+                    eodInfo.ach[i-1] = {}
+                    eodInfo.ach[i-1].amount = document.getElementById(`ia${i}`).value
+                    console.log('after i='+i)
+                    eodInfo.ach[i-1].customer = document.getElementById(`if${i}`).value
+                
+                    
+                   
+                
+            }
+            console.table(eodInfo)
+        }else{
+        //if no ach
+        eodInfo.achCount = 0   
+        }
+        //clean page for printing
+        document.getElementById('mainMenu').style.display = "none"
+        document.getElementById('ribbon4').setAttribute('class', 'ribbon hidden')
+        document.getElementById('searchResult').style.border = "none"
+        document.getElementById('searchResult').style.backgroundColor = "#fff"
+        //create monthly accumulative total line
+        let box = document.getElementById("searchResult")
+        
+        let div = document.createElement('div')
+        div.setAttribute('class', 'EODprintItem')
+        let label = document.createElement('div')
+        let labelText = document.createTextNode('Total:')
+        label.appendChild(labelText)
+        label.setAttribute('class','labelBox')
+        let result = document.createElement('div')
+        result.setAttribute('class','resultBox')
+
+    
+
+    
+        //add city and director for total
+        let c = document.getElementById('inpCity').value
+        let d = document.getElementById('inpDirector').value
+
+        let tot = Number(c.replace(/[^0-9.\-]/g, '')) + Number(d.replace(/[^0-9.\-]/g, ''))
+            
+        let t = document.createTextNode(`$${tot.toFixed(2).replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")}`)
+        result.appendChild(t)
+        div.appendChild(label)
+        div.appendChild(result)
+        div.style.fontWeight = 'bolder'
+        box.appendChild(div)
+
+    
+
+       
+    ipcReport.send('print-to-pdf','eod',eodInfo)
 })
     $('#searchCriteria').on({
         keyup: function(event){
@@ -240,7 +384,11 @@ function toggleVisibility(el){
     }
     if(chosenOption==4){
         createEODitem($('#datepickerReport'),'date')
-        $('#inpACH').focus()
+        getEODdata()
+        setTimeout(() => {
+            $('#inpBatch').focus()
+        }, 50);
+        
     }
     if(chosenOption ==3){
         displayNoShows()
@@ -281,15 +429,9 @@ function search(searchType){
         }
 }
 
-function createEODitem(el, item, count){
+function createEODitem(el, item, count,achAmount){
     console.log('beginning of createEODitem..item= '+item+"count= "+count)
-    switch(item){
-        case 'achWrapper1':
-
-        break;
-        default:
-            break;
-    }
+   
     let alreadyExists = document.getElementById(item)
     if(item == "ach"){
         alreadyExists = document.getElementById(item+count)
@@ -298,8 +440,9 @@ function createEODitem(el, item, count){
     if(alreadyExists) {
          if(item != 'date' && item != 'from'){ 
              if(item=='ach'){
-             $(`#${item+count} :nth-child(2)`).html(resetText(el,item+count, count)[0]) //resetText(el,item)
-             $(`#${item+count} :nth-child(1)`).html(resetText(el,item+count,count)[1])
+                console.log(resetText(el,item+count, count,achAmount))
+             $(`#${item+count} :nth-child(2)`).html(resetText(el,item+count, count,achAmount)[0]) //resetText(el,item)
+             $(`#${item+count} :nth-child(1)`).html(resetText(el,item+count,count,achAmount)[1])
              }else{
                 $(`#${item} :nth-child(2)`).html(resetText(el,item, count)) //resetText(el,item)
                    
@@ -364,17 +507,21 @@ function createEODitem(el, item, count){
                 //text = document.createTextNode(`ACH: ${formatToCurrency(el.value)}`)
                 labelText = document.createTextNode(`ACH from ${el.value}`)
                 label.appendChild(labelText)
-                resultText= document.createTextNode(`${formatToCurrency(el.parentNode.childNodes[1].value).replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")}`)
+                resultText= document.createTextNode(`${formatToCurrency(achAmount).replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")}`) //el.parentNode.childNodes[1].value
                 result.appendChild(resultText)
                 div.appendChild(label)
                 div.appendChild(result)
                 
                 //div.appendChild(text)
                 //box.appendChild(div)
+                
                 document.getElementById('dailySalesH3').insertAdjacentElement('afterend', div)
+                
+                
 
             break;
             case 'achWrapper2':
+                
                 console.log(el.parentNode.childNodes[1].value)
                 //text = document.createTextNode(`ACH: ${formatToCurrency(el.value)}`)
                 labelText = document.createTextNode(`ACH from  ${el.value}`)
@@ -466,7 +613,12 @@ function createEODitem(el, item, count){
         
     
 }
-function resetText(el, item, count){
+
+function removeLineItem(line){
+    if(line) line.remove()
+    
+}
+function resetText(el, item, count,achAmount){
     let result = "invalid input"
     let result2 = "invalid input"
     console.log('resetText count= '+item+count)
@@ -477,7 +629,7 @@ function resetText(el, item, count){
         break;
         case `ach${count}`:
             
-            result =`${formatToCurrency(el.parentNode.childNodes[1].value).replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")}`  
+            result =`${formatToCurrency(achAmount).replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")}`  
             result2  = `ACH from ${el.value}` 
             console.log(`within resetText(). case statement =ach${count} result = ${result} result2 = ${result2}`) 
             return [result,result2]   
@@ -504,6 +656,88 @@ function resetText(el, item, count){
     }
     return result
 }
+/**
+ * function to toggle the ach input line action between '+' and '-'
+ * depending on fields being valid or not and previous action
+ * 
+ */
+function toggleActionButton(element, isValid, count){
+    let inner = element.innerHTML
+    let parent = element.parentNode
+    
+    if(isValid){
+        console.log('valid')
+        
+        let addACH = document.createElement('div')
+        addACH.setAttribute('class','addText')
+        addACH.setAttribute('id', `action${count}`)
+        let text = document.createTextNode('+')
+        addACH.appendChild(text)
+        
+        addACH.setAttribute('tabindex',`${element.getAttribute('tabindex')}`)
+        addACH.addEventListener('click', (event)=>{
+            console.log(totalACH)
+            totalACH+=1
+            if(hasInfo(event.target)){
+                createACHinputs(totalACH)
+            }
+            
+        })
+        
+        element.remove()
+        parent.appendChild(addACH)
+        
+    }else{
+        console.log(inner)
+       
+            let delACH = document.createElement('div')
+            delACH.setAttribute('class','addText')
+            delACH.setAttribute('id', `action${count}`)
+            let text = document.createTextNode('-')
+            delACH.appendChild(text)
+            
+            delACH.setAttribute('tabindex',`${element.getAttribute('tabindex')}`)
+            delACH.addEventListener('click', (event)=>{
+                
+                //totalACH-=1
+                console.log('totalACH = '+totalACH)
+                parent.remove()
+
+
+                
+    
+                // if(document.getElementById('achBox').childNodes.length == 0){
+                //     document.getElementById('cbACH').checked = false
+                // }
+                // totalACH = document.getElementById('achBox').childNodes.length
+                totalACH-=1
+                //save ach input data and then recreate after deleted item removed
+                let tempACHes = document.getElementById('achBox').childNodes
+                for(member in tempACHes){
+                    let f = tempACHes[member].childNodes[1].value
+                    let a = tempACHes[member].childNodes[1].value
+                    createACHinputs(i)
+                 //    setTimeout(() => {
+                     
+                 //    }, 50);
+                    
+                    document.getElementById('if'+i).value = f
+                    document.getElementById('ia'+i).value = a
+                    if(i == data.achCount){
+                     totalACH = i
+                     //toggleActionButton(document.getElementById(`action${i}`),true, data.achCount)
+                    }
+                    createEODitem(document.getElementById('if'+i), `ach`,i, a)
+                }
+
+                console.log(totalACH)
+            })
+            element.remove()
+            parent.appendChild(delACH)
+        
+    }
+    
+}
 function createACHinputs(count){
     let achPayee
     let achAmount
@@ -513,94 +747,233 @@ function createACHinputs(count){
     let wrapper = document.createElement('div')
     //make ach area visible
     achBox.setAttribute('class', 'visible')
+    if(state == 'edit'){
 
+    }
     //create elements
     let labelAmount = document.createElement('label')
     labelAmount.setAttribute('class','achLabel')
     let inputAmount = document.createElement('input')
-    inputAmount.setAttribute('class','achInput')
+    inputAmount.setAttribute('class','smallInput')
+    tabIndexes+=1
+    inputAmount.setAttribute('tabindex',`${tabIndexes}`)
+    inputAmount.addEventListener('keyup', (event)=>{
+        let inner = event.target.nextSibling.nextSibling.innerHTML
+        valid = hasInfo(event.target)
+        let c = event.target.parentNode.id.substring(10)
+        achAmount = event.target.parentNode.childNodes[0].value //document.getElementById(`ia${count}`).value
+        achPayee = event.target.parentNode.childNodes[1]//document.getElementById(`if${count}`)
+        
+        if(valid){
+            console.log('achAmount = '+achAmount+' and achPayee = '+achPayee)
+            createEODitem(achPayee, `ach`,c, achAmount)
+        }else{
+            //delete line item
+            removeLineItem(document.getElementById(`ach${c}`))
+        }
+
+        if( valid && inner == '-'){
+            //toggleActionButton(event.target.nextSibling.nextSibling, valid, count)
+            
+        }else{
+            if(inner == '+'){
+                //toggleActionButton(event.target.nextSibling.nextSibling, valid, count)
+            }
+        }
+    })
+    
     inputAmount.setAttribute('id',`ia${count}`)
+    inputAmount.setAttribute('placeholder','amount')
+    // inputAmount.setAttribute('pattern','[0-9]{1,}')
     let labelFrom = document.createElement('label')
     labelFrom.setAttribute('class','achLabel')
     let inputFrom = document.createElement('input')
-    inputFrom.setAttribute('class','achInput')
+    inputFrom.setAttribute('class','smallInput')
     inputFrom.setAttribute('id',`if${count}`)
-    inputFrom.addEventListener('blur', (event)=>{
-        //determine if this is the first group. if there is a previous group then
-        //this is not the first
-        achPayee = document.getElementById(`if${count}`)
-        achAmount = document.getElementById(`ia${count}`)
-        let previous = document.getElementById(`if${count-1}`)
-        let wrap = document.getElementById(`achWrapper${count}`)
-        let achSpacer = document.getElementById(`spacer${count}`)
-        let existingNextWrap = document.getElementById(`achWrapper${count+1}`)
-        //increment counter for id value
+    inputFrom.setAttribute('placeholder','company')
+    tabIndexes+=1
+    inputFrom.setAttribute('tabindex',`${tabIndexes}`)
+    inputFrom.addEventListener('keyup', (event)=>{
+        let inner = event.target.nextSibling.innerHTML
+        valid = hasInfo(event.target)
+        let c = event.target.parentNode.id.substring(10)
+        achAmount = event.target.parentNode.childNodes[0].value //document.getElementById(`ia${count}`).value
+        achPayee = event.target.parentNode.childNodes[1]//document.getElementById(`if${count}`)
+        
+        if(valid){
+            createEODitem(achPayee, `ach`,c, achAmount)
+        }else{
+            //delete line item
+            removeLineItem(document.getElementById(`ach${c}`))
+        }
+        
+        if( valid && inner == '-'){
+            //toggleActionButton(event.target.nextSibling, valid, count)
+            
+            
+            
+        }else{
+            if(inner == '+'){
+                //toggleActionButton(event.target.nextSibling, valid, count)
+            }
+        }
+    })
+    // inputFrom.addEventListener('blur', (event)=>{
+    //     //determine if this is the first group. if there is a previous group then
+    //     //this is not the first
+    //     achPayee = document.getElementById(`if${count}`)
+    //     achAmount = document.getElementById(`ia${count}`).value
+    //     let previous = document.getElementById(`if${count-1}`)
+    //     let wrap = document.getElementById(`achWrapper${count}`)
+    //     let achSpacer = document.getElementById(`spacer${count}`)
+    //     let existingNextWrap = document.getElementById(`achWrapper${count+1}`)
+    //     //increment counter for id value
         
 
-        //verify that fields aren't empty. If they are then remove group
-        console.log(`this is in the from field : ${achPayee.value}`)
+    //     //verify that fields aren't empty. If they are then remove group
+    //     console.log(`this is in the from field : ${achPayee.value}`)
 
-        //check to see if previous grouping exists and if it is empty. 
-        //If not empty create new grouping and add line to report
+    //     //check to see if previous grouping exists and if it is empty. 
+    //     //If not empty create new grouping and add line to report
         
-        //if(previous){
-           if(achPayee.value ==""){
-            if(!previous) document.getElementById('cbACH').checked = false
-               wrap.remove()
-               achSpacer.remove()
-               return
-           }else{
-               //if there is an existing ach block after this with entered data then we are editing
-               //so do not create a new ach block
-                if(existingNextWrap) return createEODitem(achPayee, `ach`,count)
+    //     //if(previous){
+    //        if(achPayee.value ==""){
+    //         if(!previous) document.getElementById('cbACH').checked = false
+    //            wrap.remove()
+    //            //achSpacer.remove()
+    //            return
+    //        }else{
+    //            //if there is an existing ach block after this with entered data then we are editing
+    //            //so do not create a new ach block
+    //             if(existingNextWrap) return createEODitem(achPayee, `ach`,count, achAmount)
                     
                 
-           }
+    //        }
            
        
-        totalACH+=1
-        //add line to report
-        createEODitem(achPayee, `ach`,count)
-        createACHinputs(totalACH)
+    //     totalACH+=1
+    //     //add line to report
+    //     createEODitem(achPayee, `ach`,count, achAmount)
+
+    //     createACHinputs(totalACH)
         
-        console.log(totalACH)
-    })
+    //     console.log(totalACH)
+    // })
     let txtAmount = document.createTextNode('Amount:')
     let txtFrom = document.createTextNode('From:')
 
     //append elements to ach area
     labelAmount.appendChild(txtAmount)
-    wrapper.appendChild(labelAmount)
+    //wrapper.appendChild(labelAmount)
     wrapper.appendChild(inputAmount)
     //achBox.appendChild(labelAmount)        
     //achBox.appendChild(inputAmount)
 
     labelFrom.appendChild(txtFrom)
-    wrapper.appendChild(labelFrom)
+    //wrapper.appendChild(labelFrom)
     wrapper.appendChild(inputFrom)
     wrapper.setAttribute('id',`achWrapper${count}`)
+    wrapper.setAttribute('class','achWrapper')
     
+
+    let addACH = document.createElement('div')
+    addACH.setAttribute('class','plusButton minus')
+    addACH.setAttribute('id', `action${count}`)
+    tabIndexes+=1
+    addACH.setAttribute('tabindex',`${tabIndexes}`)
+
+    //change tabindex of submit button and date field
+    tabIndexes+=1
+    document.getElementById('btnReport').tabIndex = tabIndexes
+    tabIndexes+=1
+    document.getElementById('datepickerReport').tabIndex = tabIndexes
+    
+    addACH.addEventListener('click', (event)=>{
+        //console.log(totalACH)
+        let previous = document.getElementById(`achWrapper${totalACH}`)
+       // console.log(previous)
+       console.log('totalACH = '+totalACH)
+       
+
+       //before removig the inputs from the page find out if 
+       //the id is less than the total ach recreate all ACH to get id's back in numerical order
+       let which = event.target.parentNode.id.substring(10)
+       console.log('which= '+which)
+       
+        event.target.parentNode.remove()
+
+        
+        totalACH-=1
+        console.log('totalACH = '+totalACH)
+        
+        //totalACH-=1
+        removeLineItem(document.getElementById(`ach${which}`))
+        
+        //save ach input data and then recreate after deleted item removed
+        let ACHboxes = document.getElementById('achBox').childNodes
+        console.log(ACHboxes.length)
+        let arrACH = Array.from(ACHboxes)
+        let achComponents
+        console.log(arrACH)
+        for(member in arrACH){
+           // let f = tempACHes[member].childNodes[1].value
+            //let a = tempACHes[member].childNodes[1].value
+            //createACHinputs(i)
+            let eID = arrACH[member].id.substring(10)
+            console.log(member)
+            arrACH[member].setAttribute('id',`achWrapper${Number(member)+1}`)
+            arrACH[member].childNodes[0].setAttribute('id',`ia${Number(member)+1}`)
+            arrACH[member].childNodes[1].setAttribute('id',`if${Number(member)+1}`)
+            arrACH[member].childNodes[2].setAttribute('id',`action${Number(member)+1}`)
+            if(document.getElementById(`ach${eID}`)){
+            document.getElementById(`ach${eID}`).setAttribute('id',`ach${Number(member)+1}`)
+            }
+            achComponents = ACHboxes[member].childNodes
+            
+            // document.getElementById('if'+i).value = f
+            // document.getElementById('ia'+i).value = a
+            // if(i == data.achCount){
+            //  totalACH = i
+            //  //toggleActionButton(document.getElementById(`action${i}`),true, data.achCount)
+            // }
+            // createEODitem(document.getElementById('if'+i), `ach`,i, a)
+            console.log(achComponents[0].value)
+        }
+        //removeLineItem(document.getElementById(`ach${count}`))
+        // if(document.getElementById('achBox').childNodes.length == 0){
+        //     document.getElementById('cbACH').checked = false
+        // }
+        // totalACH+=1
+        // if(hasInfo(event.target)){
+        //     createACHinputs(totalACH)
+        // }
+    })
+
+    let addText = document.createTextNode('-')
+    addACH.appendChild(addText)
     //achBox.appendChild(labelFrom)        
     //achBox.appendChild(inputFrom)
+    wrapper.appendChild(addACH)
     achBox.appendChild(wrapper)
-    achBox.appendChild(spacer)
-    $(`#ia${count}`).focus()
+    //achBox.appendChild(spacer)
+    inputAmount.focus()
+    //$(`#ia${count}`).focus()
 }
 
 function handleCheck(checkbox){
     
     let achBox = document.getElementById('achBox')
-    achBox.innerHTML = ""
+    //achBox.innerHTML = ""
 
-    if(checkbox.checked == true){
+    //if(checkbox.checked == true){
         achBox.setAttribute('class', 'visible')
-        totalACH = 1
+        totalACH+=1
        createACHinputs(totalACH)
        
-      }else{
-        achBox.setAttribute('class','hidden')
-        removeLineItems(document.getElementsByName('achLineItem'))
-   }
+//       }else{
+//         achBox.setAttribute('class','hidden')
+//         removeLineItems(document.getElementsByName('achLineItem'))
+//    }
 }
 function removeLineItems(list){
     let arr =[]
@@ -771,13 +1144,15 @@ function displayLotReport(){
     const printPDFBtn = document.getElementById('printLot')
 
     printPDFBtn.addEventListener('click', function (event) {
-    //clean page for printing
-    document.getElementById('mainMenu').style.display = "none"
-    document.getElementById('ribbon2').setAttribute('class', 'ribbon hidden')
-    document.getElementById('searchResult').style.border = "none"
-    document.getElementById('searchResult').style.backgroundColor = "white"
+        //clean page for printing
+        document.getElementById('mainMenu').style.display = "none"
+        document.getElementById('ribbon2').setAttribute('class', 'ribbon hidden')
+        document.getElementById('searchResult').style.border = "none"
+        document.getElementById('searchResult').style.backgroundColor = "white"
 
-    ipcReport.send('print-to-pdf', 'lot')
+        //verify that there are no ach even if inputs created and empty then uncheck ACH if checked
+        
+        ipcReport.send('print-to-pdf', 'lot')
     })
 
     

@@ -90,7 +90,12 @@ let uncaughtCount = 0
     
 
 // };
-const userStore = new Store()
+const userStore = new Store({
+    name: 'userData'
+});
+const EODinfo = new Store({
+    name: 'EODinfo'
+});
 
 /***********************
 ********
@@ -625,20 +630,20 @@ function readyFolders(){
                     });  
                 }
             }
-            //watch file for changes
+            // watch file for changes --the fsWait timeout is to account for the windows 
+            // glitch that causes multiple firings 
+            // of the watch event 
             
                 let actLogWatcher = fs.watch(activityLog, (eventType, filename) => {
                 
                     if (filename) {        
                         if (fsWait) return;    
                         fsWait = setTimeout(() => {
-                            fsWait = false;      
-                        }, 5);      
+                            fsWait = false;
+                            win.webContents.send('update')      
+                        }, 200);      
                         
-                        setTimeout(function() {
-                            
-                            win.webContents.send('update')
-                        }, 5);      
+                          
                     }else{
                         errLog.error(`activityLog file doesn't exist or connection to v: lost`)
                     }
@@ -835,7 +840,7 @@ ipcMain.on('restore-database',(event,restorePoint)=>{
 })
 ipcMain.on('log-error', (event,args)=>{
     
-    errLog.info(args)
+    errLog.debug(args)
     
 })
 ipcMain.on('quit', (event)=>{
@@ -1011,7 +1016,7 @@ ipcMain.on('update-job',(event, args, args2, args3, args4)=>{
 
 //change location of job when job is dropped in a different container
 ipcMain.on('edit-location-drop',(event,args,args2,args3)=>{
-    
+    console.time('location')
     let dboLocation = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
@@ -1048,7 +1053,7 @@ ipcMain.on('edit-location-drop',(event,args,args2,args3)=>{
         }) 
         
         
-        .all(sql2,function (err,row){
+        .run(sql2,function (err,row){
             if(err){
                 console.log('first select'+err.message)
                 return err
@@ -1061,7 +1066,7 @@ ipcMain.on('edit-location-drop',(event,args,args2,args3)=>{
         dboLocation.close()
          
     })
-    
+    console.timeEnd('location')
 })
 
 //handler to edit job loaction when placing a newly created job
@@ -1217,6 +1222,7 @@ async function getCustomerName(args){
     
     
     async function logActivity(args1, args2, args3){
+        console.time('actlog')
         //console.log(`args2 in logActivity = ${JSON.stringify(args3)}`)
         let jobCustomer
         const actLog = fs.createWriteStream(activityLog, { flags: 'a' });      
@@ -1306,6 +1312,7 @@ async function getCustomerName(args){
         
        actLog.write(logEvent)
        actLog.close()
+       console.timeEnd('actlog')
     
        
     }
@@ -2201,8 +2208,8 @@ function createAddJobWindow(args, launcher){
     const opts = {
         parent: win,
         modal: true,            
-        width:500,
-        height: 850,
+        width:900,//500
+        height: 550,//850
         
         autoHideMenuBar: true,
         show: false,
@@ -3152,23 +3159,65 @@ ipcMain.on('open-restore', (event,args)=>{
     createRestoreWindow()
 })
 
-ipcMain.on('print-to-pdf', (event,args)=> {
+//get data from electron-store eodInfo file
+// args1 == yesterday and args2 == today
+ipcMain.on('get-eod-data',(event,args1, args2) => {
+    //check if file created and short circuit if it doesn't
+    let fileExists = EODinfo.get('reportDate')
+    if(fileExists === undefined){
+        event.returnValue = undefined
+        return
+    }
+    console.log('today in main.js is '+strToday)
+
+    if(EODinfo.get('today') != strToday){
+        console.log('not today')
+        event.returnValue = undefined
+        return
+    }
+    console.log('today is '+strToday)
+    //store EODinfo in object to pass
+    let objEODinfo = new Object()
+    objEODinfo.reportDate = EODinfo.get('reportDate')
+    objEODinfo.today = EODinfo.get('today')
+    objEODinfo.batch = EODinfo.get('batch')
+    objEODinfo.city = EODinfo.get('city')
+    objEODinfo.director = EODinfo.get('director')
+    objEODinfo.daily = EODinfo.get('daily')
+    
+
+    let count = EODinfo.get('achCount')
+    objEODinfo.achCount = count
+
+    if(count > 0){
+        for(i=1;i<=count;i++){
+            let prop = `ach${i}`
+            objEODinfo[prop] = EODinfo.get(prop)
+        }
+
+    }
+
+
+    console.log(EODinfo.get('reportDate'))
+    event.returnValue = objEODinfo
+})
+ipcMain.on('print-to-pdf', (event,args,args2)=> {
     let pdfName
     switch(args){
         case 'eod':
-            pdfName = 'eod'
+            pdfName = 'eod.pdf'
             break;
         case 'lot':
-            pdfName = 'lot'
+            pdfName = 'lot.pdf'
             break;
         default:
-            pdfName = 'temp'
+            pdfName = 'temp.pdf'
             break;
     }
     try{
             console.log('print-to-pdf called')
             
-            const pdfPath = path.join(os.homedir(), 'workflow_app_reports', pdfName)
+            const pdfPath = path.join(os.homedir(), 'Documents', pdfName)
             const win = BrowserWindow.fromWebContents(event.sender)
             win.webContents.printToPDF({scaleFactor: 75}).then(data => {
                 fs.writeFile(pdfPath, data, (error) => {
@@ -3185,6 +3234,32 @@ ipcMain.on('print-to-pdf', (event,args)=> {
         }catch(e){
             errLog.info(e)
             console.log(e)
+        }
+
+        try{
+            EODinfo.set({
+                'reportDate': args2.reportDate,
+                'today': args2.today,
+                'batch': args2.batch,
+                'city': args2.city,
+                'daily': args2.daily,
+                'director': args2.director,
+                'achCount': args2.achCount
+            })
+            if(args2.ach?.length > 0){
+                for(i=1;i<=args2.ach.length;i++){
+                    let key = 'ach'+i;
+                    EODinfo.set({
+                        [key] : {
+                            'amount' : args2.ach[i-1].amount,
+                            'customer' : args2.ach[i-1].customer
+                        }
+                    })
+                }
+                
+            }
+        }catch(e){
+        console.log(e)
         }
         reportWin.webContents.send('close-window')
 })
@@ -3222,7 +3297,7 @@ ipcMain.on('get-version', (event)=>{
 })
 
 async function backupDB(){
-    let today = false
+    let alreadyBackedUp = false
     
 
     
@@ -3231,8 +3306,8 @@ async function backupDB(){
         let current = new Date()
         let currentTime = current.toLocaleTimeString('en-US',{hourCycle:'h23'})
         let hour = current.getHours()
-        console.log(currentTime)
-        console.log(current.getHours())
+        //console.log(currentTime)
+        //console.log(current.getHours())
         let whichDB = ""
         try{
         switch(hour){
@@ -3272,28 +3347,28 @@ async function backupDB(){
                 break;
         }
     }catch(e){
-        errLog.info(e)
+        errLog.debug(e)
     }
     
     const objStats = await fsp.stat(whichDB).catch(e =>{
-         errLog.info(e)
+         errLog.debug(e)
          
     })
     if(objStats){
         
-        console.log(current.toLocaleTimeString('en-US',{hourCycle:'h23'}))
+        //console.log(current.toLocaleTimeString('en-US',{hourCycle:'h23'}))
         
         
         //let objStats = new Object()
         
             
             let date = new Date();
-            today = (objStats.mtime.getDate() == date.getDate())? true :false
+            alreadyBackedUp = (objStats.mtime.getDate() == date.getDate())? true :false
             
         
-        errLog.info('already modified today = '+today)
+        //errLog.info('already modified today = '+today)
     }
-        if(!today){
+        if(!alreadyBackedUp){
             try{
                 let dboBackup = new sqlite3.Database(workflowDB, (err)=>{
                     if(err){
@@ -3325,7 +3400,7 @@ async function backupDB(){
                 
                 }, 250);
             }catch(e){
-                errLog.info(`catch triggered in backupDB ${e}`)
+                errLog.debug(`catch triggered in backupDB ${e}`)
             }
         
         }else{

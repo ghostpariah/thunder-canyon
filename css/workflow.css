@@ -274,6 +274,7 @@ margin-right: px;
 	/*height: 625px;*/
 	height:69%;/*420*/
 	width:100%;
+	box-sizing: border-box;
 }
 /* #right .cat {
 	height: 205px;
@@ -1051,10 +1052,12 @@ input {
 	width: 100%;
 	float: left;
 	font-family: "Arial Narrow";
-	font-size: 12px;
+	font-size: 1em;
 	color: black;/*#736f6e;*/
 	text-align: center;
+	background-color: #cecece;
 	border-bottom: 1px solid #cecece;
+	margin:3px;
 	
 }
 #notesArea {
