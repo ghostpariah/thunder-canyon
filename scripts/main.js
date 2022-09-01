@@ -1674,7 +1674,7 @@ ipcMain.on('add-job', (event,args, args2, args3)=>{
 })
 
 ipcMain.on('db-contact-add', (event,args)=>{
-    
+    console.log('db-contact-add triggered')
     let dboContacts = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
@@ -2696,7 +2696,7 @@ ipcMain.on('open-contacts', (event,args1,args2, args3, args4, args5, args6, args
                 return err
             }
             console.log(`has args onw and args 6. returns ${row[0].customer_ID}`)
-            createContactsWindow(args1,args2, args3, args4,args5,row[0].customer_ID,args7,args8)        
+            createContactsWindow(args1,args2, args3, args4,args5,args6,args7,args8,row[0].customer_ID)        
    
                 return row[0].customer_ID
                 

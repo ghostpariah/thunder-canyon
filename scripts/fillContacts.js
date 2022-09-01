@@ -49,12 +49,12 @@ function fillContacts(cont){
 			}
 
 			 contactContent.appendChild(optGroup);
-			 let dashOpt = document.createElement('option')					
-			 let dash = document.createTextNode("")//did say Phone Numbers
-			 dashOpt.setAttribute("disabled","disabled")
-			 dashOpt.setAttribute('class','cmHeader')
-			 dashOpt.appendChild(dash)
-			 optGroup.appendChild(dashOpt)
+			//  let dashOpt = document.createElement('option')					
+			//  let dash = document.createTextNode("")//did say Phone Numbers
+			//  dashOpt.setAttribute("disabled","disabled")
+			//  dashOpt.setAttribute('class','cmHeader')
+			//  dashOpt.appendChild(dash)
+			//  optGroup.appendChild(dashOpt)
 			 
 			
             for(n in cont[member].phonenumbers){
@@ -79,11 +79,11 @@ function fillContacts(cont){
 					
 				}			
 			}
-			let eDashOpt = document.createElement('option')					
-			let eDash = document.createTextNode("")//did say EMAIL
-			eDashOpt.setAttribute("disabled","disabled")
-			eDashOpt.appendChild(eDash)
-			optGroup.appendChild(eDashOpt)
+			// let eDashOpt = document.createElement('option')					
+			// let eDash = document.createTextNode("")//did say EMAIL
+			// eDashOpt.setAttribute("disabled","disabled")
+			// eDashOpt.appendChild(eDash)
+			// optGroup.appendChild(eDashOpt)
 
 						 
 			for(n in cont[member].emails){
@@ -115,8 +115,8 @@ function fillContacts(cont){
 		newOption.appendChild(ac)
 		contactContent.insertBefore(newOption,contactContent.firstChild)		
 		contactContent.firstChild.style.fontWeight = 'bold'
-		contactContent.firstChild.style.color = 'blue'
-		
+		contactContent.firstChild.style.color = 'teal'
+		contactContent.firstChild.classList.add('teal')
 	}else{		
 		//parameter passed into function was undefined or not an object so fill drop down with options 
         //when no contact exists. such as adding a contact or chosing "no contact"
@@ -148,3 +148,4 @@ function fillContacts(cont){
 	}).off('change')
 	$(contactContent).trigger('change')
 }
+

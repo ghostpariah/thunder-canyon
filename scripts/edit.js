@@ -417,15 +417,21 @@ function updateJob (){
     }
 	
     if(editData.time_of_day != null && editData.time_of_day != ''){
+		if(cbComeback.checked){
+			(editData.time_of_day.localeCompare($('input[name=ampmOTL]:checked').val())!=0)
+        ? objNewJob.time_of_day = $('input[name=ampmOTL]:checked').val()
+        :'no change to time_of_day';
+		}else{
         (editData.time_of_day.localeCompare($('input[name=ampm2]:checked').val())!=0)
         ? objNewJob.time_of_day = $('input[name=ampm2]:checked').val()
         :'no change to time_of_day';
+		}
     }
-	if(editData.time_of_day != null && editData.time_of_day != ''){
-        (editData.time_of_day.localeCompare($('input[name=ampmOTL]:checked').val())!=0)
-        ? objNewJob.time_of_day = $('input[name=ampmOTL]:checked').val()
-        :'no change to time_of_day';
-    }
+	// if(editData.time_of_day != null && editData.time_of_day != ''){
+    //     (editData.time_of_day.localeCompare($('input[name=ampmOTL]:checked').val())!=0)
+    //     ? objNewJob.time_of_day = $('input[name=ampmOTL]:checked').val()
+    //     :'no change to time_of_day';
+    // }
 		
 	if(editData.date_in?.localeCompare(document.getElementById('datepickerIn').value)!=0){
 		objNewJob.date_In = document.getElementById('datepickerIn').value
