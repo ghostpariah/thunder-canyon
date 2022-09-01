@@ -42,9 +42,7 @@ input[type=checkbox]{
     width: 20px;
     height:20px;
 }
-input[type=radio]{
-    
-}
+
 
 /* submit button standard */
 input[type=button]{
@@ -130,12 +128,12 @@ input[type=button]:focus-within{
 
 
 /* text area / notes section */
-input[type=textarea]{
+/* input[type=textarea]{
     
 }
 input[type=select]{
     
-}
+} */
 
 /* ********* */
 /* select component pieces */
@@ -170,5 +168,5 @@ input[type=select]{
     
 }
 .extraDataBox{
-
+    display: flex;
 }
