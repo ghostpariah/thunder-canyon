@@ -3,7 +3,7 @@ const ipcUpdate = electron.ipcRenderer
 const mb = document.querySelector('#message')
 
 //updater doesnt work in dev environment so starting app by default just for dev.
-ipcUpdate.send('start-app')
+//ipcUpdate.send('start-app')
 
 
 ipcUpdate.on('updater', (event , args, args2)=>{
