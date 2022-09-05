@@ -408,7 +408,7 @@ function todayIs() {
 	const day = objDate.getDate();
 	const month = objDate.getMonth() + 1;
 	const year = objDate.getFullYear();
-	const today = month + "/" + day + "/" + year;
+	const today = month.toString().padStart(2,'0') + "/" + day.toString().padStart(2,'0') + "/" + year;
 	return today;
 }
 

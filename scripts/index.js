@@ -261,7 +261,7 @@ function openReports(){
 	$('#datepickerReport').focus()
 	$("#datepickerReport").value = todayIs()
 	console.log(currentUser.role)
-	ipc.send('open-report-window',currentUser.role)	   
+	ipc.send('open-report-window',currentUser.role,undefined,currentUser)	   
 } 
 
 function openAddJob() {

@@ -16,6 +16,9 @@ let totalACH = 0
 let tabIndexes = 5
 let valid = false
 let changed = false
+let noShowResultsForDisplay = ""
+let currentUser
+let pulledCustomers
 // variable represents the state of EOD data
 // can be create , or edit
 // create is the default and used when creating report. 
@@ -47,6 +50,12 @@ $(function(){
     console.log("yesterday was "+getYesterday())
 })
 
+
+ipcReport.on('refresh', (event)=>{
+    pullNoShows()
+        search('noshow')
+        console.log('refresh triggered')
+})
 function getDaysInMonth(year, month) {
     return new Date(year, month, 0).getDate();
   }
@@ -145,7 +154,14 @@ function hasInfo(element){
         return false
     }
 }
-function loadModal(){
+async function loadModal(){
+    console.time('get-all-customers')
+    pulledCustomers = await getAllCustomers()
+    console.timeEnd('get-all-customers')
+    console.time('pull no show')
+    pullNoShows()
+    
+    console.timeEnd('pull no show')
     
     $('#option4').click()
     const achContainer = document.getElementById('achBox')
@@ -271,9 +287,23 @@ function loadModal(){
                 activity = pullLog(today)
             }else{
                 activity = pullLog(chosenDate)
-            }  
-            search('activity')          
-            reportResultBox.innerHTML = (activity.length >0) ? activity.toString().replace(/\n/g, '<br/><br/>') : `No Activity On ${reportStartDate}`
+            } 
+             
+            search('activity') 
+            if(activity.length>0){
+                let arrActivity = activity.split("\n")
+                console.table(arrActivity) 
+                for(i=0;i<arrActivity.length;i++){
+                    let c = document.createElement('div')
+                    c.setAttribute('class', 'resultItem')
+                    let t = document.createTextNode(arrActivity[i])
+                    c.appendChild(t)
+                    reportResultBox.appendChild(c)
+                }
+            }
+            //reportResultBox.innerHTML = (activity.length >0) ? activity.toString().replace(/\n/g, '<br/><br/>') : `No Activity On ${reportStartDate}`
+                    
+            //reportResultBox.innerHTML = (activity.length >0) ? activity.toString().replace(/\n/g, '<br/><br/>') : `No Activity On ${reportStartDate}`
             document.getElementById('activitySearch').style.display = 'block'            
         }
     });
@@ -309,7 +339,7 @@ ipcReport.on('close-window', (event)=>{
     }, 500);
     
 })
-ipcReport.on('role',(event,role,companyID,reportType)=>{
+ipcReport.on('role',(event,role,companyID,user)=>{
     console.log('role: '+role)
     //if more args were sent then open specific report
     if(companyID){
@@ -322,6 +352,9 @@ ipcReport.on('role',(event,role,companyID,reportType)=>{
         document.getElementById('option1').style.display = 'none';
         // document.getElementById('option2').style.display = 'none';
         document.getElementById('option4').style.display = 'none';
+    }
+    if(user){
+        currentUser = user
     }
 })
     
@@ -351,6 +384,7 @@ function makeVisible(block){
     //console.log(block.getAttribute('class'))
 }
 function toggleVisibility(el){
+    
     //reset elements
     document.getElementById('reportResult').innerHTML = ""
     document.getElementById('searchResult').innerHTML = ""
@@ -376,27 +410,52 @@ function toggleVisibility(el){
     console.log("option status is "+optionStatus);
     (optionStatus<0) ? el.setAttribute('class','mainOption unchosen') : el.setAttribute('class', 'mainOption chosen');
     
+    
     if(chosenOption==2){
         // setTimeout(() => {
+            
+            (ribVisibility<0) ? ribbon.setAttribute('class','ribbon hidden') : ribbon.setAttribute('class','ribbon visible flexCenter');
             displayLotReport()
-        // }, 300);
+            // }, 300);
        
     }
     if(chosenOption==4){
+        document.getElementById('achBox').innerHTML = ""
         createEODitem($('#datepickerReport'),'date')
         getEODdata()
         setTimeout(() => {
             $('#inpBatch').focus()
         }, 50);
-        
+        (ribVisibility<0) ? ribbon.setAttribute('class','ribbon hidden') : ribbon.setAttribute('class','ribbon visible');
     }
     if(chosenOption ==3){
-        displayNoShows()
+        (ribVisibility<0) ? ribbon.setAttribute('class','ribbon hidden') : ribbon.setAttribute('class','ribbon visible');
+        //pullNoShows()
+        $('#searchCriteriaNS').focus()
+        if(document.getElementById('searchCriteriaNS').value != ''){
+            $('#searchCriteriaNS').change()  
+            search('noshow')          
+        }
     }
     if(chosenOption == 5){
         (ribVisibility<0) ? ribbon.setAttribute('class','ribbon hidden') : ribbon.setAttribute('class','ribbon visible historyRibbon');
+        $('#txtCustomerName').focus()
+        if(document.getElementById('txtCustomerName').value != ''){
+            
+            $('#txtCustomerName').change()  
+            search('history')          
+        }
     }else{
-    (ribVisibility<0) ? ribbon.setAttribute('class','ribbon hidden') : ribbon.setAttribute('class','ribbon visible');
+    //(ribVisibility<0) ? ribbon.setAttribute('class','ribbon hidden') : ribbon.setAttribute('class','ribbon visible');
+    }
+    if(chosenOption == 1){
+        (ribVisibility<0) ? ribbon.setAttribute('class','ribbon hidden') : ribbon.setAttribute('class','ribbon flexBetween');
+        if(document.getElementById('reportStartDate').value != ''){
+            
+            $('#reportStartDate').change()  
+
+            search('activity')          
+        }
     }
 }
 function search(searchType){
@@ -405,8 +464,16 @@ function search(searchType){
     let objSearch
     let searchData 
     let searchResultBox = document.getElementById('searchResult')
+    let allResultsBox = document.getElementById('reportResult')
+    
 
     document.getElementById('searchResult').innerHTML = ""
+    allResultsBox.innerHTML = ""
+
+    let h = document.createElement('h2')
+    let t = document.createTextNode('Search Results')
+    h.appendChild(t)
+    //searchResultBox.appendChild(h)   
     
     if(searchType == 'activity'){        
         objSearch = activity
@@ -416,6 +483,7 @@ function search(searchType){
         objSearch = noshows
         searchCriteria = document.getElementById('searchCriteriaNS')
         console.log("searchType is noshow")
+       //console.table(objSearch)
     }
     if(searchType == 'history'){
         objSearch = history
@@ -423,12 +491,62 @@ function search(searchType){
         console.log("searchType is history")
         console.log(history)
     }
-        searchData = (searchCriteria.value !== "") ? filterItems(objSearch,searchCriteria.value) : ""
-        for (member in searchData) {
-            searchResultBox.innerHTML += `${searchData[member]} </br><br/>`
-        }
-}
+    searchData = (searchCriteria.value !== "") ? filterItems(objSearch,searchCriteria.value) : ""
+    
 
+    if(searchType == 'noshow'){
+            for (member in searchData) {                
+                createResultElement(searchData[member])
+            }
+        }else{
+            
+
+            for (member in searchData) {
+                let c = document.createElement('div')
+                c.setAttribute('class', 'resultItem')
+                let t = document.createTextNode(searchData[member])
+                c.appendChild(t)
+                allResultsBox.appendChild(c)
+                //searchResultBox.innerHTML += `${searchData[member]} </br><br/>`                
+            }
+    }
+}
+function createResultElement(data){
+    let searchResultBox = document.getElementById('searchResult')
+    let container = document.createElement('div')
+    let reportData = document.createElement('div')
+    let undo = document.createElement('input')
+    let reportText = document.createTextNode(data)
+    let t = data.substring(data.indexOf(':')+1)
+    let id = t.slice(0,t.indexOf(' '))
+    
+    
+    container.setAttribute('class', 'no-show-container')
+
+    reportData.setAttribute('class','no-show-data')
+    reportData.appendChild(reportText)
+
+    undo.setAttribute('class', 'mediumButton')
+    undo.setAttribute('type', 'button')
+    undo.setAttribute('value', 'undo')
+    undo.setAttribute('id', id)
+    undo.addEventListener('click', (event)=>{
+        let objChange = new Object()
+        objChange.job_ID = event.target.id
+        objChange.active = 1
+        objChange.no_show = 0
+        
+        console.log(event.target.id)
+        ipcReport.send('update-job',objChange, 'reports', currentUser,'null')
+        pullNoShows()
+        search('noshow')
+    })
+
+    container.appendChild(reportData)
+    container.appendChild(undo)
+
+    searchResultBox.appendChild(container)
+}
 function createEODitem(el, item, count,achAmount){
     console.log('beginning of createEODitem..item= '+item+"count= "+count)
    
@@ -1160,11 +1278,28 @@ function displayLotReport(){
 
     console.log(`OnTheLot: ${onTheLot.length} In the Shop: ${inTheShop.length} Completed: ${completed.length} Sch: ${scheduled.length}`)
 }
-
 function displayNoShows(){
-    //load no-show data
-    let objNoshows = ipcReport.sendSync('get-no-shows')
+    document.getElementById('reportResult').innerHTML = noShowResultsForDisplay
 
+    //create line items for report
+}
+async function getAllPhoneNumbers(){
+    //pulledNumbers = 
+}
+async function getAllCustomers(){
+    return ipcReport.sendSync('db-get-all-customers')
+}
+async function pullNoShows(){
+    //load no-show data
+    console.time('noshow')
+    let objNoshows = ipcReport.sendSync('get-no-shows')
+    console.timeEnd('noshow')
+    setTimeout(() => {
+        console.table(pulledCustomers)
+    }, 100);
+    
+    //let objCustomers = ipcReport.sendSync('get-customer-names')
+    //let objContacts = 
     let resultBox = document.getElementById('reportResult')
     
     let strForDisplay=""
@@ -1172,26 +1307,34 @@ function displayNoShows(){
     let strData =""
     let arrData = new Array()
     //build report
+    console.time('no-show-forLoop')
     for(member in objNoshows){
+       // console.time('db-get-customer-name')
         let name = ipcReport.sendSync('db-get-customer-name', objNoshows[member].customer_ID)
-        //console.log(objNoshows[member].number_ID)
+       // console.timeEnd('db-get-customer-name')
         
         let phoneNumber = (objNoshows[member].number_ID != null && objNoshows[member].number_ID != undefined && objNoshows[member].number_ID != 'null')? ipcReport.sendSync('db-get-phone', objNoshows[member].number_ID):{'number' :'no number entered'}
        // console.log('phone number'+phoneNumber)
-        let objContact = (phoneNumber.p_contact_ID != null && phoneNumber.p_contact_ID != undefined)? ipcReport.sendSync('db-get-contact', phoneNumber.p_contact_ID):{'first_name' :'no first name','last_name':'no last name'}
+        let objContact = (phoneNumber.p_contact_ID != null && phoneNumber.p_contact_ID != undefined)? ipcReport.sendSync('db-get-contact', phoneNumber.p_contact_ID):{}//{'first_name' :'no first name','last_name':'no last name'}
         //console.log(objContact.first_name)
-        let strData = `${name} was a no show for a ${objNoshows[member].job_type} job scheduled for ${objNoshows[member].date_scheduled} set up by ${objContact.first_name} ${objContact.last_name} on ${objNoshows[member].date_called} from phone number [${phoneNumber.number}]`
+        let fn = (objContact.first_name) ? objContact.first_name : ''
+        let ln = (objContact.last_name) ? objContact.last_name : ''
+        let strData = `${name} was a no show for a ${objNoshows[member].job_type} job ID:${objNoshows[member].job_ID} scheduled for ${objNoshows[member].date_scheduled} ${(objContact.first_name || objContact.last_name) ? 'set up by' : ''} ${fn} ${ln} on ${objNoshows[member].date_called} from phone number [${phoneNumber.number}]`
         arrData.push(strData)
         lineItems = `${strData}\n` + lineItems
         //strForDisplay += `${strData}<br/><br/>`
        
     }
+    console.timeEnd('no-show-forLoop')
     for(i=arrData.length-1;i>=0;i--){
+
         strForDisplay+= `${arrData[i]}<br/><br/>`
     }
-    resultBox.innerHTML = strForDisplay
+    
+    noShowResultsForDisplay = strForDisplay
+    //resultBox.innerHTML = strForDisplay
     noshows = lineItems
-    resultBox.style.display="block"
+    resultBox.style.display="flex"
     
 
 }
@@ -1204,11 +1347,17 @@ function displayHistory(result){
             let strData = `${ipcReport.sendSync('db-get-customer-name',result[i].customer_ID)} ${result[i].job_type} job on UNIT: ${result[i].unit} on ${result[i].date_in}   NOTES: ${result[i].notes}`
             lineItem+= `${strData}\n`
             strForDisplay += `${strData}<br/><br/>`
+
+            let c = document.createElement('div')
+                c.setAttribute('class', 'resultItem')
+                let t = document.createTextNode(strData)
+                c.appendChild(t)
+                document.getElementById('reportResult').appendChild(c)
         }
     }
     history = lineItem
-   document.getElementById('reportResult').innerHTML = strForDisplay
-   document.getElementById('searchContainer').style.display = 'block'
+   //document.getElementById('reportResult').innerHTML = strForDisplay
+   document.getElementById('searchContainer').style.display = 'flex'
 }
 function fillCustomerDataList(){
 	let element = document.getElementById('lstCustomer');
@@ -1278,6 +1427,7 @@ function fillCustomerDataList(){
 				let jobs = ipcReport.sendSync('get-jobs',chosenCompanyID)
 				
                 console.log('input triggered')
+                document.getElementById('reportResult').innerHTML = ''
                 displayHistory(jobs)
 				
 			}

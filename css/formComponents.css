@@ -51,7 +51,7 @@ input[type=button]{
     height: 2.5em;
     border: none;
     width:auto;
-    margin: 25px 0px 10px 0; 
+    margin: 10px 0;
     cursor: pointer;
     outline:none;
     padding: 0 20px;
@@ -169,4 +169,13 @@ input[type=select]{
 }
 .extraDataBox{
     display: flex;
+}
+input[type=button].mediumButton{
+    height:2em;
+    /* margin:0; */
+    box-sizing:unset;
+}
+input[type=button].mediumButton:focus-within{
+    border:none;
+    color: rgb(216, 215, 215);
 }

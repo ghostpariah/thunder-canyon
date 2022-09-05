@@ -49,7 +49,7 @@
   </div>
   <div id='ribbon3' class= 'ribbon hidden'>
     <div id="activitySearchNS" class="ribbonAsset">
-      <span id="showAllNS" class ="showAll" onclick="search('noshow')">show all</span>
+      <span id="showAllNS" class ="showAll" onclick="displayNoShows()">show all</span>
       
       <input type="text" id="searchCriteriaNS" class="reportFormInput" placeholder="search">
       
@@ -128,13 +128,15 @@
           </datalist>
       </div>
       <div id='searchContainer'class="searchContainer">
-        <input type="text" id="searchCriteriaHS">
-        <span id="searchInputButtonHS" class ="searchInputButton" onclick="search('noshow')">search</span>
+        <input type="text" id="searchCriteriaHS" placeholder="search">
+       
       </div>
     </div>
   </div>
 
-  <div id='searchResult' class="resultsContainer"></div>
+  <div id='searchResult'>
+    
+  </div>
   <div id="reportResult" class= 'resultsContainer'>
   </div>
   

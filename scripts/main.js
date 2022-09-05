@@ -939,7 +939,8 @@ ipcMain.on('update-main-page', (event)=>{
 })
 //update a single job
 ipcMain.on('update-job',(event, args, args2, args3, args4)=>{
-    console.log("args4 from update-job"+args4)
+    console.log(args)
+    console.log('args2 = ' +args2)
     let k = Object.keys(args)
     let v = Object.values(args)
     let arrC = new Array()
@@ -962,7 +963,7 @@ ipcMain.on('update-job',(event, args, args2, args3, args4)=>{
         strValues =arrV[0]
     }
    
-
+    console.log(strColumns)
     let dboUpdate = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
@@ -997,12 +998,14 @@ ipcMain.on('update-job',(event, args, args2, args3, args4)=>{
                     case 'calendar':                        
                         calendarWin.webContents.send('refresh')
                         break;
+                    case 'reports':
+                        reportWin.webContents.send('refresh')
                     default:
                         
                         break;
                 }
                 args.customer_name = args4
-               
+               console.log(args3)
                logActivity('edited',args, args3)
                 win.webContents.send('update',row)
                 
@@ -3157,6 +3160,29 @@ ipcMain.on('open-report-window',(event,args,args2,args3)=>{
 
 ipcMain.on('open-restore', (event,args)=>{
     createRestoreWindow()
+})
+
+//get all customers for noshow report
+ipcMain.on('db-get-all-customers',(event)=>{
+    let dboCustomers = new sqlite3.Database(workflowDB, (err)=>{
+        if(err){
+            console.error(err.message)
+        }
+        
+    })
+
+    let sql = `SELECT * FROM customers`;
+    dboCustomers.run(sql,function (err,row){
+        if(err){
+            console.log('first select'+err.message)
+            return err
+        }else{
+            //console.log(args)
+            // console.log(`from db-get-customer-name row= ${row[0].customer_name}`)
+            event.returnValue = row
+        }
+        dboCustomers.close()
+    })
 })
 
 //get data from electron-store eodInfo file
