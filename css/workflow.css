@@ -50,13 +50,13 @@ datalist{
 
 #contentArea{
 	display:none;
-	/* display: flex; */
-	/* float:left; */
+	
 	width:100%;
 	margin:0;
 	clear:both;
 	height:75vh;
 	overflow: hidden;
+	box-sizing: border-box;
     
 }
 [contenteditable]:focus {
@@ -272,9 +272,13 @@ margin-right: px;
 
 #wip.cat {
 	/*height: 625px;*/
-	height:69%;/*420*/
+	display:flex;
+	flex-direction: column;
+	/* height:69%;420 */
+	height: 53vh;
 	width:100%;
 	box-sizing: border-box;
+	row-gap: 3px;
 }
 /* #right .cat {
 	height: 205px;
@@ -285,7 +289,11 @@ margin-right: px;
 
 } */
 #bottom{
-	float:left;
+	display:flex;
+	flex-direction: column;
+
+	/* float:left; */
+	flex-grow: 1;
 	height:31%;/*169px;*/
 	width:100%;
 	background-color: white;
@@ -795,13 +803,15 @@ div.lineItem:first-child{
 }
 #wip .job {
 	width: 48%;
-	height: 5.5vh;
+	/* height: 5.5vh; */
+	height: 100%;
 }
 .shop-section{
 	display: flex;
 	flex-direction: row;
 	width:100%;
 	justify-content: space-evenly;
+	height: 9.8%;
 }
 #refresh.cat {
 
@@ -860,6 +870,7 @@ div.lineItem:first-child{
 	border: none;
 	height: 100%;
 	background-color:whitesmoke;
+	overflow-y: scroll;
 	/* margin-left: 7px; */
 }
 #bigSCHcountBox{
@@ -1050,14 +1061,17 @@ input {
 }
 .headerShop {
 	width: 100%;
-	float: left;
+	display:flex;
+	justify-content: center;
+	/* float: left; */
 	font-family: "Arial Narrow";
 	font-size: 1em;
 	color: black;/*#736f6e;*/
-	text-align: center;
+	
 	background-color: #cecece;
 	border-bottom: 1px solid #cecece;
-	margin:3px;
+	
+	box-sizing: border-box;
 	
 }
 #notesArea {
@@ -1373,11 +1387,15 @@ input {
 	
 }
 .ucWrapper{
+	display: flex;
+	flex-direction: column;
 	width:95%;
-	height: 56vh;
+	flex-grow:1;
+	flex-basis: 56vh;
+	/* height: 56vh; */
 	/* height:500px; */
 	/* border: 1px solid #5e81ad; */
-	float:left;
+	/* float:left; */
 	margin-left: 7px;
 	overflow-y: auto;
 	overflow-x: hidden; 

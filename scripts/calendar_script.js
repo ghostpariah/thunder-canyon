@@ -173,11 +173,18 @@ function fillDays(y){
         }
         am.setAttribute("id","am"+cell);
         am.ondblclick = function(){
-            
+            let preview = false
             let objCalData = new Object()
             objCalData.launcher = 'calendar'
             objCalData.time_of_day = 'am'
-            objCalData.date_scheduled = `${monthIndex+1}/${this.parentNode.firstChild.childNodes[1].textContent}/${year}`
+            let m = monthIndex+1
+
+            //if it is part of the greyed out next month preview
+            if(this.classList.contains('preview')){
+                preview = true
+            }
+            
+            objCalData.date_scheduled = getFormattedDateString(year, this.parentNode.getAttribute('data-julian'),preview)
             calIPC.send('open-add-job', currentUser, objCalData)
             
         };
@@ -191,10 +198,15 @@ function fillDays(y){
         }
         pm.setAttribute("id","pm"+cell);
         pm.ondblclick = function(){
+            let preview = false
             let objCalData = new Object()
             objCalData.launcher = 'calendar'
             objCalData.time_of_day = 'pm'
-            objCalData.date_scheduled = `${monthIndex+1}/${this.parentNode.firstChild.innerHTML}/${year}`
+            if(this.classList.contains('preview')){
+                preview = true
+            }
+           
+            objCalData.date_scheduled = getFormattedDateString(year, this.parentNode.getAttribute('data-julian'),preview)
             calIPC.send('open-add-job', currentUser, objCalData)
         };
         document.getElementById("dayBlock"+cell).appendChild(pm);
@@ -298,6 +310,14 @@ function fillDays(y){
     }
     
     
+}
+function getFormattedDateString(y,jd,preview){
+   
+    let m =(preview) ? monthIndex +2 : monthIndex+1
+    let mo = m.toString().padStart(2,'0')
+    let ds = new Date(y,0,jd).getDate().toString().padStart(2,'0')
+    console.log(`${mo}/${ds}/${y}`)
+    return `${mo}/${ds}/${y}`
 }
 function getScheduled(){
     arrScheduledJobs = []
@@ -744,7 +764,7 @@ function makeCalenderJobContainers(e){
         //create customer name box
         let cnBox = document.createElement('span')
         let cnText = document.createTextNode(thisDaysSchJobs[j].customer_name.toUpperCase())
-        cnBox.setAttribute('class','cnBox')
+        cnBox.setAttribute('class','cnBoxHeader')
         cnBox.appendChild(cnText)
         cnBox.style.color = "#1a1a1a";
 

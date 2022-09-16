@@ -118,7 +118,14 @@ body{
 .cnBox{
     
     width:100%;
+    color:rgb(78, 78, 78);
+    font-weight: 500;
+}
+.cnBoxHeader{
+    
+    width:100%;
     color:black;
+    
 }
 
 .jobWalletLeft{
