@@ -628,15 +628,18 @@ function readyFolders(){
                     });  
                 }
             }
-            //watch file for changes
+            // watch file for changes --the fsWait timeout is to account for the windows 
+            // glitch that causes multiple firings 
+            // of the watch event 
             
                 let actLogWatcher = fs.watch(activityLog, (eventType, filename) => {
                     console.log('myAction before fswatch processing is '+myAction)
                     if (filename) {        
                         if (fsWait) return;    
                         fsWait = setTimeout(() => {
-                            fsWait = false;      
-                        }, 5);      
+                            fsWait = false;
+                            win.webContents.send('update')      
+                        }, 200);      
                         
                         setTimeout(function() {
                             console.log(myAction, eventType)
@@ -853,7 +856,7 @@ ipcMain.on('restore-database',(event,restorePoint)=>{
 })
 ipcMain.on('log-error', (event,args)=>{
     
-    errLog.info(args)
+    errLog.debug(args)
     
 })
 ipcMain.on('quit', (event)=>{
@@ -952,7 +955,8 @@ ipcMain.on('update-main-page', (event)=>{
 })
 //update a single job
 ipcMain.on('update-job',(event, args, args2, args3, args4)=>{
-    console.log("args4 from update-job"+args4)
+    console.log(args)
+    console.log('args2 = ' +args2)
     let k = Object.keys(args)
     let v = Object.values(args)
     let arrC = new Array()
@@ -975,7 +979,7 @@ ipcMain.on('update-job',(event, args, args2, args3, args4)=>{
         strValues =arrV[0]
     }
    
-
+    console.log(strColumns)
     let dboUpdate = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
@@ -1017,7 +1021,7 @@ ipcMain.on('update-job',(event, args, args2, args3, args4)=>{
                         break;
                 }
                 args.customer_name = args4
-               
+               console.log(args3)
                logActivity('edited',args, args3)
                 win.webContents.send('update',row)
                 
@@ -1068,7 +1072,7 @@ ipcMain.on('edit-location-drop',(event,args,args2,args3)=>{
         }) 
         
         
-        .all(sql2,function (err,row){
+        .run(sql2,function (err,row){
             if(err){
                 console.log('first select'+err.message)
                 return err
@@ -1081,7 +1085,7 @@ ipcMain.on('edit-location-drop',(event,args,args2,args3)=>{
         dboLocation.close()
          
     })
-    
+    console.timeEnd('location')
 })
 
 //handler to edit job loaction when placing a newly created job
@@ -1272,6 +1276,7 @@ let getCustomerName = async (args)=>{
     
     
     async function logActivity(args1, args2, args3){
+        console.time('actlog')
         //console.log(`args2 in logActivity = ${JSON.stringify(args3)}`)
         let jobCustomer
         const actLog = fs.createWriteStream(activityLog, { flags: 'a' });      
@@ -1361,6 +1366,7 @@ let getCustomerName = async (args)=>{
        
        actLog.write(logEvent)
        actLog.close()
+       console.timeEnd('actlog')
     
        
     }
@@ -2595,7 +2601,6 @@ ipcMain.on('deactivate-all', (event,args, args2)=>{
     let objChange = new Object()
     objChange.job_ID = args
     objChange.user = args2
-
     let strIds
     if(args.length > 1){
         strIds = args.join(',')
@@ -3506,8 +3511,8 @@ async function backupDB(){
         let current = new Date()
         let currentTime = current.toLocaleTimeString('en-US',{hourCycle:'h23'})
         let hour = current.getHours()
-        console.log(currentTime)
-        console.log(current.getHours())
+        //console.log(currentTime)
+        //console.log(current.getHours())
         let whichDB = ""
         try{
         switch(hour){

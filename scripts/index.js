@@ -173,10 +173,11 @@ ipc.on('update-customer-array', (event, args)=>{
 })
 ipc.on('update', (event, args)=>{
 	console.log('update called from adding job')
+	clearPage()
 	allJobs = ipc.sendSync('pull_jobs')
 	allCustomers = ipc.sendSync('get-customer-names')
 	countStatuses()
-	clearPage()
+	
 	loadJobs(allJobs)	
 });
 
@@ -301,7 +302,7 @@ function openReports(){
 	$('#datepickerReport').focus()
 	$("#datepickerReport").value = todayIs()
 	console.log(currentUser.role)
-	ipc.send('open-report-window',currentUser.role)	   
+	ipc.send('open-report-window',currentUser.role,undefined,currentUser)	   
 } 
 
 function openAddJob() {
@@ -1192,7 +1193,8 @@ function drag(ev) {
 	}
 }
 
-function changeLocation(targetID,cellOccupied,data){
+async function changeLocation(targetID,cellOccupied,data){
+	
 	try{
 		ns = targetID;
 		let newStatus;		
@@ -1327,6 +1329,7 @@ function changeLocation(targetID,cellOccupied,data){
 		logError(e)
 	}
 	
+	return true
 }
   function drop(ev) {
   }
@@ -1343,11 +1346,11 @@ document.addEventListener("dragover", event => {
   // prevent default to allow drop
   event.preventDefault();
 });
-document.addEventListener("drop", event => {
+document.addEventListener("drop", async (event) => {
 	// prevent default action (open as link for some elements)
 	event.preventDefault();
 	event.stopPropagation();
-	
+	console.time('dropEvent')
 		let cellOccupied = (document.getElementById(event.target.id))?document.getElementById(event.target.id).hasChildNodes():true;
 		let isJobIndicator = (document.getElementById(event.target.id).classList.contains('jobIndicator'))? true : false;
 		let isJobCat = (document.getElementById(event.target.id).classList.contains('jobCat'))? true : false;
@@ -1360,9 +1363,10 @@ document.addEventListener("drop", event => {
 			console.log(draggedID)
 			dragged.parentNode.removeChild(dragged);
 			event.target.appendChild(dragged);
-			setTimeout(() => {
-				changeLocation(targetID,cellOccupied,draggedID);
-			}, 50);
+			console.timeEnd('dropEvent')
+			//setTimeout(() => {
+			changeLocation(targetID,cellOccupied,draggedID);
+			//}, 50);
 			
 		}
 	  
@@ -1768,9 +1772,17 @@ function makeJobDiv2(args){
 
 
 // function to clear jobs from On the Lot
-function clearWFW() {	
-	for ( i = 0; i < 60; i++) {
+function clearWFW() {
+		
+	for ( i = 0; i < 72; i++) {
 		document.getElementById('wfw' + i).innerHTML = "";
+	}
+}
+
+//function to clear pending section
+function clearPEN(){
+	for ( i = 0; i < 12; i++) {
+		document.getElementById('pen' + i).innerHTML = "";
 	}
 }
 
@@ -1808,6 +1820,7 @@ function clearSCH() {
 
 function clearPage() {
 	clearWFW();
+	clearPEN();
 	clearWIP();	
 	clearWPU();	
 	clearSCH();	
