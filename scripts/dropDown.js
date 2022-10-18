@@ -1,6 +1,11 @@
-let optionsBox = document.getElementById('optionsBox');
+const optionsBox = document.getElementById('optionsBox');
+const selectBox = document.getElementById('selectBox');
 const button = document.getElementById('dropDownButton');
+const displayedName =  document.getElementById('displayedName')
+const choice = document.getElementById('choice')
+
 let state = 'closed'
+let dropDownType
 setTimeout(() => {
     //createdropDown()
 }, 300);
@@ -11,27 +16,44 @@ setTimeout(() => {
 //     alert('do something')
 // })
 
-function createdropDown(contacts){
+function createdropDown(contacts,type){
+    //clear fields if reselecting on same open window
+    optionsBox.innerHTML = ''
+    displayedName.innerHTML = ''
+    choice.innerHTML = ''
+    state = 'closed'
     console.log('in dropDown.js')
     console.log(contacts)
 
-    document.getElementById('dropDownButton').addEventListener('click', (event)=>{
-        // optionsBox.style.display = 'flex';
+    document.getElementById('selectBox').addEventListener('click', (event)=>{
+        console.log('selectBox clicked. State:'+state )
         if(state == 'closed'){
+            selectBox.classList.remove('fullRound')
+            selectBox.classList.add('flatBottom')
             optionsBox.style.animationDuration = '300ms'
             optionsBox.style.transform = 'scaleY(1)'
             button.classList.remove('dropDownButton');
             button.classList.add('pullUpButton');
+            displayedName.classList.add('leftFlatBottom')
+            displayedName.classList.remove('leftHalfRound')
+            
             state= 'open';
         }else{
+            selectBox.classList.add('fullRound')
+            selectBox.classList.remove('flatBottom')
             optionsBox.style.animationDuration = '300ms'
             optionsBox.style.transform = 'scaleY(0)'
             button.classList.remove('pullUpButton');
             button.classList.add('dropDownButton');
+            displayedName.classList.add('leftHalfRound')
+            displayedName.classList.remove('leftFlatBottom')
             state= 'closed';
         }
         
     })
+    // //create select box components
+    // let displayName = docuemnt.createElement('div')
+    // displayName.setAttribute('class', 'displayedName')
     
     //create optionGroup at the top and create option with "add new contact" (no header needed)
     let addNewContactOptionGroup = document.createElement('div')
@@ -61,7 +83,9 @@ function createdropDown(contacts){
             //create header name container
             let cohName = document.createElement('div')
             cohName.setAttribute('class','name')
-            let cohNameText = document.createTextNode(`${contacts[i].first_name} ${contacts[i].last_name}`)
+            cohName.setAttribute('id', `name${contacts[i].contact_ID}`)
+            let name = (contacts[i].last_name!==null)? `${contacts[i].first_name} ${contacts[i]?.last_name}`: contacts[i].first_name;
+            let cohNameText = document.createTextNode(name)
             cohName.appendChild(cohNameText)
 
             //create header add item container
@@ -86,11 +110,16 @@ function createdropDown(contacts){
                     contactOption.setAttribute('class','option')
                     contactOption.setAttribute('id','option')    
                     contactOption.addEventListener('click',(event)=>{
-                        document.getElementById('choice').innerHTML = event.target.innerHTML
+                        displayedName.innerHTML = event.target.previousSibling.childNodes[0].innerHTML
+                        choice.innerHTML = event.target.innerHTML
                         optionsBox.style.animationDuration = '300ms'
                         optionsBox.style.transform = 'scaleY(0)'
+                        selectBox.classList.remove('flatBottom')
+                        selectBox.classList.add('fullRound')
                         button.classList.remove('pullUpButton');
                         button.classList.add('dropDownButton');
+                        displayedName.classList.add('leftHalfRound')
+                        displayedName.classList.remove('leftFlatBottom')
                         state= 'closed';
                     })
                     let contactOptionText = document.createTextNode(contacts[i].emails[n].email)
@@ -117,11 +146,16 @@ function createdropDown(contacts){
                     contactOption.setAttribute('class','option')
                     contactOption.setAttribute('id','option')    
                     contactOption.addEventListener('click',(event)=>{
-                        document.getElementById('choice').innerHTML = event.target.innerHTML
+                        displayedName.innerHTML = event.target.parentNode.firstChild.firstChild.innerHTML
+                        choice.innerHTML = event.target.innerHTML
                         optionsBox.style.animationDuration = '300ms'
                         optionsBox.style.transform = 'scaleY(0)'
+                        selectBox.classList.remove('flatBottom')
+                        selectBox.classList.add('fullRound')
                         button.classList.remove('pullUpButton');
                         button.classList.add('dropDownButton');
+                        displayedName.classList.add('leftHalfRound')
+                        displayedName.classList.remove('leftFlatBottom')
                         state= 'closed';
                     })
                     let contactOptionText = document.createTextNode(contacts[i].phonenumbers[n].number)

@@ -1,12 +1,12 @@
-const electron = require('electron')
-const ipcUpdate = electron.ipcRenderer
+//const electron = require('electron')
+//const ipc = electron.ipcRenderer
 const mb = document.querySelector('#message')
 
 //updater doesnt work in dev environment so starting app by default just for dev.
-//ipcUpdate.send('start-app')
+ipc.send('start-app')
 
 
-ipcUpdate.on('updater', (event , args, args2)=>{
+ipc.on('updater', (event , args, args2)=>{
     if(!args2){
         mb.innerHTML = args
     }else{
@@ -25,7 +25,7 @@ ipcUpdate.on('updater', (event , args, args2)=>{
     if(args == 'Update not available.'){
       
         setTimeout(() => {
-            ipcUpdate.send('start-app')
+            ipc.send('start-app')
            
         }, 3000);
     }
@@ -35,7 +35,7 @@ ipcUpdate.on('updater', (event , args, args2)=>{
     if(args == 'Update downloaded'){
         
         setTimeout(() => {
-            ipcUpdate.send('install-updates')
+            ipc.send('install-updates')
            
         }, 3000);
     }
@@ -43,7 +43,7 @@ ipcUpdate.on('updater', (event , args, args2)=>{
     
 })
 
-ipcUpdate.on('no-mapped-drive', (event,args)=>{
+ipc.on('no-mapped-drive', (event,args)=>{
     document.querySelector("#message").innerHTML ="v: drive must be mapped to continue"
     let btn = document.createElement('button')
     btn.setAttribute('value','OK')
@@ -51,26 +51,26 @@ ipcUpdate.on('no-mapped-drive', (event,args)=>{
     let text = document.createTextNode('OK')
     btn.appendChild(text)
     btn.addEventListener('click', ()=>{
-        ipcUpdate.send('quit')
+        ipc.send('quit')
     })
     document.querySelector("#message").appendChild(btn)
     
 })
-ipcUpdate.on('new-database',(event,args)=>{
+ipc.on('new-database',(event,args)=>{
     console.log('new-database triggered')
     let createDatabase = confirm('Database not found. Is this a new installation?')
     if(createDatabase){
         console.log('creating database')
-        ipcUpdate.send('create-new-database')
-        ipcUpdate.send('start-app')
+        ipc.send('create-new-database')
+        ipc.send('start-app')
     }else{
         let restoreDatabase = confirm('Would you like to restore from last backup file?')
         if(restoreDatabase){
             console.log('restoring databse')
-            ipcUpdate.send('restore-database')
-            ipcUpdate.send('start-app')
+            ipc.send('restore-database')
+            ipc.send('start-app')
         }else{
-            //ipcUpdate.send()
+            //ipc.send()
         }
     }
 })

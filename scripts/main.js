@@ -68,29 +68,29 @@ var checkDate
 let updateWin
 let uncaughtCount = 0
 
-// const userSchema ={
-//     user_ID:{
+/**
+ * myAction     is variable to tell app to not refresh whole page on your drag and drop
+ *              will not refresh if set true. It is set to true on drag and drop in ipc message
+ *              of 'edit-location-drop'
+ * 
+ * 
+ * fswatchCount is a count of how many times fswatch is fired (fires twice per action)
+ *              in order to mod the count to see if its first or second firing. After 
+ *              second firing fswatch sets myAction to default of false
+ */
+let myAction = false;
+let fswatchCount = 0
 
-//     },
-//         userName:{
-//             type: 'string',
-//             default: 'userName'
-//         },
-//         password:{ 
-//             type: 'string',
-//             default: 'password'
-            
-//         },
-//         loggedIn:{
-//             type: 'boolean',
-//             default: false
-//         } 
 
-//     }
-    
 
-// };
-const userStore = new Store()
+
+
+const userStore = new Store({
+    name: 'userData'
+});
+const EODinfo = new Store({
+    name: 'EODinfo'
+});
 
 /***********************
 ********
@@ -145,8 +145,8 @@ ipcMain.on('install-updates',(event)=>{
 })
 process.on('uncaughtException', (err, origin) => {
     uncaughtCount++
-    console.log(`error syscall is ${err}`)
-    console.log(origin)
+    // console.log(`error syscall is ${err}`)
+    // console.log(origin)
     if(err.code == 'ECONNRESET'){
         console.log('the error code for the uncaught exception is '+err.code)
         
@@ -156,6 +156,7 @@ process.on('uncaughtException', (err, origin) => {
     if(uncaughtCount<2){
         //restartApp()
     }
+    errLog.error(err)
   });
 
 
@@ -217,7 +218,7 @@ async function checkForDB(db){
 
 async function checkForWhiteboard(){
     const wb = await fsp.stat(white_board).catch(e =>{fs.closeSync(fs.openSync(white_board,'w'))})
-    console.log(wb)    
+    //console.log(wb)    
 }
 async function checkForPathToRootStorage(path){
     
@@ -304,7 +305,7 @@ ipcMain.on('deselect-OTL',(event,args)=>{
 })
 
 async function readyApp(){
-    
+    console.time('readyApp')
     try{
     
     
@@ -361,9 +362,10 @@ async function readyApp(){
     })
    
     }catch(e){
+        console.log('error in readyApp')
         log.info(e)
     }
-
+console.timeEnd('readyApp')
     
 }
 
@@ -421,6 +423,7 @@ async function createDatabase(file){
         "status"	TEXT,
         "shop_location"	TEXT,
         "unit"	TEXT,
+        "unit-type" TEXT,
         "job_type"	TEXT,
         "cash_customer"	INTEGER,
         "approval_needed"	INTEGER,
@@ -628,7 +631,7 @@ function readyFolders(){
             //watch file for changes
             
                 let actLogWatcher = fs.watch(activityLog, (eventType, filename) => {
-                
+                    console.log('myAction before fswatch processing is '+myAction)
                     if (filename) {        
                         if (fsWait) return;    
                         fsWait = setTimeout(() => {
@@ -636,15 +639,30 @@ function readyFolders(){
                         }, 5);      
                         
                         setTimeout(function() {
+                            console.log(myAction, eventType)
+                            if(myAction){
+                                console.log('myAction in fswatch')
+                                fswatchCount++ 
+                                if(fswatchCount % 2 == 0){
+                                    myAction = false
+                                    console.log('fswatchCount='+fswatchCount)
+                                    fswatchCount = 0
+                                    //win.webContents.send('update-single')
+                                }
+                               
+                            }else{
+                                console.log('not myAction in fswatch')
+                                win.webContents.send('update')
+                            }
                             
-                            win.webContents.send('update')
                         }, 5);      
                     }else{
                         errLog.error(`activityLog file doesn't exist or connection to v: lost`)
                     }
-                    
+                    console.log('hello')
                 });
-                console.log(actLogWatcher)
+                
+                //console.log(actLogWatcher)
            
         })
     
@@ -992,6 +1010,8 @@ ipcMain.on('update-job',(event, args, args2, args3, args4)=>{
                     case 'calendar':                        
                         calendarWin.webContents.send('refresh')
                         break;
+                    case 'reports':
+                        reportWin.webContents.send('refresh')
                     default:
                         
                         break;
@@ -1011,7 +1031,7 @@ ipcMain.on('update-job',(event, args, args2, args3, args4)=>{
 
 //change location of job when job is dropped in a different container
 ipcMain.on('edit-location-drop',(event,args,args2,args3)=>{
-    
+    myAction = true
     let dboLocation = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
@@ -1187,27 +1207,62 @@ function isLeapYear(year) {
     return year % 400 === 0 || (year % 100 !== 0 && year % 4 === 0);
 }
 
-async function getCustomerName(args){
-    
+let getCustomerName = async (args)=>{
+    let result
+    console.log('args in getCustomerName = '+args)
     let dboCustomerName = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
         }
         
     })
+    dboCustomerName.query = function (sql, params = []) {
+        const that = this;
+        return new Promise(function (resolve, reject) {
+          that.all(sql, params, function (error, result) {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(result);
+            }
+          });
+        });
+      };
+      async function getIdByName() {
+        // assemble sql statement
+        let sql = `SELECT customer_name FROM customers WHERE customer_ID = ${Number(args)}`
+        return await dboCustomerName.query(sql, []);
+      }
+      
+      // need async to call
+      return await (async () => {
+        console.log('tuesday')
+        result = await getIdByName();
+        console.log(result);
+        return result[0].customer_name
+      })();
     
-    let sql = `SELECT customer_name FROM customers WHERE customer_ID = ?`
-    dboCustomerName.all(sql,[args],function (err,row){
-        if(err){
-            console.log('first select'+err.message)
-            return err
-        }else{
-            console.log('returned info from getCustomerName() '+row[0]+" "+row[0].customer_name)
-            return row[0]?.customer_name
-        }
-        dboCustomerName.close()
-    })
-    
+    // let sql = `SELECT customer_name FROM customers WHERE customer_ID = ${Number(args)}`
+    // dboCustomerName.all(sql,[],function (err,row){
+    //     if(err){
+    //         console.log('first select'+err.message)
+    //         return err
+    //     }else{
+    //         console.log(row[0])
+    //         //console.log('returned info from getCustomerName() '+row[0]+" "+row[0].customer_name)
+    //         result = row[0].customer_name
+    //         return row[0]?.customer_name
+            
+    //     }
+        
+    // })
+    dboCustomerName.close()
+    // setTimeout(() => {
+    //     console.log('result is '+result)
+    //     return result
+        
+    // }, 500);
+    //return result[0].customer_name
     
 }
    function logErr(text){
@@ -1303,7 +1358,7 @@ async function getCustomerName(args){
                     break;
         }
        
-        
+       
        actLog.write(logEvent)
        actLog.close()
     
@@ -1603,6 +1658,7 @@ ipcMain.on('add-job', (event,args, args2, args3)=>{
     let cn = args.customer_name;
 
     delete objData.customer_name
+    let newObj = objData
 
     let dboAddJob = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
@@ -1655,6 +1711,10 @@ ipcMain.on('add-job', (event,args, args2, args3)=>{
             if(args3 == 'calendar'){
                 calendarWin.webContents.send('refresh')
             }
+            myAction = true
+            //win.webContents.send('update-customer-array', getCustomerName(args.customer_ID))
+            win.webContents.send('update-single-job',newObj)
+            
             args.customer_name = cn
             logActivity('added',args)
             console.log(`${this.changes} items inserted at row: ${this.lastID}`)
@@ -1675,6 +1735,9 @@ ipcMain.on('db-contact-add', (event,args)=>{
     })
     let new_contact_ID
     let item_ID
+    let method
+    let method_id
+    let method_count = 0
     dboContacts.serialize(function(){
         //add contact
         let objCon = new Object()
@@ -1713,6 +1776,7 @@ ipcMain.on('db-contact-add', (event,args)=>{
             if(args.number != null){
                 objPhone.number = args.number
                 objPhone.active = 1
+                method_count+=1
             
             p = Object.keys(objPhone)
             v = Object.values(objPhone)    
@@ -1733,6 +1797,7 @@ ipcMain.on('db-contact-add', (event,args)=>{
                 if(args.email !=null){
                     objEmail.email = args.email
                     objEmail.active = 1
+                    method_count+=1
 
                 p = Object.keys(objEmail)
                 v = Object.values(objEmail)
@@ -1747,10 +1812,16 @@ ipcMain.on('db-contact-add', (event,args)=>{
                     if(err){
                         console.log(err.message)
                     }
+                    //if a number and email were added
                     
-                    item_ID =  this.lastID
-                    console.log(`${this.changes} items inserted at row: ${this.lastID} of emails`)
-                    event.returnValue = item_ID
+                    if(method_count>1){
+
+                    }else{
+                        item_ID =  this.lastID
+                        console.log(`${this.changes} items inserted at row: ${this.lastID} of emails`)
+                        event.returnValue = item_ID
+                    }
+                    
                 }) 
                 
     
@@ -1836,6 +1907,7 @@ ipcMain.on('db-get-contact-name',(event, args1, args2)=>{
     let cmTable
     let cmColumn
     let cmID = args2
+    let secColumn
     if(args1 != null){
         if(args1 == 'phone'){
             cmTable = 'phone_numbers'
@@ -1857,12 +1929,12 @@ ipcMain.on('db-get-contact-name',(event, args1, args2)=>{
                 console.log('first select'+err.message)
                 return err
             }else{
-                let dboContactName = new sqlite3.Database(workflowDB, (err)=>{
-                    if(err){
-                        console.error(err.message)
-                    }
+                // let dboContactName = new sqlite3.Database(workflowDB, (err)=>{
+                //     if(err){
+                //         console.error(err.message)
+                //     }
                     
-                })
+                // })
                 let w
                 let it
                 
@@ -1875,9 +1947,8 @@ ipcMain.on('db-get-contact-name',(event, args1, args2)=>{
                     it = row1[0].number
                 }
                 let sql2 = `SELECT * FROM contacts WHERE contact_ID = ${w}`
-                //let name
-                //let where = row1.contact_ID
-                dboContactName.all(sql2, function (err,row2){
+               //change back to dboContactName
+                dboContactID.all(sql2, function (err,row2){
                     if(err){
                         console.log('second select '+err.message)
                         return err
@@ -1889,10 +1960,10 @@ ipcMain.on('db-get-contact-name',(event, args1, args2)=>{
                         contactInfo.item = it
                         contactInfo.customer_ID = row2[0].customer_ID                    
                         event.returnValue = contactInfo
-                        dboContactID.close()
+                        //dboContactID.close()
 
                     }
-                    dboContactName.close()
+                    //dboContactName.close()
                 })
                 
             }
@@ -1900,7 +1971,7 @@ ipcMain.on('db-get-contact-name',(event, args1, args2)=>{
             
             
         })
-           
+        dboContactID.close()  
         
 })
 
@@ -2005,12 +2076,12 @@ function createUpdateWindow(args){
 }
 let editWindowCount = 0
 function createEditWindow(args, args2, args3){
-   
+    const { screen } = require('electron')
     editWindowCount++
     const opts = {  
         parent: win,
-        width: 500,
-        height: 950, 
+        width: 920,//500
+        height: 700, //950
                  
         autoHideMenuBar: true,
         modal: true,     
@@ -2028,12 +2099,15 @@ function createEditWindow(args, args2, args3){
       
     current_win = BrowserWindow.getFocusedWindow();
     const pos = current_win.getPosition();
-    
+    const display = screen.getPrimaryDisplay()
+    console.log(display.workAreaSize)
+    let newXPos = (display.workAreaSize.width / 2) - 460 
+    let newYPos = (display.workAreaSize.height / 2) - 350
     
     if(editWindowCount == 1){
         Object.assign(opts, {
-            x: pos[0] + 200,
-            y: pos[1] - 10,
+            x: newXPos, //pos[0] + 200,
+            y: newYPos,//pos[1] + 200,
             });
     }else{
     
@@ -2049,7 +2123,7 @@ function createEditWindow(args, args2, args3){
     
     
     winEdit.loadURL(url.format({
-        pathname: path.join(__dirname, '../pages/edit.html'),
+        pathname: path.join(__dirname, '../pages/edit2.html'),
         protocol: 'file',
         slashes:true
         
@@ -2127,7 +2201,7 @@ function createLoginWindow(){
     
     
 }
-function createReportWindow(args,args2,args3){
+function createReportWindow(args,args2,args3, args4){
     
     reportWin = new BrowserWindow({
             parent: win,
@@ -2156,7 +2230,7 @@ function createReportWindow(args,args2,args3){
           })
           reportWin.webContents.once('did-finish-load',()=>{
           console.log('role for report window is: '+args)
-          reportWin.webContents.send('role',args,args2,args3)
+          reportWin.webContents.send('role',args,args2,args3,args4)
           })
           reportWin.webContents.focus()
           
@@ -2201,8 +2275,8 @@ function createAddJobWindow(args, launcher){
     const opts = {
         parent: win,
         modal: true,            
-        width:500,
-        height: 850,
+        width:920,//500,
+        height: 700,//850,
         
         autoHideMenuBar: true,
         show: false,
@@ -2304,7 +2378,12 @@ function createContactsWindow(args1, args2, args3, args4, args5,args6,args7,args
         contactWin.webContents.focus()
          
         contactWin.webContents.once('did-finish-load',()=>{
-            contactWin.webContents.send('name-chosen', args1, args2, args3, args4, args5,args6,args7,args8)            
+            setTimeout(() => {
+                console.log(args1)
+                contactWin.webContents.send('name-chosen', args1)
+            }, 200);
+            
+            // contactWin.webContents.send('name-chosen', args1, args2, args3, args4, args5,args6,args7,args8)            
         })
 
         contactWin.on('closed', ()=>{
@@ -2437,6 +2516,13 @@ ipcMain.on('edit', (event, args)=>{
 ipcMain.on('open-edit',(event,args, args2,args3)=>{
     //console.log('open-edit')
     //console.log(args)
+    editWindowCount = 0
+    createEditWindow(args, args2,args3)
+})
+ipcMain.on('open-edit-multiple',(event,args, args2,args3)=>{
+    //console.log('open-edit')
+    //console.log(args)
+    
     createEditWindow(args, args2,args3)
 })
 
@@ -2505,7 +2591,57 @@ ipcMain.on('delete-user', (event,args)=>{
    
 //     event.sender.send('reload', objList)
 // })
+ipcMain.on('deactivate-all', (event,args, args2)=>{
+    let objChange = new Object()
+    objChange.job_ID = args
+    objChange.user = args2
 
+    let strIds
+    if(args.length > 1){
+        strIds = args.join(',')
+    }else{
+        strIds = args[0]
+    }
+    
+    console.log('deactivate triggered')
+
+    let dboDeactivate = new sqlite3.Database(workflowDB, (err)=>{
+        if(err){
+            console.error(err.message)
+        }
+        
+    })
+    dboDeactivate.serialize(()=>{
+
+        let sql = `UPDATE jobs SET active = 0 WHERE job_ID IN(${strIds})`
+        let sql2 = 'SELECT * FROM jobs WHERE active = 1'
+
+        dboDeactivate.run(sql, function (err, row){
+            if(err){
+                
+                console.log(err)
+                return err
+            }else{
+                
+               console.log('no error') 
+            }
+
+
+        })
+        .all(sql2,[], function (err,row2){
+            if(err){
+                return err
+            }else{
+                
+                event.returnValue = row2
+                logActivity('delete',objChange)
+            }
+        })
+        dboDeactivate.close()
+    })
+    
+    
+})
 
 ipcMain.on('deactivate', (event,args, args2)=>{
     let objChange = new Object()
@@ -2565,6 +2701,7 @@ ipcMain.on('deactivate', (event,args, args2)=>{
 
 
 ipcMain.on('add-new-customer', (event,args)=>{
+    let objNewCustomer = new Object()
     let dboCustomer = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
@@ -2572,17 +2709,53 @@ ipcMain.on('add-new-customer', (event,args)=>{
         
     })
     sql = `INSERT INTO customers(customer_name) VALUES (?)`
-    dboCustomer.run(sql,args.toUpperCase(), function(err){
-        if(err){
-            console.log(err.message)
-        }
-        event.returnValue = this.lastID
-        console.log(`${this.changes} items inserted at row: ${this.lastID}`)
-    }) 
+    
+        dboCustomer.run(sql,args.toUpperCase(), function(err){
+            if(err){
+                console.log(err.message)
+            }
+            
+            
+            objNewCustomer.customer_ID = this.lastID
+            objNewCustomer.customer_name = getCustomerName(this.lastID)
+            
+            
+            console.log('new customer added. Cust ID = '+this.lastID)
+            console.log(`${this.changes} items inserted at row: ${this.lastID}`)
+            event.returnValue = this.lastID
+        })
+        
+    
     dboCustomer.close()
+    
 })
 
+ipcMain.on('pass-new-customer-to-main-window',(event,args)=>{
+    let dboCustomer = new sqlite3.Database(workflowDB, (err)=>{
+        if(err){
+            console.error(err.message)
+        }
+        
+    })
+    sql = `SELECT * FROM customers WHERE customer_ID = ${args}`
+    
+        dboCustomer.all(sql, function(err,row){
+            if(err){
+                console.log(err.message)
+            }
+            
+            
+            
+            
+            win.webContents.send('update-customer-array',row[0])
+           
+            //event.returnValue = row[0]
+        })
+        
+    
+    dboCustomer.close()
 
+})
 
 
 
@@ -2666,7 +2839,16 @@ ipcMain.on('get-customer-ID', (event,args)=>{
 /****************************
  * communications regarding contacts
  ***************************/
-
+ipcMain.on('open-contacts-add', (event,props)=>{
+    console.log('props follows')
+    console.log(props)
+    getCustomerName(props.customer_ID)
+        .then( resolve=>{
+            props.customer_name = resolve
+        })
+    
+    createContactsWindow(props) 
+})
 
 ipcMain.on('open-contacts', (event,args1,args2, args3, args4, args5, args6, args7,args8)=>{
     //test to see which page launched the contacts page
@@ -2694,14 +2876,16 @@ ipcMain.on('open-contacts', (event,args1,args2, args3, args4, args5, args6, args
                 return row[0].customer_ID
                 
             
-                dboCustomers.close()
+                
     
         })
-        
+        dboCustomers.close()
         
     }else{
+        let obj = {}
+        obj.launcher = args1
         console.log(args1,args2, args3, args4,args5,args6,args7,args8)
-        createContactsWindow(args1,args2, args3, args4,args5,args6,args7,args8)  
+        createContactsWindow(obj,args2, args3, args4,args5,args6,args7,args8)  
     }      
     
 })
@@ -3143,16 +3327,81 @@ ipcMain.on('get-logged-in-user', (event)=>{
  const shell = electron.shell
  const os = require('os')
 
-ipcMain.on('open-report-window',(event,args,args2,args3)=>{
+ipcMain.on('open-report-window',(event,args,args2,args3,args4)=>{
     console.log('open-reports triggered')
-    createReportWindow(args,args2,args3)
+    createReportWindow(args,args2,args3,args4)
 }) 
 
 ipcMain.on('open-restore', (event,args)=>{
     createRestoreWindow()
 })
 
-ipcMain.on('print-to-pdf', (event,args)=> {
+//get all customers for noshow report
+ipcMain.on('db-get-all-customers',(event)=>{
+    let dboCustomers = new sqlite3.Database(workflowDB, (err)=>{
+        if(err){
+            console.error(err.message)
+        }
+        
+    })
+
+    let sql = `SELECT * FROM customers`;
+    dboCustomers.run(sql,function (err,row){
+        if(err){
+            console.log('first select'+err.message)
+            return err
+        }else{
+            //console.log(args)
+            // console.log(`from db-get-customer-name row= ${row[0].customer_name}`)
+            event.returnValue = row
+        }
+        dboCustomers.close()
+    })
+})
+
+//get data from electron-store eodInfo file
+// args1 == yesterday and args2 == today
+ipcMain.on('get-eod-data',(event,args1, args2) => {
+    //check if file created and short circuit if it doesn't
+    let fileExists = EODinfo.get('reportDate')
+    if(fileExists === undefined){
+        event.returnValue = undefined
+        return
+    }
+    console.log('today in main.js is '+strToday)
+
+    if(EODinfo.get('today') != strToday){
+        console.log('not today')
+        event.returnValue = undefined
+        return
+    }
+    console.log('today is '+strToday)
+    //store EODinfo in object to pass
+    let objEODinfo = new Object()
+    objEODinfo.reportDate = EODinfo.get('reportDate')
+    objEODinfo.today = EODinfo.get('today')
+    objEODinfo.batch = EODinfo.get('batch')
+    objEODinfo.city = EODinfo.get('city')
+    objEODinfo.director = EODinfo.get('director')
+    objEODinfo.daily = EODinfo.get('daily')
+    
+
+    let count = EODinfo.get('achCount')
+    objEODinfo.achCount = count
+
+    if(count > 0){
+        for(i=1;i<=count;i++){
+            let prop = `ach${i}`
+            objEODinfo[prop] = EODinfo.get(prop)
+        }
+
+    }
+
+
+    console.log(EODinfo.get('reportDate'))
+    event.returnValue = objEODinfo
+})
+ipcMain.on('print-to-pdf', (event,args,args2)=> {
     let pdfName
     switch(args){
         case 'eod':
@@ -3186,6 +3435,32 @@ ipcMain.on('print-to-pdf', (event,args)=> {
             errLog.info(e)
             console.log(e)
         }
+
+        try{
+            EODinfo.set({
+                'reportDate': args2.reportDate,
+                'today': args2.today,
+                'batch': args2.batch,
+                'city': args2.city,
+                'daily': args2.daily,
+                'director': args2.director,
+                'achCount': args2.achCount
+            })
+            if(args2.ach?.length > 0){
+                for(i=1;i<=args2.ach.length;i++){
+                    let key = 'ach'+i;
+                    EODinfo.set({
+                        [key] : {
+                            'amount' : args2.ach[i-1].amount,
+                            'customer' : args2.ach[i-1].customer
+                        }
+                    })
+                }
+                
+            }
+        }catch(e){
+        console.log(e)
+        }
         reportWin.webContents.send('close-window')
 })
 
@@ -3212,7 +3487,7 @@ ipcMain.on('pull-activity-log', (event, args1, args2, args3)=>{
  * ******
  ********/
 ipcMain.on('open-calendar',(event,args,args2)=>{
-    
+    //args.customer_name = getCustomerName(args.customer_ID)
     createCalendarWindow(args,args2)
    
 })  
@@ -3222,7 +3497,7 @@ ipcMain.on('get-version', (event)=>{
 })
 
 async function backupDB(){
-    let today = false
+    let alreadyBackedUp = false
     
 
     
@@ -3272,28 +3547,28 @@ async function backupDB(){
                 break;
         }
     }catch(e){
-        errLog.info(e)
+        errLog.debug(e)
     }
     
     const objStats = await fsp.stat(whichDB).catch(e =>{
-         errLog.info(e)
+         errLog.debug(e)
          
     })
     if(objStats){
         
-        console.log(current.toLocaleTimeString('en-US',{hourCycle:'h23'}))
+        //console.log(current.toLocaleTimeString('en-US',{hourCycle:'h23'}))
         
         
         //let objStats = new Object()
         
             
             let date = new Date();
-            today = (objStats.mtime.getDate() == date.getDate())? true :false
+            alreadyBackedUp = (objStats.mtime.getDate() == date.getDate())? true :false
             
         
-        errLog.info('already modified today = '+today)
+        //errLog.info('already modified today = '+today)
     }
-        if(!today){
+        if(!alreadyBackedUp){
             try{
                 let dboBackup = new sqlite3.Database(workflowDB, (err)=>{
                     if(err){
@@ -3325,7 +3600,7 @@ async function backupDB(){
                 
                 }, 250);
             }catch(e){
-                errLog.info(`catch triggered in backupDB ${e}`)
+                errLog.debug(`catch triggered in backupDB ${e}`)
             }
         
         }else{

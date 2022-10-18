@@ -12,10 +12,10 @@
  ***************/
 //import errLog from 'electron-log';
 
-const electron = require('electron')
+//const electron = require('electron')
 
 
-const ipc = electron.ipcRenderer
+//const ipc = electron.ipcRenderer
 const date = new Date();
 const arrPenultimateRow = ['wfw10','wfw22','wfw34','wfw46','wfw58']
 const arrLastRow = ['wfw11','wfw23','wfw35','wfw47','wfw59']
@@ -37,6 +37,8 @@ let completedCount = 0
 let openContent = createOpenContent();
 let accessGrantedContent
 let allJobs
+let allCustomers
+let allCustomerNames =[]
 let currentUser
 let scheduledSpots
 let wpuSpots
@@ -57,6 +59,7 @@ var largestBucket = 0;
  ************/
 
 window.onload = () =>{
+	
 	console.log(window.devicePixelRatio)
 	let pr = window.devicePixelRatio
 	ipc.send('zoom-level',pr)
@@ -67,8 +70,15 @@ window.onload = () =>{
 			window.moveTo(0, 0);
 			window.resizeTo(screen.width, screen.height)
 		}
+		console.time('window.onload')
 		objLoggedInUser = getLoggedInObject()
-		allJobs = ipc.sendSync('pull_jobs')		
+		
+		allJobs = ipc.sendSync('pull_jobs')	
+		allCustomers = ipc.sendSync('get-customer-names')
+		for(i=0;i<allCustomers.length;i++){
+			allCustomerNames.push(allCustomers[i].customer_name)
+		}	
+		
 		accessGrantedContent = document.getElementById('contentArea').innerHTML	
 		console.log(objLoggedInUser)
 		if(objLoggedInUser.loggedIn == true){
@@ -88,6 +98,15 @@ window.onload = () =>{
 	
 	
 } 
+let getCustomerNames = (id)=>{
+	for(i=0;i<allCustomers.length;i++){
+		if(allCustomers[i].customer_ID == id){
+			return allCustomers[i].customer_name
+		}
+	}
+	return undefined
+	 
+}
 getLoggedInObject = ()=>{
 	return ipc.sendSync('get-logged-in-user')
 	
@@ -129,15 +148,33 @@ $(function()
 //  })
 
 //sent after editing an OTL scheduled jobs that have expired
-ipc.on('update-all-jobs',(event,args)=>{
+ipc.on('all-jobs',(event,args)=>{
 	allJobs=ipc.sendSync('pull_jobs')
 	loadJobs(allJobs)
 });
+ipc.on('update-single-job', (event, job)=>{
+	console.log('update-single-job called from adding job', job)
+	//allJobs = ipc.sendSync('pull_jobs')
+	allJobs.push(job)
+	countStatuses()
+	//clearPage()
+	// loadJobs(args)	
+	placeElement(job)
+	fillScheduleGlimpse(allJobs)
+});
 
 
+//sent when new customer added to update customer array
+ipc.on('update-customer-array', (event, args)=>{
+	console.log(args)
+	allCustomers.push(args)
+	console.log('update customer array')
+	console.log(allCustomers)
+})
 ipc.on('update', (event, args)=>{
 	console.log('update called from adding job')
 	allJobs = ipc.sendSync('pull_jobs')
+	allCustomers = ipc.sendSync('get-customer-names')
 	countStatuses()
 	clearPage()
 	loadJobs(allJobs)	
@@ -164,6 +201,7 @@ ipc.on('placeNewJob', (event, args)=>{
 
 //show admin elements for admin user
 ipc.on('show-admin-elements', (event, args)=>{
+	
 	console.log('show-admin triggered')
 	currentUser = args	
 	admin = true;
@@ -177,8 +215,11 @@ ipc.on('show-admin-elements', (event, args)=>{
 	document.getElementById("addNewJob").style.display = "flex";
 	countStatuses()	
 	toggleAdminElements(admin)
+	console.time('show-admin')
 	loadJobs(allJobs)
+	
 	document.getElementById('whiteBoardContent').innerHTML = ipc.sendSync('get-whiteboard','read')	
+	console.timeEnd('show-admin')
 })
 
 ipc.on('show-user-elements', (event, args)=>{
@@ -304,10 +345,12 @@ function deselectExpiredOTL_Scheduled(jobs){
 
 }	 
  
- function loadJobs(args){
+ async function loadJobs(args){
 	
 	fillScheduleGlimpse(args)
+	
 	createCompleted(args)
+	
 	//split args into scheduled and not scheduled
 	const [arrScheduled, arrOnLot] =                             
   args
@@ -325,20 +368,23 @@ function deselectExpiredOTL_Scheduled(jobs){
 		  return a.date_scheduled < b.date_scheduled ? -1 : 1
 		}
 	  })
+	  
 	//let arrSch = sortScheduled(arrScheduled)
 	for(var member in arrScheduled){
 		arrScheduled[member].shop_location = `sch${member}`
 	}
 	//console.log(arrSch)
-
+	console.time('placeLotJobs')
 	for (var member in arrOnLot){ 
 		placeElement(arrOnLot[member]);			
 	}
+	console.timeEnd('placeLotJobs')
+	console.time('placeSchJobs')
 	for (var member in arrScheduled){
 		//arrSch[member].shop_location = ''
 		placeElement(arrScheduled[member])
 	}
-
+	console.timeEnd('placeSchJobs')
 	document.querySelector('#whiteBoardContent').addEventListener('keyup',(event)=>{
 		console.log(event.key)
 		if(event.key == 'Tab' || event.key == 'Enter'){
@@ -426,10 +472,13 @@ function sortScheduled(arrToSort){
 
  //function to fill the scheduled glimpse section with scheduled jobs
 function fillScheduleGlimpse(args){	
+	//console.log(args)
 	arrScheduledStatus = new Array()
 	let wrapper = document.getElementById('ucWrapper')
 	let schJobContainer = document.getElementById('schJobContainer')
-	let objCustomerNames = ipc.sendSync('get-customer-names')
+	let objCustomerNames = allCustomers//ipc.sendSync('get-customer-names')
+	//console.log(objCustomerNames)
+	//console.log(allCustomers)
 	if(wrapper.hasChildNodes()){
 		for(i=2;i<wrapper.childNodes.length;i++){
 			wrapper.childNodes[i].remove()
@@ -487,7 +536,7 @@ function fillScheduleGlimpse(args){
 	let data
 	let glimpseID
 	let glimpseContext
-	
+	console.log('length of glimpse items is '+k.length)
 	for(j=0;j<k.length;j++){
 		glimpse = document.createElement('div')
 		glimpse.setAttribute('class', 'upcomingBox')
@@ -510,13 +559,50 @@ function fillScheduleGlimpse(args){
 			glimpseContext.setAttribute('id',`gc${v[j][i].job_ID}`)
 			data.setAttribute('id', `gli${v[j][i].job_ID}`)
 			let idj = v[j][i].job_ID
+			let hovered = false
+			
 			data.addEventListener('contextmenu',(event)=>{
 				event.stopPropagation()
 				event.preventDefault()				
 				createGlimpsePopUp(event)
 			})
+			
 			let schedItem = document.createElement('div')
 			schedItem.setAttribute('class', 'glimpseItem')
+			$(data).on({
+				mouseenter: (event)=>{
+					
+					event.preventDefault()
+					event.stopPropagation()
+					createGlimpseToolTip(event.currentTarget)
+				},
+				mouseleave: (event)=>{
+					event.preventDefault()
+					event.stopPropagation()
+					let t = $(event.currentTarget).parent().find('.glimpseToolTip')	
+					console.log(event.currentTarget)
+					console.log(event.relatedTarget)
+					//console. log('they are siblings '+$(event.currentTarget).siblings().is(event.relatedTarget))
+					//console.log(event.relatedTarget.getAttribute('class'))
+					if(event.relatedTarget.getAttribute('class')!= 'glimpseToolTip' && event.relatedTarget.nodeName != 'B'){
+						$(t).fadeOut(75);
+					}			
+					
+				}
+			})
+			let tt = document.createElement('div')
+			tt.setAttribute('class','glimpseToolTip')
+			tt.setAttribute('id',`gtt${v[j][i].job_ID}`)
+			tt.setAttribute('data-job',v[j][i])
+			// $(tt).on({
+			// 	mouseenter: (event)=>{
+			// 		hovered = true
+			// 	},
+			// 	mouseleave: (event)=>{
+			// 		hovered = false
+			// 	}
+			// })
+			//tt.innerHTML = createGlimpseToolTip(args[0])
 			let jobType = document.createElement('div')
 			let color
 			
@@ -572,8 +658,12 @@ function fillScheduleGlimpse(args){
 			name.appendChild(tName)
 			schedItem.appendChild(name)
 			data.appendChild(schedItem)
+			// data.appendChild(glimpseContext)
+			// data.appendChild(tt)
+			
 			glimpse.appendChild(data)
 			glimpse.appendChild(glimpseContext)
+			glimpse.appendChild(tt)
 
 			
 			
@@ -584,8 +674,110 @@ function fillScheduleGlimpse(args){
 		wrapper.appendChild(glimpse)
 		
 	}
+	// $('.glimpseData').on('mouseenter',function() {
+	// 	createGlimpseToolTip()
+	// 	$(this).parent().find('.glimpseToolTip').fadeIn(50);
+
+	// });
 }
 
+let createGlimpseToolTip = (e)=>{
+	
+	//let e = element.currentTarget
+	let rect = e.getBoundingClientRect()
+	let jobID = e.id.substring(3)
+	let objJob
+	let objContact
+	//console.log(jobID)
+	for(i=0;i<allJobs.length;i++){
+		if(jobID == allJobs[i].job_ID){
+			objJob = allJobs[i]
+			//console.log(allJobs[i])
+			break;
+		}
+	}
+	
+	let ttBox = document.getElementById(`gtt${jobID}`)
+	let cn 
+	for(i=0;i<allCustomerNames.length;i++){
+		if(allCustomers[i].customer_ID == objJob.customer_ID){
+			cn = allCustomers[i].customer_name
+		}
+	}
+	//console.log(objJob)
+	
+
+	
+
+	if(objJob.number_ID != null && objJob.number_ID != '' && objJob.number_ID != 'null'){
+		objContact = ipc.sendSync('db-get-contact-name','phone', objJob.number_ID )
+		contactName = `${objContact?.first_name ?? ''} ${objContact?.last_name ?? ''}`
+	}else if(objJob.email_ID != null && objJob.email_ID != ''){
+		objContact = ipc.sendSync('db-get-contact-name','email', objJob.email_ID )
+		contactName = `${objContact?.first_name ?? ''} ${objContact?.last_name ?? ''}`
+	}else{
+		contactName = 'No Contact'
+	} 
+
+	let cuN = '<b>'+cn.toUpperCase()+'</b><br/>'
+	let dIn =(objJob.date_in == null) ? '': '<b>Date In:</b>'+ objJob.date_in+'<br/>'
+	let jt = (objJob.job_type == null) ? '': '<b>Job Type:</b>'+ objJob.job_type+'<br/>'
+	//let ec = (objJob.estimated_cost == undefined || objJob.estimated_cost =='') ? '': '<b>Est Cost:</b> $'+objJob.estimated_cost+'</br>'
+	let u = (objJob.unit == null || objJob.unit == '')?'': '<b>Unit #: </b>'+objJob.unit+'</br>'
+	let ut = (objJob.unit_type == null || objJob.unit_type == '')?'': '<b>Unit Type: </b>'+objJob.unit_type+'</br>'
+	let sd = (objJob.date_scheduled != null) ? '<b>Sched. Date: </b>' +objJob.date_scheduled+' '+objJob.time_of_day+'<br/>': ''
+	let dc = (objJob.date_called != null) ? `<b>Date Called: </b>` + objJob.date_called+'<br/>':''
+	//let toolTipClass = (arrBottomHalf.includes(objJob.shop_location))?'tooltipLast': (arrShopLocations.includes(objJob.shop_location))?'tooltipRight':'tooltip'
+	let con = `<b>Contact: </b> ${contactName}<br/>`
+	let n = (objJob.notes != null) ? '<b>Notes: </b>'+objJob.notes+'</br>' : '' 
+	let it = (typeof objContact != "undefined") 
+		? (objContact.item.includes('@')) 
+			? '<b>Email: </b>'+objContact.item + '</br>'
+			: '<b>Phone: </b>'+objContact.item + '</br>'
+		:'';
+		
+	ttBox.innerHTML=` <div>
+		${cuN}
+		${dIn}
+		${jt}		
+		${u}
+		${ut}
+		${sd}
+		${dc}
+		${n}
+		${con}
+		${it}
+	</div>`
+	
+	ttBox.style.display ='block'
+	ttBox.style.top = rect.top;
+	ttBox.style.left = rect.left + 180;
+	
+	let tRect = ttBox.getBoundingClientRect()
+
+	//if tooltip extends beyond bottom of window, shift up highr so that it doesnt trigger scroll bar
+	if(tRect.bottom>window.innerHeight){ 
+       
+		let shift = (window.innerHeight-tRect.height - 30)
+        ttBox.style.top = shift
+		
+              
+    }     
+    $(ttBox).on({
+		mouseleave: (event)=>{
+			event.stopPropagation()
+			console.log($(event.currentTarget).parent().find('.glimpseCustomer'))
+			console.log($(event.relatedTarget))
+			if( $(event.relatedTarget).parent().find('.glimpseCustomer')){
+				$(ttBox).fadeOut(75)
+			}
+			
+		}
+	})
+   
+
+	
+}
 
 function createGlimpsePopUp(element){
 	let e = element.currentTarget
@@ -593,11 +785,17 @@ function createGlimpsePopUp(element){
 	let jobID = e.id.substring(3)
 	let objJobData = pullJob(jobID)
 	let thisMenu = document.getElementById(`gc${e.id}`)
-	
-	
+	let cn
+	for(i=0;i<allCustomerNames.length;i++){
+		if(allCustomers[i].customer_ID == objJobData.customer_ID){
+			cn = allCustomers[i].customer_name
+		}
+	}
+	objJobData.customer_name = cn
 	for(member in allJobs){
 		if(document.getElementById('gc'+allJobs[member].job_ID)){
 			document.getElementById('gc'+allJobs[member].job_ID).style.display = 'none'
+			document.getElementById(`gtt${allJobs[member].job_ID}`).style.display = 'none'
 		}
 		
 	}
@@ -640,7 +838,7 @@ function createGlimpsePopUp(element){
 				objNoshow.job_ID = objJobData.job_ID
 				objNoshow.no_show = 1
 				objNoshow.active = 0
-				ipc.send('update-job',objNoshow, 'context-menu', currentUser, ipc.sendSync('db-get-customer-name',objJobData.customer_ID))
+				ipc.send('update-job',objNoshow, 'context-menu', currentUser, getCustomerNames(objJobData.customer_ID))
 				e.remove()
 			})
 
@@ -656,7 +854,7 @@ function createGlimpsePopUp(element){
 				objLot.status = 'wfw'
 				objLot.designation = 'On the Lot'
 				objLot.date_in = todayIs()
-				ipc.send('update-job',objLot, 'context-menu', currentUser, ipc.sendSync('db-get-customer-name',objJobData.customer_ID))
+				ipc.send('update-job',objLot, 'context-menu', currentUser, getCustomerNames(objJobData.customer_ID))
 				e.remove()
 			})
 			item4Text = document.createTextNode('CANCEL APPT')			
@@ -669,7 +867,7 @@ function createGlimpsePopUp(element){
 				objCancel.job_ID = objJobData.job_ID
 				objCancel.cancelled = 1
 				objCancel.active = 0
-				ipc.send('update-job',objCancel, "context-menu",currentUser, ipc.sendSync('db-get-customer-name',objJobData.customer_ID))				
+				ipc.send('update-job',objCancel, "context-menu",currentUser, getCustomerNames(objJobData.customer_ID))				
 				e.remove()
 			})
 			menuBox.appendChild(item1Box)
@@ -1074,11 +1272,14 @@ function changeLocation(targetID,cellOccupied,data){
 					
 				}
 			}
+			console.time('client')
+			let cn = getCustomerNames(custID)
+			console.timeEnd('client')
 			
-			let cn = ipc.sendSync('db-get-customer-name',custID)
-			
-			let editedJob = ipc.sendSync('edit-location-drop', objMoving, currentUser,cn)
-			
+			console.time('save-drop-info')
+			ipc.send('edit-location-drop', objMoving, currentUser,cn)
+			//let editedJob = ipc.sendSync('edit-location-drop', objMoving, currentUser,cn)
+			console.timeEnd('save-drop-info')
 
 
 			//determine whether new location is at bottom of page and reset
@@ -1172,14 +1373,25 @@ document.addEventListener("drop", event => {
 
 function deleteCompletedJobs(){
 	try{
-		let cc = document.getElementById('wpuJobContainer').childNodes.length
-		for(i=0;i<cc;i++){
-			if(document.getElementById('wpu'+i).hasChildNodes()){
-				let id = document.getElementById('wpu'+i).childNodes[0].id.substr(4)			
-				ipc.send('deactivate', id, currentUser)			
+		let arrCompletedJobIDs = []
+		allJobs.forEach( job =>{
+			if(job.status == 'wpu'){
+				arrCompletedJobIDs.push(job.job_ID)
 			}
+		})
+		console.log(arrCompletedJobIDs)
+		//let cc = document.getElementById('wpuJobContainer').childNodes.length
+		// for(i=0;i<cc;i++){
+		// 	if(document.getElementById('wpu'+i).hasChildNodes()){
+		// 		let id = document.getElementById('wpu'+i).childNodes[0].id.substr(4)			
+		// 		//ipc.send('deactivate', id, currentUser)			
+		// 	}
 			
+		// }
+		for(i=0;i<arrCompletedJobIDs.length;i++){
+			//ipc.send('deactivate', arrCompletedJobIDs[i], currentUser)
 		}
+		ipc.send('deactivate-all', arrCompletedJobIDs, currentUser)
 	}catch(e){
 		logError(e)
 	}
@@ -1327,9 +1539,9 @@ function closeBox(ev, e) {
 //function to place jobs in correct page locations
 function placeElement(args){
 	try{
-		
+		console.time('placeElement')
 		let placement = (args.shop_location != null && args.shop_location != '') ? makeJobDiv2(args) : findOpenSpace(args) 
-		
+		console.timeEnd('placeElement')
 		if(placement !=null) {
 			try{
 			document.getElementById(args.shop_location).innerHTML = placement
@@ -1449,6 +1661,7 @@ function findSpot(args){
 }
 
 function makeJobDiv2(args){
+	//console.log(args)
 	try{
 		let str = args.job_type.replace(/\s+/g, '');
 		let objContact
@@ -1459,6 +1672,7 @@ function makeJobDiv2(args){
 		
 		
 		//if contact provided
+		//console.time('makejobdiv')
 		if(args.number_ID != null && args.number_ID != '' && args.number_ID != 'null'){
 			objContact = ipc.sendSync('db-get-contact-name','phone', args.number_ID )
 			contactName = `${objContact?.first_name ?? ''} ${objContact?.last_name ?? ''}`
@@ -1468,13 +1682,15 @@ function makeJobDiv2(args){
 		}else{
 			contactName = 'No Contact'
 		} 
-								
+		//console.timeEnd('makejobdiv')						
 		
-		customerName = (args.customer_ID != null) ? ipc.sendSync('db-get-customer-name', args.customer_ID): 'no name'
+		customerName = (args.customer_ID != null) ? getCustomerNames(args.customer_ID): 'no name'
+		//console.log(customerName)
 		let cuN = '<b>'+customerName.toUpperCase()+'</b><br/>'
 		let dIn =(args.date_in == null) ? '': '<b>Date In:</b>'+ args.date_in+'<br/>'
 		let ec = (args.estimated_cost == undefined || args.estimated_cost =='') ? '': '<b>Est Cost:</b> $'+args.estimated_cost+'</br>'
-		let u = (args.unit == null || args.unit == '')?'': '<b>Unit: </b>'+args.unit+'</br>'
+		let u = (args.unit == null || args.unit == '')?'': '<b>Unit #: </b>'+args.unit+'</br>'
+		let ut = (args.unit_type == null || args.unit_type == '')?'': '<b>Unit Type: </b>'+args.unit_type+'</br>'
 		let sd = (args.date_scheduled != null) ? '<b>Sched. Date: </b>' +args.date_scheduled+' '+args.time_of_day+'<br/>': ''
 		let dc = (args.date_called != null) ? `<b>Date Called: </b>` + args.date_called+'<br/>':''
 		let toolTipClass = (arrBottomHalf.includes(args.shop_location))?'tooltipLast': (arrShopLocations.includes(args.shop_location))?'tooltipRight':'tooltip'
@@ -1487,9 +1703,12 @@ function makeJobDiv2(args){
 			:'';
 		
 		let context = (arrShopLocations.includes(args.shop_location))?'context-Menu left':'context-Menu'
-			
+		//add customer name to job object for editing
+		let job = pullJob(args.job_ID)	
+		job.customer_name = customerName
+		//console.table(job)
 		const smallJobContainer = `<div class='vehicle' 
-		oncontextmenu='createContextMenu(this, pullJob(${args.job_ID}));return false;' 
+		oncontextmenu='createContextMenu(this, pullJob(${args.job_ID}),${null},"${customerName}");return false;'		
 		id='drag${args.job_ID}' 
 		draggable='true' 
 		ondragstart='drag(event)'
@@ -1503,7 +1722,8 @@ function makeJobDiv2(args){
 		${dIn}
 		${sd}
 		${dc}
-		${u}	
+		${u}
+		${ut}	
 		<b>Contact:</b> ${contactName}</br>
 		${it}
 		${ec}
@@ -1526,7 +1746,7 @@ function makeJobDiv2(args){
 		<span id = 'jico${args.job_ID}' class='jobIndicator jobIndicatorComeback'></span>
 		<span id = 'jich${args.job_ID}' class='jobIndicator jobIndicatorChecked'></span>
 		</span></br>
-		<span class='unitNumber' id = 'unitNumber'>Unit: ${args.unit}</span>
+		<span class='unitNumber' id = 'unitNumber'>${u}</span>
 		<span class='notes'>${(args.notes!=null)?args.notes:""}</span>
 		</span>
 		<span class='jobCat jobCat${str}' 
@@ -1631,22 +1851,24 @@ function pullJob(id){
 }
 
 
-function createContextMenu(e,objJobData,g) {
+function createContextMenu(e,objJobData,g,customerName) {
 	try{
-		let thisMenu = (g) ? document.getElementById(`gc${e.id}`) : document.getElementById('context-Menu-'+e.id.substr(4));	
-		let status
+		objJobData.customer_name = customerName
+		console.log(g)
+		let thisMenu = (g) ? document.getElementById(`gc${e.id}`) : document.getElementById('context-Menu-'+objJobData.job_ID);	
+		let status = objJobData.status
 		for(member in allJobs){
 			if(document.getElementById('context-Menu-'+allJobs[member].job_ID)){
 				document.getElementById('context-Menu-'+allJobs[member].job_ID).style.display = 'none'
 			}
-			if(allJobs[member].job_ID == e.id.substr(4)){			
-				status = allJobs[member].status
-			}
+			// if(allJobs[member].job_ID == e.id.substr(4)){			
+			// 	status = allJobs[member].status
+			// }
 		}
 		
 			//create context menu
-			let menuBox = document.getElementById('context-Menu-'+e.id.substr(4))
-			
+			//let menuBox = document.getElementById('context-Menu-'+e.id.substr(4))
+			let menuBox = document.getElementById('context-Menu-'+objJobData.job_ID)
 			
 			let item1Box = document.createElement('span')
 			let item2Box = document.createElement('span')
@@ -1684,14 +1906,14 @@ function createContextMenu(e,objJobData,g) {
 					objNoshow.job_ID = objJobData.job_ID
 					objNoshow.no_show = 1
 					objNoshow.active = 0
-					ipc.send('update-job',objNoshow, 'context-menu', currentUser, ipc.sendSync('db-get-customer-name',objJobData.customer_ID))
+					ipc.send('update-job',objNoshow, 'context-menu', currentUser, objJobData.customer_name)
 					e.remove()
 				})
 
 				item3Text = document.createTextNode('SEND TO LOT')			
 				item3Box.appendChild(item3Text)
 				item3Box.setAttribute('class','item')
-				item3Box.setAttribute('id','send'+e.id.substr(4))
+				item3Box.setAttribute('id','send'+objJobData.job_ID)//e.id.substr(4))
 				item3Box.addEventListener('click',(event)=>{
 					menuBox.style.display = 'none'
 					document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
@@ -1702,7 +1924,7 @@ function createContextMenu(e,objJobData,g) {
 					objLot.status = 'wfw'
 					objLot.designation = 'On the Lot'
 					objLot.date_in = todayIs()
-					ipc.send('update-job',objLot, 'context-menu', currentUser, ipc.sendSync('db-get-customer-name',objJobData.customer_ID))
+					ipc.send('update-job',objLot, 'context-menu', currentUser, getCustomerNames(objJobData.customer_ID))
 					e.remove()
 				})
 				item4Text = document.createTextNode('CANCEL APPT')			
@@ -1716,7 +1938,7 @@ function createContextMenu(e,objJobData,g) {
 					objCancel.job_ID = objJobData.job_ID
 					objCancel.cancelled = 1
 					objCancel.active = 0
-					ipc.send('update-job',objCancel, "context-menu",currentUser, ipc.sendSync('db-get-customer-name',objJobData.customer_ID))
+					ipc.send('update-job',objCancel, "context-menu",currentUser, getCustomerNames(objJobData.customer_ID))
 					e.remove()
 				})
 				menuBox.appendChild(item1Box)
@@ -1756,7 +1978,7 @@ function createContextMenu(e,objJobData,g) {
 				item1Text = document.createTextNode('EDIT')
 				item1Box.appendChild(item1Text)
 				item1Box.setAttribute('class','item')
-				item1Box.setAttribute('id','edit'+e.id.substr(4))
+				item1Box.setAttribute('id','edit'+objJobData.job_ID)
 				item1Box.addEventListener('click',(event)=>{
 					menuBox.style.display = 'none'
 					document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
@@ -1774,13 +1996,13 @@ function createContextMenu(e,objJobData,g) {
 					
 					objChecked.job_ID = objJobData.job_ID
 					objChecked.checked = 1
-					ipc.send('update-job', objChecked,'context-menu', currentUser, ipc.sendSync('db-get-customer-name',objJobData.customer_ID))
+					ipc.send('update-job', objChecked,'context-menu', currentUser, objJobData.customer_name)
 					
 				})
 				item3Text = document.createTextNode('SCHEDULE')
 				item3Box.appendChild(item3Text)
 				item3Box.setAttribute('class','item')
-				item3Box.setAttribute('id','schedule'+e.id.substr(4))
+				item3Box.setAttribute('id','schedule'+objJobData.job_ID)
 				item3Box.addEventListener('click',(event)=>{
 					document.getElementById(e.childNodes[1].id).style.display='none';
 					event.target.parentNode.nextElementSibling.style.display = 'block'
@@ -1824,7 +2046,7 @@ function createContextMenu(e,objJobData,g) {
 					item4Text = document.createTextNode('COMPLETED')			
 					item4Box.appendChild(item4Text)
 					item4Box.setAttribute('class','item')
-					item4Box.setAttribute('id','send'+e.id.substr(4))
+					item4Box.setAttribute('id','send'+objJobData.job_ID)
 					item4Box.addEventListener('click',(event)=>{
 						menuBox.style.display = 'none'
 						document.getElementById(e.childNodes[1].id).style.visibility = 'visible';
@@ -1834,7 +2056,7 @@ function createContextMenu(e,objJobData,g) {
 						objCompleted.shop_location = ''
 						objCompleted.status= 'wpu'
 						console.table(objJobData)
-						ipc.send('update-job', objCompleted,'context-menu',currentUser,ipc.sendSync('db-get-customer-name',objJobData.customer_ID))
+						ipc.send('update-job', objCompleted,'context-menu',currentUser,objJobData.customer_name)
 						e.remove()
 					})	
 				

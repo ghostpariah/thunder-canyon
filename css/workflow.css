@@ -50,20 +50,22 @@ datalist{
 
 #contentArea{
 	display:none;
-	/* display: flex; */
-	/* float:left; */
+	
 	width:100%;
 	margin:0;
 	clear:both;
 	height:75vh;
 	overflow: hidden;
+	box-sizing: border-box;
     
 }
 [contenteditable]:focus {
     outline: 0px solid transparent;
 }
 #whiteBoardContent{
-	width:490px;
+	display:flex;
+	flex-grow: 0;
+	width:100%;/*490px;*/
 	height:180px;
 	float:left;
 	padding: 5px;
@@ -71,6 +73,8 @@ datalist{
 	font-size: 1.2em;
 	color:#1b1a1a;
 	text-align:left;
+	overflow-wrap: normal;
+	box-sizing:border-box;
 }
 
 
@@ -228,6 +232,7 @@ datalist{
 	margin-left:0px;
 	margin-right: 2px;
 	margin-bottom: 1px;
+	overflow: visible;
 }
 .cat {
 	width: 97%;
@@ -272,8 +277,13 @@ margin-right: px;
 
 #wip.cat {
 	/*height: 625px;*/
-	height:69%;/*420*/
+	display:flex;
+	flex-direction: column;
+	/* height:69%;420 */
+	height: 53vh;
 	width:100%;
+	box-sizing: border-box;
+	row-gap: 3px;
 }
 /* #right .cat {
 	height: 205px;
@@ -284,12 +294,16 @@ margin-right: px;
 
 } */
 #bottom{
-	float:left;
+	display:flex;
+	flex-direction: column;
+
+	/* float:left; */
+	flex-grow: 1;
 	height:31%;/*169px;*/
 	width:100%;
 	background-color: white;
 	/* margin-left:3px; */
-	
+	box-sizing: border-box;
 	margin-top: 1px;
 	padding:0;
 
@@ -330,13 +344,63 @@ margin-right: px;
 }
 .glimpseData{
 	width:100%;
-	
+	position:relative;
 	background:white;
 	/* font-family: 'Arial Narrow'; */
 	float:left;
 	cursor:pointer;
 	color:black;
 	text-align: center;
+	overflow-x: visible;
+	
+}
+.glimpse-context-menu{
+	position: absolute;
+	display:none;
+	z-index: 10000;
+	width:150px;
+	height: 100px;
+	background: #1b1a1a;
+	margin-left: 150px;
+	margin-top: -40px;
+	box-shadow: 5px 10px 18px #888888;
+	
+}
+.glimpse-context-menu > .item{
+	float:left;
+	font-family: 'Arial Narrow';
+	padding: 2px 5px;
+	font-size:16px;
+	color:#5e81ad;
+	cursor: pointer;
+	width:140px;
+	
+	height:20px;
+	
+}
+.glimpseToolTip {
+	display: none; /* NEW */
+	
+	background: white;
+	border: 1px solid #5e81ad;
+	top:10px;
+	left:50px;
+	/* margin-left: 10px;
+	margin-top:30px; */
+	box-shadow: 5px 10px 18px #888888;
+	padding-left: 10px;
+	padding-right:5px;
+	position: absolute;
+	z-index: 1000001 !important;
+	max-width: 250px;
+	width: 250px;
+	height: auto;
+	font-family: "Arial Narrow";
+	font-size: 16px;
+	text-align: left;
+	overflow: auto;
+	overflow-x: auto;
+	color: rgb(41, 41, 41)
 	
 	
 }
@@ -794,13 +858,15 @@ div.lineItem:first-child{
 }
 #wip .job {
 	width: 48%;
-	height: 5.5vh;
+	/* height: 5.5vh; */
+	height: 100%;
 }
 .shop-section{
 	display: flex;
 	flex-direction: row;
 	width:100%;
 	justify-content: space-evenly;
+	height: 9.8%;
 }
 #refresh.cat {
 
@@ -859,6 +925,9 @@ div.lineItem:first-child{
 	border: none;
 	height: 100%;
 	background-color:whitesmoke;
+	overflow-x: visible;
+	overflow-y: scroll;
+	
 	/* margin-left: 7px; */
 }
 #bigSCHcountBox{
@@ -936,7 +1005,7 @@ div.lineItem:first-child{
 .info {
 	width: 92%;
 	float: left;
-	font-family: Arial, Helvetica, sans-serif;
+	font-family:  Helvetica, sans-serif;
 	flex-grow:1;
 	text-align: center;
 	font-size: .65em;
@@ -950,11 +1019,11 @@ div.lineItem:first-child{
   text-overflow: ellipsis;
 }
 .mainJobCustomerName {
-	
-	font-weight: 800;
+	/* font-family: Manrope ExtraBold; */
+	font-weight:800;
 	padding-top: -2px;
 	padding-bottom:1px;
-	font-size: .9em;
+	/* font-size: .9em; */
 	width: 100%;
 }
 
@@ -970,7 +1039,7 @@ div.lineItem:first-child{
 }
 .mainHeader {
 	display:flex;
-	float: left;	
+	justify-content: space-around;	
 	width:100%;/*1580px;	*/
 	height: clamp(120px,20%,130px);	
 	background: black;
@@ -1049,12 +1118,17 @@ input {
 }
 .headerShop {
 	width: 100%;
-	float: left;
+	display:flex;
+	justify-content: center;
+	/* float: left; */
 	font-family: "Arial Narrow";
-	font-size: 12px;
+	font-size: 1em;
 	color: black;/*#736f6e;*/
-	text-align: center;
+	
+	background-color: #cecece;
 	border-bottom: 1px solid #cecece;
+	
+	box-sizing: border-box;
 	
 }
 #notesArea {
@@ -1353,7 +1427,7 @@ input {
 .upcomingBox{
 	margin:2px 0 0 2px;
 	width:97%;
-	
+	/* position:relative; */
 	/* height: 40px; */
 	border: 1px solid black;
 	float:left;
@@ -1370,14 +1444,18 @@ input {
 	
 }
 .ucWrapper{
+	display: flex;
+	flex-direction: column;
 	width:95%;
-	height: 56vh;
+	flex-grow:1;
+	flex-basis: 56vh;
+	/* height: 56vh; */
 	/* height:500px; */
 	/* border: 1px solid #5e81ad; */
-	float:left;
+	/* float:left; */
 	margin-left: 7px;
-	overflow-y: auto;
-	overflow-x: hidden; 
+	/* overflow-y: auto; */
+	overflow:visible; 
 	font-family:Arial, Helvetica, sans-serif;
 }
 .viewButton{
@@ -1473,18 +1551,7 @@ input {
 .left{
 	margin-left: -75px;
 }
-.glimpse-context-menu{
-	position: absolute;
-	display:none;
-	z-index: 10000;
-	width:150px;
-	height: 100px;
-	background: #1b1a1a;
-	margin-left: 150px;
-	margin-top: -40px;
-	box-shadow: 5px 10px 18px #888888;
-	
-}
+
 
 .popuprow{
 	float:left;
@@ -1526,7 +1593,7 @@ input {
 	display:none;
 	z-index: 100000;
 	width:300px;
-	height: 120px;
+	height: 300px;
 	background: #1b1a1a;
 	margin-left: 150px;
 	margin-top: -60px;
@@ -1549,18 +1616,7 @@ input {
 	height:20px;
 	
 }
-.glimpse-context-menu > .item{
-	float:left;
-	font-family: 'Arial Narrow';
-	padding: 2px 5px;
-	font-size:16px;
-	color:#5e81ad;
-	cursor: pointer;
-	width:140px;
-	
-	height:20px;
-	
-}
+
 #jobIndicatorContainer{
 	width:100%;
 }

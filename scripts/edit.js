@@ -1,43 +1,95 @@
 /*********
  * global variables
  */
-const electron = require('electron')
-const ipcEdit = electron.ipcRenderer
-const inpDateIn = document.getElementById('datepickerIn')
-const inpCustomer = document.getElementById('txtCustomerName')
-const selContacts = document.getElementById('txtContacts')
-const inpUnit = document.getElementById('txtUnit')
-const selDesignation = document.getElementById('selOrigin')
-const inpScheduledDate =document.getElementById('datepicker')
-const radAM = document.getElementById('radAM')
-const radPM = document.getElementById('radPM')
+// const electron = require('electron')
+// const ipcEdit = electron.ipcRenderer
+let inpDateIn 
+let inpCustomer
+let selContacts
+let inpUnit 
+let selDesignation 
+let selJobType
+let inpScheduledDate
+let cbOTL_scheduled
+let radAM 
+let radPM 
 const radAM_OTL = document.getElementById('radAM_OTL')
 const radPM_OTL = document.getElementById('radPM_OTL')
-const selJobType = document.getElementById('selJobType')
+
 const cbCash = document.getElementById('cbCash')
 //const inpCost = document.getElementById('txtCost')
 const cbParts = document.getElementById('cbParts')
 const cbApproval = document.getElementById('cbApproval')
 const cbChecked = document.getElementById('cbChecked')
-const cbComeback = document.getElementById('cbComeback')
+
 const cbWaiting = document.getElementById('cbWaiting')
 const cbNoShow = document.getElementById('cbNoShow')
 const txtNotes = document.getElementById('txtNotes')
-
+let alreadyScheduled = false
 let editData;
 let launcher
 let currentUser
 
+let originList = ['On the Lot','Scheduled']
 window.onload = ()=>{
-    
-    
+	createComponent(document.getElementById('dateInWrapper'),'date in',null,'DateIn','edit')
+	createComponent(document.getElementById('originWrapper'),'comboBox',originList,'Designation','edit')
+	createComponent(document.getElementById('dateSchWrapper'),'date sched',null,'DateSched','edit')
+	if(!document.getElementById('customerNames')){
+		createComponent(document.getElementById('customerComboBoxContainer'),'comboBox',ipc.sendSync('get-customer-names'),'Customer','edit')
+	}
+	createComponent(document.getElementById('sbContacts'),'split select', null, 'Contacts','edit')
+	createComponent(document.getElementById('unitWrapper'),'textBox',null,'Unit','edit')
+	createComponent(document.getElementById('unitTypeWrapper'),'textBox',null,'UnitType','edit')
+	createComponent(document.getElementById('jobTypeWrapper'),'comboBox',['Spring','Check All','Alignment','King Pin','Frame'],'JobType','edit')
+	currentUser = ipc.sendSync('get-logged-in-user')
+	// $('#Designation-choice').focus()
+	
+	inpDateIn = document.getElementById('DateIn-choice')
+	inpCustomer = document.getElementById('Customer-choice')
+	selContacts = document.getElementById('Contacts-choice')
+	inpUnit = document.getElementById('Unit-choice')
+	inpUnitType = document.getElementById('UnitType-choice')
+	selDesignation = document.getElementById('Designation-choice')
+	inpScheduledDate =document.getElementById('DateSched-choice')
+	selJobType = document.getElementById('JobType-choice')
+	cbOTL_scheduled = document.getElementById('cbOTL_scheduled')
+	radAM = document.getElementById('radAM')
+	radPM = document.getElementById('radPM')
 }
 setTimeout(()=>{		
-    $("#datepicker").datepicker({dateFormat : "mm/dd/yy"}); 
-	$("#datepickerIn").datepicker({dateFormat : "mm/dd/yy"}); 
+    $("#DateIn-choice").datepicker({dateFormat : "mm/dd/yy"}); 
+	$("#DateSched-choice").datepicker({dateFormat : "mm/dd/yy"}); 
 	$("#datepickerOTL").datepicker({dateFormat : "mm/dd/yy"});
-},1000);
+	$("#DateOTL-choice").datepicker({dateFormat : "mm/dd/yy"});
+},2000);
 
+
+document.addEventListener('click',(event)=>{
+	//TODO: add code to close any open drop downs
+	console.log(event.target)
+	if(event.target.classList != ''){
+		if(!event.target.classList.contains('listItem') && !event.target.parentNode.classList.contains('selectBox') && !event.target.parentNode.classList.contains('comboBox')){
+				
+				closeDropDowns()	
+			
+		}else{
+			if(event.target.parentNode.parentNode.parentNode.id == 'unitWrapper'){
+				closeDropDowns()
+			}
+		}
+	}else{
+	closeDropDowns()
+	}
+	if(event.target.id != 'DateSched-choice' && event.target.id != 'btn-DateSched'){
+		//console.log(document.getElementById('btn-Date').firstElementChild)
+		document.getElementById('btn-DateSched').firstElementChild.classList.remove('up')
+		document.getElementById('btn-DateSched').firstElementChild.classList.add('down')
+		document.getElementById('DateSched-choice').setAttribute('data-state','closed')
+	}
+	
+	// console.log(event.target.classList)
+})
 /**
  * 
  * @param {*} input 
@@ -64,28 +116,25 @@ async function treatData (input) {
  */
  
   
-ipcEdit.on('edit-data', async (event,args, args2, args3)=>{
-    console.log(typeof(args))
+ipc.on('edit-data', async (event,args, args2, args3)=>{
+    // console.log(typeof(args))
 	editData = await treatData(args)
-	
+	console.log(editData)
     
 	launcher = args2
 	currentUser = args3
-    setTimeout(() => {
+    //setTimeout(() => {
 		loadData(editData)
         
-    }, 0);
-	//add event handler to cbComeback(otl&sched)
-	$(cbComeback).on({
+    //}, 1000);
+	//add event handler to cbOTL_scheduled(otl&sched)
+	$(cbOTL_scheduled).on({
 		change:function(){
-			if(cbComeback.checked){
+			if(cbOTL_scheduled.checked){
 				document.getElementById('dateWrapper_OTL_SCHEDULED').style.display = 'block';
-				document.getElementById('datepickerOTL').focus()
+				document.getElementById('DateOTL-choice').focus()
 			}else{
-				// if(inpScheduledDate.value!=""){
-				// 	document.getElementById('dateWrapperSch').style.display = 'block';
-					
-				// }
+				
 				document.getElementById('dateWrapper_OTL_SCHEDULED').style.display = 'none';
 			}
 		}
@@ -110,7 +159,7 @@ ipcEdit.on('edit-data', async (event,args, args2, args3)=>{
 		}
 	})
 })
-ipcEdit.on('contacts-updated', (event,args,args2)=>{
+ipc.on('contacts-updated', (event,args,args2)=>{
 	console.log(args)
 	console.log('passed item ID '+args2)
 	fillContacts(args)
@@ -132,7 +181,7 @@ ipcEdit.on('contacts-updated', (event,args,args2)=>{
  * functions
  */
 function cancelAdd(){
-	ipcEdit.send('close-window')
+	ipc.send('close-window')
 }
 
 /* function to load current job data into edit form inputs*/
@@ -143,27 +192,43 @@ function loadData(objJobToEdit){
 	}else{
 		d = objJobToEdit
 	}
+	let customerNamesList = Array.from(document.querySelectorAll('#Customer-listBox .listItem'))
+	console.table(d)
     inpDateIn.value = d?.date_in
 	try{
-    inpCustomer.value = ipcEdit.sendSync('db-get-customer-name',d?.customer_ID);
+		customerNamesList.forEach((item) =>{
+			console.log(item.innerText, d.customer_name)
+			if(item.innerText === d.customer_name){
+				item.classList.add('focusedListItem')
+				item.setAttribute('data-selected', true)
+				inpCustomer.setAttribute('data-cid',d.customer_ID)
+				inpCustomer.innerText = d.customer_name
+				
+			}
+		})
+		//console.log(listItems)
+     
 	}catch(e){
 		console.log(e)
 	}
-    
+    selJobType.innerHTML = d.job_type;
     (d?.unit) ? inpUnit.value = d.unit : inpUnit.value = "";
+	(d?.unit_type) ? inpUnitType.value = d.unit_type : inpUnitType.value = "";
+	selDesignation.innerHTML = d.designation
     if(d.designation == "On the Lot" || d.desgnation == 'on the lot'){
-		selDesignation.selectedIndex = 1
-		document.getElementById('dateWrapperSch').style.display = 'none'
+		
+		document.getElementById('dateSchWrapper').className = 'hiddenInput'
 	}else{
-		selDesignation.selectedIndex = 2;
-		}  
+		alreadyScheduled = true
+		document.getElementById('dateSchWrapper').className = 'visibleInput'
+	}
 	
     (d.date_scheduled != null) ? inpScheduledDate.value = d.date_scheduled : inpScheduledDate.value = "";
     (d.time_of_day == 'am')? radAM.checked = true : radAM.checked = false;
     (d.time_of_day == 'pm')? radPM.checked = true : radPM.checked = false;
-    for(i=0;i<selJobType.options.length;i++){        
-        (d.job_type == selJobType.options[i].value)? selJobType.selectedIndex = i : '';        
-    }
+    // for(i=0;i<selJobType.options.length;i++){        
+    //     (d.job_type == selJobType.options[i].value)? selJobType.selectedIndex = i : '';        
+    // }
     
     
     if(d.cash_customer != null){
@@ -181,12 +246,12 @@ function loadData(objJobToEdit){
         cbCash.checked = false;
     }
     
-    (d.parts_needed != null) ? (d.parts_needed == 1)? cbParts.checked = true : cbParts.checked = false : cbParts.checked = false;
-    (d.approval_needed != null) ? (d.approval_needed == 1)? cbApproval.checked = true : cbApproval.checked = false : cbApproval.checked = false;
+    //(d.parts_needed != null) ? (d.parts_needed == 1)? cbParts.checked = true : cbParts.checked = false : cbParts.checked = false;
+    //(d.approval_needed != null) ? (d.approval_needed == 1)? cbApproval.checked = true : cbApproval.checked = false : cbApproval.checked = false;
     (d.checked != null) ? (d.checked == 1)? cbChecked.checked = true : cbChecked.checked = false : cbChecked.checked = false;
     if(d.comeback_customer != null){
 		if(d.comeback_customer == 1){
-			cbComeback.checked = true;
+			cbOTL_scheduled.checked = true;
 			document.getElementById('dateWrapper_OTL_SCHEDULED').style.display = 'block';
 			if(d.date_scheduled != null){
 				document.getElementById('datepickerOTL').value = d.date_scheduled;
@@ -197,32 +262,64 @@ function loadData(objJobToEdit){
 		}
 	}// ? (d.comeback_customer == 1)? cbComeback.checked = true : cbComeback.checked = false : cbComeback.checked = false;
     (d.waiting_customer != null) ? (d.waiting_customer== 1)? cbWaiting.checked = true : cbWaiting.checked = false : cbWaiting.checked = false;
-    (d.no_show != null) ? (d.no_show == 1)? cbNoShow.checked = true : cbNoShow.checked = false : cbNoShow.checked = false;
+    //(d.no_show != null) ? (d.no_show == 1)? cbNoShow.checked = true : cbNoShow.checked = false : cbNoShow.checked = false;
     (d.notes != null) ? txtNotes.value = d.notes : txtNotes.value = "";
+
     
-    fillContacts(ipcEdit.sendSync('get-contacts',d.customer_ID))
-	
+    fillContactsNew(ipc.sendSync('get-contacts',d.customer_ID),d.customer_ID,d.customer_name)
+
+	let contactsList = Array.from(document.querySelectorAll('#Contacts-listBox .option'))
+	console.log(contactsList)
     if(d.number_ID != null && d.number_ID != ''){
 
-		for(var i=0; i<selContacts.options.length;i++) {
-			if(selContacts.options[i].id == d.number_ID && selContacts.options[i].getAttribute('method') == 'phone') {
-				
-				selContacts.options[i].selected = true
-				showLabel()
-				break;
+		contactsList.forEach((item)=>{
+			console.log(item.getAttribute('method-id'))
+			console.log(d.number_ID)
+			if(item.getAttribute('method-id') == d.number_ID){
+				selContacts.innerHTML = item.innerHTML
+				selContacts.setAttribute('method','phone')
+				selContacts.setAttribute('method-id',d.number_ID)
+				item.classList.add('focusedListItem')
+				item.setAttribute('data-selected', true)
+				document.querySelector('#Contacts-info').innerHTML = item.parentNode.firstChild.innerText
 			}
-		}
+		})
+		//document.getElementById('Contacts-choice').innerHTML = document.querySelector(`[method-id='${d.number_ID}']`).innerHTML
+		//chooseListItem(null,document.getElementById('Contacts-choice'),document.getElementById('Contacts-choice'),document.getElementById(d.number_ID),document.getElementById('Contacts-listBox'))	
+		// for(var i=0; i<selContacts.options.length;i++) {
+		// 	if(selContacts.options[i].id == d.number_ID && selContacts.options[i].getAttribute('method') == 'phone') {
+				
+		// 		selContacts.options[i].selected = true
+		// 		showLabel()
+		// 		break;
+		// 	}
+		// }
+
+		//setSelectedContact(method,methodID)
 	}
 	if(d.email_ID != null && d.email_ID != ''){
 
-		for(var i=0; i<selContacts.options.length;i++) {
-			if(selContacts.options[i].id == d.email_ID && selContacts.options[i].getAttribute('method') == 'email') {
-				selContacts.options[i].selected = true
+		// for(var i=0; i<selContacts.options.length;i++) {
+		// 	if(selContacts.options[i].id == d.email_ID && selContacts.options[i].getAttribute('method') == 'email') {
+		// 		selContacts.options[i].selected = true
 				
-				showLabel()
-				break;
+		// 		showLabel()
+		// 		break;
+		// 	}
+		// }
+
+		contactsList.forEach((item)=>{
+			console.log(item.getAttribute('method-id'))
+			console.log(d.email_ID)
+			if(item.getAttribute('method-id') == d.email_ID){
+				selContacts.innerHTML = item.innerHTML
+				selContacts.setAttribute('method','email')
+				selContacts.setAttribute('method-id',d.email_ID)
+				item.classList.add('focusedListItem')
+				item.setAttribute('data-selected', true)
+				document.querySelector('#Contacts-info').innerHTML = item.parentNode.firstChild.innerText
 			}
-		}
+		})
 	}
 }
 
@@ -236,17 +333,17 @@ function changeContact(choice){
 	con_ops = con_ops.substring(con_ops.indexOf("~") + 1);
 	let contactName
 	let index
-	let customer = ipcEdit.sendSync('db-get-customer-name', editData.customer_ID)
+	let customer = ipc.sendSync('db-get-customer-name', editData.customer_ID)
 	switch(con_ops){
 		
 		case '+ add contact': 
 			
 			
-			ipcEdit.send('open-contacts','edit page',customer, false)
+			ipc.send('open-contacts','edit page',customer, false)
 			break;
 		case '+ add new contact': 
 			
-			ipcEdit.send('open-contacts','edit page',customer, false)
+			ipc.send('open-contacts','edit page',customer, false)
 			
 			break;
 		case '+ add number': 
@@ -254,7 +351,7 @@ function changeContact(choice){
 			index = contactsInput.options[contactsInput.selectedIndex].index
 			conMeth = "phone"
 			con_ID = Number(contactsInput.options[contactsInput.selectedIndex].parentElement.getAttribute('contactID'))
-			ipcEdit.send('open-contacts','edit page',customer, false, contactName[0], contactName[1], con_ID, conMeth)
+			ipc.send('open-contacts','edit page',customer, false, contactName[0], contactName[1], con_ID, conMeth)
 			console.log('test '+con_ID)
 			break;
 		case '+ add email':
@@ -262,7 +359,7 @@ function changeContact(choice){
 			index = contactsInput.options[contactsInput.selectedIndex].index
 			conMeth = "email"
 			con_ID = Number(contactsInput.options[contactsInput.selectedIndex].parentElement.getAttribute('contactID'))
-			ipcEdit.send('open-contacts','edit page',customer, false, contactName[0], contactName[1], con_ID, conMeth)
+			ipc.send('open-contacts','edit page',customer, false, contactName[0], contactName[1], con_ID, conMeth)
 			
 			break;
 		default:
@@ -316,44 +413,158 @@ function showLabel() {
 
 function updateJob (){
 	//alias input fields for easier programming
-	
-	let txtCN = document.getElementById('txtCustomerName')
-	let txtCon = document.getElementById('txtContacts')
-	//let txtCost =document.getElementById('txtCost')
+	let dateIn = document.getElementById('DateIn-choice')
+	let dateScheduled = document.getElementById('DateSched-choice')
+	let radAM = document.getElementById('radAM')
+	let radPM = document.getElementById('radPM')
+	let txtCN = document.getElementById('Customer-choice')
+	let txtCon = document.getElementById('Contacts-choice')	
 	let txtNotes = document.getElementById('txtNotes')
-	let designation = document.getElementById('selOrigin')
-	let jt = document.getElementById('selJobType')
+	let designation = document.getElementById('Designation-choice')
+	let jt = document.getElementById('JobType-choice')
+	let unit = document.getElementById('Unit-choice')
+	let unitType = document.getElementById('UnitType-choice')
+	let cbCash = document.getElementById('cbCash')
+	let cbWaiting = document.getElementById('cbWaiting')
+	let cbChecked = document.getElementById('cbChecked')
+	let cbOTL = document.getElementById('cbOTL_scheduled')
+	let datepickerOTL = document.getElementById('DateOTL-choice')
+	let radAM_OTL = document.getElementById('radAM_OTL')
+	let radPM_OTL = document.getElementById('radPM_OTL')
+
 
 	let objNewJob = new Object()
 	let objChangeLog = new Object()
 	let editData2 = new Object()
 	
-	console.log(editData.designation)
+	console.table(editData)
 	if(Array.isArray(editData)){
 		editData = editData[0]
 	}
+
+	/**
+	 * verify that all required fields are entered.
+	 * if not, quit function and display validation messages under fields
+	 */
+	 let verified = verifyInputs()	
+	 if(!verified[0]){
+		 
+		 for(i=0;i<verified[1].length;i++){
+			 let type = verified[1][i].getAttribute('id').split('-')
+			  if(type[0] == 'Unit'){
+				 if($(`#${type[0]}-MessageContainer`)){
+					 $(`#${type[0]}-MessageContainer`).remove()
+					 $(`#UnitType-MessageContainer`).remove()
+				 }
+				 verified[1][i].parentNode.parentNode.appendChild(createMessageBox(type[0],null))
+				 document.querySelector('#unitTypeWrapper').appendChild(createMessageBox('UnitType',null))
+			  }else{
+			 if($(`#${type[0]}-MessageContainer`)){
+				 $(`#${type[0]}-MessageContainer`).remove()
+			 }
+			 verified[1][i].parentNode.parentNode.appendChild(createMessageBox(type[0],null))
+		 }
+		 }
+		 
+		 return
+	 } 
 	
-	//build job object
+	//-----build job object-----set job ID
 	objNewJob.job_ID = editData.job_ID
+
+	//-----build job object-----check for changes in Date In	
+	if(editData.date_in!= null && editData.date_in!= undefined){		
+		(editData.date_in.localeCompare(dateIn.value)!=0)
+			? objNewJob.date_in = dateIn.value
+			: '';
+	}else{
+		if(dateIn.value.length){
+			objNewJob.date_in = dateIn.value
+		}        
+	}
+
+	//-----build job object-----check for changes in Designation
+	if(editData.designation?.localeCompare(designation.innerText)!=0){
+		objNewJob.designation = designation.innerText
+		let s
+		switch(designation.innerText){
+			case 'On the Lot':
+				s = "wfw" 
+				break;
+			case 'Scheduled':
+				s = "sch"
+
+				break;
+			default:
+				break;
+		}
+		
 	
-    
-	if(txtCon.options[txtCon.selectedIndex].getAttribute("method")=="phone"){
-        if(txtCon.options[txtCon.selectedIndex].id != editData.number_ID){
-			objNewJob.number_ID = txtCon.options[txtCon.selectedIndex].id			
-			objNewJob.email_ID = null
-			objChangeLog.number_ID = txtCon.options[txtCon.selectedIndex].id
-		}       
-		
+		if(editData.status.localeCompare(s)!=0 && launcher == 'move'){
+			objNewJob.status = s
+		}		
 	}
-	if(txtCon.options[txtCon.selectedIndex].getAttribute("method")=="email"){
-        if(txtCon.options[txtCon.selectedIndex].id != editData.email_ID){
-			objNewJob.email_ID = txtCon.options[txtCon.selectedIndex].id
-			objNewJob.number_ID = null
-			objChangeLog.email_ID = txtCon.options[txtCon.selectedIndex].id
-		}      
+
+	//-----build job object-----check for changes in scheduled time of day
+	
+	if(editData.time_of_day != null && editData.time_of_day != ''){
 		
+			(editData.time_of_day.localeCompare($('input[name=ampmSched]:checked').val())!=0)
+				? objNewJob.time_of_day = $('input[name=ampmSched]:checked').val()
+				:'no change to time_of_day';		
+    }else{
+		if(designation.innerText == 'Scheduled'){
+			($('input[name=ampmSched]:checked').val()!= undefined)
+				? objNewJob.time_of_day = $('input[name=ampmSched]:checked').val()
+				: objNewJob.time_of_day = 'am';
+			
+		}
 	}
-    if(editData.notes == null && txtNotes.value != null && txtNotes.value != ''){
+
+	//-----build job object-----check for change in scheduled date
+	console.log(editData.date_scheduled)
+	if(editData.date_scheduled?.localeCompare(dateScheduled.value)!=0){
+		if(!document.getElementById('DateOTL-wrapper') && designation.innerText == 'Scheduled'){
+			objNewJob.date_scheduled = dateScheduled.value
+		}
+	}
+		
+
+	//-----build job object-----check for change in job type
+	if(editData.job_type.localeCompare(jt.innerText)!=0){
+		objNewJob.job_type = jt.innerText
+	}
+
+	//-----build job object-----check for change in customer
+	if(txtCN.getAttribute('data-cid') != editData.customer_ID){
+		objNewJob.customer_ID = txtCN.getAttribute('data-cid')
+	}
+
+	//-----build job object-----check for change in unit
+	if(editData.unit!= null && editData.unit!= undefined){		
+		(editData.unit.localeCompare(unit.value)!=0)
+			? objNewJob.unit = unit.value
+			: '';
+	}else{
+		if(unit.value.length){
+			objNewJob.unit = unit.value
+		}        
+	}
+
+	//-----build job object-----check for change in unit type
+	if(editData.unit_type!= null && editData.unit_type!= undefined){
+		console.log(editData.unit_type);
+		(editData.unit_type.localeCompare(unitType.value)!=0)
+			? objNewJob.unit_type = unitType.value
+			: '';
+	}else{
+		if(unitType.value.length){
+			objNewJob.unit_type = unitType.value
+		}        
+	}
+
+	//-----build job object-----check for change in notes
+	if(editData.notes == null && txtNotes.value != null && txtNotes.value != ''){
         objNewJob.notes = txtNotes.value
 		objChangeLog.notes = txtNotes.value
     }
@@ -361,155 +572,100 @@ function updateJob (){
         if(editData.notes.localeCompare(txtNotes.value)!=0){
 			objNewJob.notes = txtNotes.value
 			objChangeLog.notes = txtNotes.value
-		}
-       
+		}       
     }
-    
-    
-	if(Boolean(document.getElementById('cbCash').checked)!=Boolean(editData.cash_customer)){
-    	(document.getElementById('cbCash').checked == true)
+
+	//-----build job object-----check for change in contact
+	let method = txtCon.getAttribute('method')
+	let method_ID = txtCon.getAttribute('method-id')
+	let itemToCompare = (editData.number_ID)? editData.number_ID: editData.email_ID;
+	let methodToCompare = (editData.number_ID)? 'phone':'email'
+	console.log(itemToCompare)
+	if(methodToCompare.localeCompare(method)!=0){
+		objNewJob.number_ID = null
+		objNewJob.email_ID = method_ID
+	}else{
+		if(itemToCompare.toString().localeCompare(method_ID)!=0){
+			objNewJob.number_ID = Number(method_ID)
+		}
+	}
+			
+	
+
+	//-----build job object-----check for change in cash customer
+	if(Boolean(cbCash.checked)!=Boolean(editData.cash_customer)){
+    	(cbCash.checked == true)
 			? objNewJob.cash_customer = 1
 			: objNewJob.cash_customer = 0
-		objChangeLog.cash_customer = document.getElementById('cbCash').checked
+		objChangeLog.cash_customer = cbCash.checked
 	}
-    // if(editData.estimated_cost!=null){
-    //     if(editData.estimated_cost.localeCompare(txtCost.value)!=0){
-    //       objNewJob.estimated_cost = txtCost.value
-	// 	  objChangeLog.estimated_cost = txtCost.value
-	// 	}
-    // }
-    
-    if(editData.designation.localeCompare(designation.options[designation.selectedIndex].value)!=0){
-     	objNewJob.designation = designation.options[designation.selectedIndex].value	
-		objChangeLog.designation = designation.options[designation.selectedIndex].value
-	}
-    let s
-	if(designation.options[designation.selectedIndex].value == "On the Lot"){		
-		s = "wfw" 		
-	}else{
-        s = "sch"
-    }
 
-    if(editData.status.localeCompare(s)!=0 && launcher == 'move'){
-		objNewJob.status = s
-	}
-    
+	//-----build job object-----check for change in waiting customer
+	(Boolean(cbWaiting.checked)!=Boolean(editData.waiting_customer))
+    ? (cbWaiting.checked)
+		? objNewJob.waiting_customer = 1
+		: objNewJob.waiting_customer = 0
+    : console.log('no change to waiting');
 
-    if(editData.date_scheduled != null){
-        if(editData.date_scheduled.localeCompare(document.getElementById('datepicker').value)!=0){
-          objNewJob.date_scheduled = document.getElementById('datepicker').value
-		  //if editing an existing 'On the Lot' job to an OTL & Sched job and a julian date doesnt exist, add one
-		  if(cbComeback.checked){
-				if(editData.julian_date === null || editData.julian_date ===""){
-					objNewJob.julian_date = jDate(document.getElementById('datepicker').value)
-				}
-			}
-		  
-
-		  
-        
-		}
-    }
-    if(editData.julian_date != null){
-        (editData.julian_date===jDate(document.getElementById('datepicker').value))
-        ? ''
-        :objNewJob.julian_date = jDate(document.getElementById('datepicker').value);
-    }
-	
-    if(editData.time_of_day != null && editData.time_of_day != ''){
-		if(cbComeback.checked){
-			(editData.time_of_day.localeCompare($('input[name=ampmOTL]:checked').val())!=0)
-        ? objNewJob.time_of_day = $('input[name=ampmOTL]:checked').val()
-        :'no change to time_of_day';
-		}else{
-        (editData.time_of_day.localeCompare($('input[name=ampm2]:checked').val())!=0)
-        ? objNewJob.time_of_day = $('input[name=ampm2]:checked').val()
-        :'no change to time_of_day';
-		}
-    }
-	// if(editData.time_of_day != null && editData.time_of_day != ''){
-    //     (editData.time_of_day.localeCompare($('input[name=ampmOTL]:checked').val())!=0)
-    //     ? objNewJob.time_of_day = $('input[name=ampmOTL]:checked').val()
-    //     :'no change to time_of_day';
-    // }
-		
-	if(editData.date_in?.localeCompare(document.getElementById('datepickerIn').value)!=0){
-		objNewJob.date_In = document.getElementById('datepickerIn').value
-		
-	  
-	  }	
-	
-    if(txtUnit.value.trim().length){
-		if(editData.unit!= null && editData.unit!= undefined){
-			(editData.unit.localeCompare(txtUnit.value)!=0)
-				? objNewJob.unit = txtUnit.value
-				: '';
-		}else{
-			objNewJob.unit = txtUnit.value
-		}
-        
-    }
-	
-	(editData.job_type.localeCompare(jt.options[jt.selectedIndex].value)!=0)
-    ? objNewJob.job_type = jt.options[jt.selectedIndex].value
-    : '';
-	
-    (Boolean(document.getElementById('cbParts').checked)!=Boolean(editData.parts_needed))
-    ? (document.getElementById('cbParts').checked == true)
-		? objNewJob.parts_needed = 1
-		: objNewJob.parts_needed = 0
-    : console.log('no change to parts');
-
-    (Boolean(document.getElementById('cbApproval').checked)!=Boolean(editData.approval_needed))
-    ? (document.getElementById('cbApproval').checked == true) 
-		? objNewJob.approval_needed = 1
-		: objNewJob.approval_needed = 0
-    : console.log('no change to approval');
-
-    (Boolean(document.getElementById('cbChecked').checked)!=Boolean(editData.checked))
-    ? (document.getElementById('cbChecked').checked)
+	//-----build job object-----check for change in checked
+	(Boolean(cbChecked.checked)!=Boolean(editData.checked))
+    ? (cbChecked.checked)
 		? objNewJob.checked = 1
 		: objNewJob.checked = 0
     : console.log('no change to checked');
 
-    if(Boolean(document.getElementById('cbComeback').checked)!=Boolean(editData.comeback_customer)){
-		if(document.getElementById('cbComeback').checked){			
+	//-----build job object-----check for change in OTL and Scheduled
+	if(Boolean(cbOTL.checked)!=Boolean(editData.comeback_customer)){
+		if(cbOTL.checked){			
 			
-			if(document.getElementById('datepickerOTL').value == '' || document.getElementById('datepickerOTL').value == undefined || document.getElementById('datepickerOTL').value == null || $('input[name=ampmOTL]:checked').val() == undefined){
+			if(datepickerOTL.value == '' || datepickerOTL.value == undefined || datepickerOTL.value == null || $('input[name=ampmOTL]:checked').val() == undefined){
 				
 				document.getElementById('wrapperOTL').style.display = 'block'
 				document.getElementById('OTL_message').innerHTML = 'scheduled date and time of day required'
 				return
 			}
 			objNewJob.comeback_customer = 1
-			objNewJob.date_scheduled = document.getElementById('datepickerOTL').value
+			objNewJob.date_scheduled = datepickerOTL.value
 			objNewJob.time_of_day = $('input[name=ampmOTL]:checked').val()
-			objNewJob.julian_date = jDate(document.getElementById('datepickerOTL').value)
+			objNewJob.julian_date = jDate(document.getElementById('DateOTL-choice').value)
 		}else{
 			objNewJob.comeback_customer = 0
 		}
 	}
+
+    
+	
+    
+    
+    
+	
+    
     
 
-    (Boolean(document.getElementById('cbWaiting').checked)!=Boolean(editData.waiting_customer))
-    ? (document.getElementById('cbWaiting').checked)
-		? objNewJob.waiting_customer = 1
-		: objNewJob.waiting_customer = 0
-    : console.log('no change to waiting');
-
-    (Boolean(document.getElementById('cbNoShow').checked)!=Boolean(editData.no_show))
-    ? (document.getElementById('cbNoShow').checked)
-		? objNewJob.no_show = 1
-		: objNewJob.no_show = 0
-    : console.log('no change to no-show');
+   
+		
+		
 	
-	console.log('object length is '+Object.keys(objNewJob))
+    
+	
+	
+    
+
+    
+    
+
+    
+
+   
+	
+	console.log('object length is '+Object.keys(objNewJob).length)
+	console.log(objNewJob)
     if(Object.keys(objNewJob).length>1){
 		
-	    ipcEdit.send('update-job',objNewJob, launcher, currentUser, txtCN.value)
-		ipcEdit.send('close-window')
+	    ipc.send('update-job',objNewJob, launcher, currentUser, txtCN.value)
+		ipc.send('close-window')
     }else{
-		ipcEdit.send('close-window')
+		ipc.send('close-window')
 	}
 
 }
@@ -522,4 +678,164 @@ function jDate(ds){
 	var julian= Math.ceil((dayScheduled - new Date(dayScheduled.getFullYear(),0,0)) / 86400000);
 
 	return julian;
+}
+function openOTLandScheduled(event,cb,OTL_container){
+	//TODO: first check to see if designation was scheduled. If it was store the data for unchecking?
+	// and trigger mousedown on designation option 'On the Lot' which will close scheduled component under the designation
+	/**
+	 * When clicking on the OTL and Schuduled checkbox determine if you are checking or unchecking. If uncheckiing
+	 * remove the date component under OTL if it exists and display the date component under designation if
+	 * the job was previously scheduled when you opened the edit page. If checking the checkbox, create the date 
+	 * component under the OTL, remove the date component from under designation if it exists,
+	 * and change the designation to 'On the Lot'.
+	 * 
+	 */
+
+	console.log('change event fired on OTL cb')
+
+	console.log('open', alreadyScheduled)
+	if (cb.checked == true) {
+		//$('#Designation0').mousedown()
+		if(alreadyScheduled || selDesignation.innerText == 'Scheduled'){
+			$('#Designation0').mousedown()
+			$(cb).focus()
+			// document.getElementById('dateSchWrapper').className = 'hiddenInput'
+			
+		}
+		document.getElementById(OTL_container).className = "visibleInput";
+		createComponent(document.getElementById('dateWrapper_OTL_SCHEDULED'),'date OTL',null,'DateOTL','edit')
+		$("#DateOTL-choice").datepicker({dateFormat : "mm/dd/yy"});
+	} else {
+		if(alreadyScheduled){
+			$('#Designation1').mousedown()
+			$(cb).focus()
+			document.getElementById('dateSchWrapper').className = 'visibleInput'
+		}
+		
+		//createComponent(document.getElementById('dateWrapper'),'date',null,'Date')
+		document.getElementById(OTL_container).innerHTML = ''
+		document.getElementById(OTL_container).className = "hiddenInput";			
+	}
+	//document.getElementById('dateWrapper_OTL_SCHEDULED').classList.remove('hiddenInput')
+	//document.getElementById('dateWrapper_OTL_SCHEDULED').classList.add('visibleInput')
+	
+}
+function openInput(e, active, inputID1, inputID2) {
+	// createComponent(document.getElementById('customerComboBoxContainer'),'comboBox',ipc.sendSync('get-customer-names'),'customerNames')
+	var v = active.value;	
+	var next = document.getElementById(inputID1);
+	
+	if (active.id == "cbOTL_scheduled") {
+		
+		if (active.checked == true) {
+			document.getElementById(inputID1).className = "visibleInput";
+		} else {
+
+			document.getElementById('dateWrapper_OTL_SCHEDULED').value = "";
+			document.getElementById(inputID1).className = "hiddenInput";			
+		}
+	}else{
+		if (!e || e.keyCode != 9) {
+			if (v && v != "") {
+				
+				document.getElementById(inputID1).className = "visibleInput";
+				//next.style.display = "block";				
+			
+			} else {
+				
+				document.getElementById(inputID1).className = "hiddenInput"
+			}
+		}
+		if (inputID2) {
+			let choice = active.options[active.selectedIndex].text
+			
+			switch(choice) {
+				
+				case "Scheduled":
+					document.getElementById(inputID2).className = "visibleInput";
+					document.getElementById('OTL_SCHEDULED').className = 'hiddenInput';
+					document.getElementById('dateWrapper_OTL_SCHEDULED').className = 'hiddenInput';
+					document.getElementById('cbOTL_scheduled').checked = false
+					$('#datepicker').on({
+						'blur': ()=>{
+							let dp = document.getElementById('datepicker');
+							let formatted = formatDate(dp.value)
+							
+							if(formatted[0] === true){
+								dp.value = formatted[1]
+							}else{
+								dp.value = `please choose date`
+								dp.focus()
+							}
+
+						}
+					})
+					break;
+				case "On the Lot":
+					
+					document.getElementById("dateWrapper").className = "hiddenInput";
+					document.getElementById('OTL_SCHEDULED').className = 'visibleInput';
+					
+					break;
+				
+				default:
+					
+					
+					document.getElementById('cbWrapper').className = "visibleFieldset";
+					document.getElementById('formButtons').className = "visibleInput";
+					
+					break;
+			}
+			if(inputID2 == "dateWrapper"){
+				
+									
+			}else{
+			document.getElementById(inputID2).className = "visibleFieldset";
+			}
+
+		}
+	}
+}
+let verifyInputs = ()=>{
+    let des = document.getElementById('Designation-choice')
+    let sch = document.getElementById('DateSched-choice')
+    let jt = document.getElementById('JobType-choice')
+    let cus = document.getElementById('Customer-choice')    
+    let con = document.getElementById('Contacts-choice')
+	let unit = document.getElementById('Unit-choice')
+	let ut = document.getElementById('UnitType-choice')
+	let arrInvalid = []
+	let invalidCount = 0
+	let verified = true
+
+	if(des.innerHTML == ''){
+		arrInvalid.push(des)
+		invalidCount+=1
+	}
+	if(des.innerHTML == 'Scheduled' && sch.value == ''){
+		arrInvalid.push(sch)
+		invalidCount+=1
+	}
+	if(jt.innerHTML == ''){
+		arrInvalid.push(jt)
+		invalidCount+=1
+	}
+	if(cus.innerHTML == ''){
+		arrInvalid.push(cus)
+		invalidCount+=1
+	}
+	if(con.innerHTML == ''){
+		arrInvalid.push(con)
+		invalidCount+=1
+	}
+	if(unit.value == '' && ut.value == ''){
+		console.log(unit.value +' '+ut.value)
+		arrInvalid.push(unit)
+		invalidCount+=1		
+	}
+
+	if(invalidCount>0){
+		verified = false
+	}
+    return [verified, arrInvalid]
 }
