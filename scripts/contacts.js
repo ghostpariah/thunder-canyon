@@ -378,14 +378,16 @@
       ipc.on(
         "name-chosen",
         (event, args1, args2, args3, args4, args5, args6, args7, args8, args9) => {
-          console.table(args1)
+          
+         
         try{  
+          console.log(args1)
           let argCount = 0;
           props = args1
 
           addCN = props.customer_name
           addCID = props.customer_ID
-
+          console.log(props.launcher)
           //launching page
           switch (props.launcher) {
             case "main page":
@@ -420,6 +422,7 @@
              
               break;
             case "edit page":
+              console.log("your mom")
               pageLauncher = "edit";
               setTimeout(() => {
                 togglePageView("edit");
@@ -464,7 +467,7 @@
 
           // contact last name
           if (args1?.contacts?.[0].last_name) {
-            inpLastname.value = args1.contacts[0].last_name;
+            //inpLastname.value = args1.contacts[0].last_name;
             addLN = args1.contacts[0].last_name;
             argCount += 1;
           }

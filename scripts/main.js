@@ -1165,7 +1165,8 @@ ipcMain.on("edit-customer-name", (event, args1, args2)=>{
         }
         
     })
-    let sql = `UPDATE customers SET customer_name='${args1}' WHERE customer_ID= ${args2}`;
+    //let name = args1.replace(/'/g, "\\'")
+    let sql = `UPDATE customers SET customer_name="${args1}" WHERE customer_ID= ${args2}`;
 
     dboCustomerName.run(sql, function(err) {
         if (err) {
@@ -1903,7 +1904,7 @@ ipcMain.on('db-get-phone',(event, args)=>{
     
 })
 ipcMain.on('db-get-contact-name',(event, args1, args2)=>{
-    
+    console.log(args1,args2)
     let dboContactID = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
@@ -1915,6 +1916,7 @@ ipcMain.on('db-get-contact-name',(event, args1, args2)=>{
     let cmID = args2
     let secColumn
     if(args1 != null){
+
         if(args1 == 'phone'){
             cmTable = 'phone_numbers'
             cmColumn = 'phone_ID'
@@ -1944,7 +1946,7 @@ ipcMain.on('db-get-contact-name',(event, args1, args2)=>{
                 let w
                 let it
                 
-                if(cmTable == 'emails' && row1[0].e_contact_ID != 'null'){
+                if(cmTable == 'emails' && row1[0] != undefined && row1[0].e_contact_ID != 'null'){
                     w = row1[0].e_contact_ID
                     it = row1[0].email
                 }else if(cmTable == 'phone_numbers'){

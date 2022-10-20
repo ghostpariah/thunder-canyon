@@ -162,16 +162,15 @@ ipc.on('edit-data', async (event,args, args2, args3)=>{
 ipc.on('contacts-updated', (event,args,args2)=>{
 	console.log(args)
 	console.log('passed item ID '+args2)
-	fillContacts(args)
+	let upProps = {}
+	upProps.contacts = args
+	upProps.launcher = 'edit page'
+	upProps.action = 'add'
+	upProps.passed_ID = args2
+	fillContactsNew(upProps)
 	setTimeout(() => {
-        
-		for(var i=0; i<selContacts.options.length;i++) {
-			if(selContacts.options[i].id == args2) {
-				selContacts.selectedIndex = i;
-				showLabel()
-				break;
-			}
-		}
+        console.log(document.querySelector(`[method-id='${args2}']`).innerText)
+		$(`[method-id='${args2}']`).click()
 		
     }, 400);
 	
@@ -193,9 +192,10 @@ function loadData(objJobToEdit){
 		d = objJobToEdit
 	}
 	let customerNamesList = Array.from(document.querySelectorAll('#Customer-listBox .listItem'))
-	console.table(d)
+	
     inpDateIn.value = d?.date_in
 	try{
+		
 		customerNamesList.forEach((item) =>{
 			console.log(item.innerText, d.customer_name)
 			if(item.innerText === d.customer_name){
@@ -206,7 +206,7 @@ function loadData(objJobToEdit){
 				
 			}
 		})
-		//console.log(listItems)
+		
      
 	}catch(e){
 		console.log(e)
@@ -234,11 +234,7 @@ function loadData(objJobToEdit){
     if(d.cash_customer != null){
         if(d.cash_customer === 1){
             cbCash.checked = true;
-            // if(d.estimated_cost != null){
-            //     inpCost.value = d.estimated_cost;
-            // }else{
-            //     inpCost.value = "";
-            // }
+           
         }else{            
             cbCash.checked = false;        
         }
@@ -254,9 +250,11 @@ function loadData(objJobToEdit){
 			cbOTL_scheduled.checked = true;
 			document.getElementById('dateWrapper_OTL_SCHEDULED').style.display = 'block';
 			if(d.date_scheduled != null){
-				document.getElementById('datepickerOTL').value = d.date_scheduled;
-				(d.time_of_day == 'am')? radAM_OTL.checked = true : radAM_OTL.checked = false;
-    			(d.time_of_day == 'pm')? radPM_OTL.checked = true : radPM_OTL.checked = false;
+				createComponent(document.getElementById('dateWrapper_OTL_SCHEDULED'),'date OTL',null,'DateOTL','edit')
+				$("#DateOTL-choice").datepicker({dateFormat : "mm/dd/yy"});
+				document.getElementById('DateOTL-choice').value = d.date_scheduled;
+				(d.time_of_day == 'am')? document.getElementById('radAM_OTL').checked = true : document.getElementById('radAM_OTL').checked = false;
+    			(d.time_of_day == 'pm')? document.getElementById('radPM_OTL').checked = true : document.getElementById('radPM_OTL').checked = false;
 			}
 
 		}
@@ -265,9 +263,17 @@ function loadData(objJobToEdit){
     //(d.no_show != null) ? (d.no_show == 1)? cbNoShow.checked = true : cbNoShow.checked = false : cbNoShow.checked = false;
     (d.notes != null) ? txtNotes.value = d.notes : txtNotes.value = "";
 
-    
-    fillContactsNew(ipc.sendSync('get-contacts',d.customer_ID),d.customer_ID,d.customer_name)
-
+    let ejProps = {}
+	ejProps.contacts = ipc.sendSync('get-contacts',d.customer_ID)
+	ejProps.customer_ID = d.customer_ID
+	ejProps.customer_name = d.customer_name
+	ejProps.launcher = 'edit page'
+	console.log(ejProps.contacts)
+	fillContactsNew(ejProps)
+    //fillContactsNew(ipc.sendSync('get-contacts',d.customer_ID),d.customer_ID,d.customer_name, 'edit page')
+	if(!ejProps.contacts){
+		document.querySelector('#noContact').click()
+	}
 	let contactsList = Array.from(document.querySelectorAll('#Contacts-listBox .option'))
 	console.log(contactsList)
     if(d.number_ID != null && d.number_ID != ''){
@@ -526,6 +532,7 @@ function updateJob (){
 	if(editData.date_scheduled?.localeCompare(dateScheduled.value)!=0){
 		if(!document.getElementById('DateOTL-wrapper') && designation.innerText == 'Scheduled'){
 			objNewJob.date_scheduled = dateScheduled.value
+			objNewJob.julian_date = jDate(document.getElementById('DateSched-choice').value)
 		}
 	}
 		
@@ -578,18 +585,50 @@ function updateJob (){
 	//-----build job object-----check for change in contact
 	let method = txtCon.getAttribute('method')
 	let method_ID = txtCon.getAttribute('method-id')
-	let itemToCompare = (editData.number_ID)? editData.number_ID: editData.email_ID;
-	let methodToCompare = (editData.number_ID)? 'phone':'email'
-	console.log(itemToCompare)
-	if(methodToCompare.localeCompare(method)!=0){
-		objNewJob.number_ID = null
-		objNewJob.email_ID = method_ID
-	}else{
-		if(itemToCompare.toString().localeCompare(method_ID)!=0){
-			objNewJob.number_ID = Number(method_ID)
-		}
-	}
-			
+	if(editData.number_ID != null 
+		&& editData.number_ID!= 'null'
+		&& editData.number_ID != ''
+		&& editData.number_ID != undefined
+		&& editData.email_ID != null 
+		&& editData.email_ID!= 'null'
+		&& editData.email_ID != ''
+		&& editData.email_ID != undefined
+		){
+			let itemToCompare = (editData.number_ID)? editData.number_ID: editData.email_ID;
+			let methodToCompare = (editData.number_ID)? 'phone':'email'
+			console.log(itemToCompare)
+			if(methodToCompare.localeCompare(method)!=0){
+				if(method == 'phone'){
+					objNewJob.number_ID = method_ID
+					objNewJob.email_ID = ''
+				}else{
+					objNewJob.number_ID = ''
+					objNewJob.email_ID = method_ID
+				}
+				
+			}else{
+				if(itemToCompare.toString().localeCompare(method_ID)!=0){
+					if(method == 'phone'){
+						objNewJob.number_ID = method_ID
+						objNewJob.email_ID = ''
+					}else{
+						objNewJob.number_ID = ''
+						objNewJob.email_ID = method_ID
+					}
+					
+				}
+			}
+		}else{
+			if(txtCon.innerText){
+				if(method == 'phone'){
+					objNewJob.number_ID = method_ID
+					objNewJob.email_ID = ''
+				}else{
+					objNewJob.number_ID = ''
+					objNewJob.email_ID = method_ID
+				}
+			}
+		}	
 	
 
 	//-----build job object-----check for change in cash customer

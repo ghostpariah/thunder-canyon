@@ -151,8 +151,19 @@ function fillContacts(cont){
 	$(contactContent).trigger('change')
 }
 
-function fillContactsNew(contacts,cust_ID,cusName){
+function fillContactsNew(props){//contacts,cust_ID,cusName,launcher
 	//object for passing properties to 'open-contacts' in main
+	console.log(props)
+	let contacts
+	let cust_ID
+	let cusName
+	let launcher
+	if(props){
+		contacts = props.contacts
+		cust_ID = props.customer_ID
+		cusName = props.customer_name
+		launcher = props.launcher
+	}
 	let objContactProps = {}
 
 	let selectBox = document.getElementById('Contacts-input')
@@ -206,12 +217,17 @@ function fillContactsNew(contacts,cust_ID,cusName){
 							ipc.send('pass-new-customer-to-main-window', objContactProps.customer_ID)
 							document.getElementById('Customer-choice').setAttribute('data-cid',objContactProps.customer_ID)
 						}else{
-							objContactProps.customer_ID = cust_ID
+							objContactProps.customer_ID = props.customer_ID
 						}
 						
 						console.log('there are not contacts')
 					}
-					objContactProps.launcher = 'add job page'
+					if(props.launcher == 'edit page'){
+						objContactProps.launcher = 'edit page'
+					}else{
+						objContactProps.launcher = 'add job page'
+					}
+					
 					objContactProps.user = currentUser
 					objContactProps.action = 'add'
 					
@@ -249,7 +265,11 @@ function fillContactsNew(contacts,cust_ID,cusName){
 				
 				console.log('there are not contacts')
 			}
-			objContactProps.launcher = 'add job page'
+			if(launcher == 'edit page'){
+				objContactProps.launcher = 'edit page'
+			}else{
+				objContactProps.launcher = 'add job page'
+			}
 			objContactProps.user = currentUser
 			objContactProps.action = 'add'
 			

@@ -968,7 +968,7 @@ div.lineItem:first-child{
 	flex-grow:1;
 	width: calc(100%);
 	height:calc(100%);
-	font-family:"Manrope","Arial Narrow";
+	font-family:Manrope,"Arial Narrow";
 	
 	/* margin-top: -1px;
 	margin-bottom:-1px;
@@ -1017,6 +1017,20 @@ div.lineItem:first-child{
 	
 	overflow: hidden;
   text-overflow: ellipsis;
+}
+.notes{
+	
+	line-height: 1em;
+	height:2em;
+	overflow:hidden;
+	white-space: nowrap;
+	word-wrap: normal;
+	text-overflow: ellipsis;
+	
+}
+.notesOverflow{
+	background-color:orange;
+	
 }
 .mainJobCustomerName {
 	/* font-family: Manrope ExtraBold; */
@@ -1135,6 +1149,7 @@ input {
 	width: 98%;
 	height: 145px;
 	overflow: auto;
+	
 	border: 1px solid #CECECE;
 }
 #saveNotes {

@@ -594,7 +594,13 @@ function createComponent(container, componentType, list, listType, callingPage){
                                 case 'Enter':
                                 case 'Tab':
                                     if(listType =='Customer'){
-                                        fillContactsNew(ipc.sendSync('get-contacts',listItem.id.substring(8)),listItem.id.substring(8),listItem.innerText)
+                                        let props = {}
+                                        props.contacts = ipc.sendSync('get-contacts',listItem.id.substring(8))
+                                        props.customer_ID = listItem.id.substring(8)
+                                        props.customer_name = listItem.innerText
+                                        props.launcher = page
+                                        fillContactsNew(props)
+                                        //fillContactsNew(ipc.sendSync('get-contacts',listItem.id.substring(8)),listItem.id.substring(8),listItem.innerText)
                                         // $('#Contacts-choice').click()
                                         // $('#Contacts-choice').focus()
                                         
@@ -620,7 +626,13 @@ function createComponent(container, componentType, list, listType, callingPage){
                             
                             button.firstChild.classList.remove('up')
                             button.firstChild.classList.add('down')
-                            fillContactsNew(ipc.sendSync('get-contacts',listItem.id.substring(8)),listItem.id.substring(8),listItem.innerText)
+                            let props = {}
+                            props.contacts = ipc.sendSync('get-contacts',listItem.id.substring(8))
+                            props.customer_ID = listItem.id.substring(8)
+                            props.customer_name = listItem.innerText
+                            props.launcher = page
+                            fillContactsNew(props)
+                            //fillContactsNew(ipc.sendSync('get-contacts',listItem.id.substring(8)),listItem.id.substring(8),listItem.innerText)
                             currentFocusedItem = event.target
                             console.log('index in customer listItem mousedown = '+index)
                             
@@ -751,155 +763,155 @@ function createComponent(container, componentType, list, listType, callingPage){
             box.appendChild(listItem)
         }
     }
-    let fillListBox = (element)=>{
-        element.innerHTML =''
-        switch(listType){
-            case 'Customer':
-                list.sort((a, b) => (a.customer_name > b.customer_name) ? 1 : -1)
-                for(var member in list){
-                    let customer = document.createElement('div')
-                    customer.setAttribute('class', 'listItem')
-                    customer.setAttribute('id', `listItem${list[member].customer_ID}`)
-                    let txtName = document.createTextNode(list[member].customer_name)
-                    customer.appendChild(txtName)
-                    customer.tabIndex = -1
+    // let fillListBox = (element)=>{
+    //     element.innerHTML =''
+    //     switch(listType){
+    //         case 'Customer':
+    //             list.sort((a, b) => (a.customer_name > b.customer_name) ? 1 : -1)
+    //             for(var member in list){
+    //                 let customer = document.createElement('div')
+    //                 customer.setAttribute('class', 'listItem')
+    //                 customer.setAttribute('id', `listItem${list[member].customer_ID}`)
+    //                 let txtName = document.createTextNode(list[member].customer_name)
+    //                 customer.appendChild(txtName)
+    //                 customer.tabIndex = -1
 
-                    //customer.addEventListener('click',(event)=>{
-                        $(customer).on({
-                            keydown: (event)=>{
-                                console.log('list item keydown')
-                                //move to next listItem on arrowdow key
-                                if(event.key == 'ArrowDown'){
+    //                 //customer.addEventListener('click',(event)=>{
+    //                     $(customer).on({
+    //                         keydown: (event)=>{
+    //                             console.log('list item keydown')
+    //                             //move to next listItem on arrowdow key
+    //                             if(event.key == 'ArrowDown'){
                                     
-                                    pastFocusedItem = currentFocusedItem
-                                    currentFocusedItem = nextFocusedItem
-                                    nextFocusedItem = document.querySelector(`${element} :nth-Child(${itemIndex})`)
-                                    nextFocusedItem.focus()
-                                    itemIndex++
+    //                                 pastFocusedItem = currentFocusedItem
+    //                                 currentFocusedItem = nextFocusedItem
+    //                                 nextFocusedItem = document.querySelector(`${element} :nth-Child(${itemIndex})`)
+    //                                 nextFocusedItem.focus()
+    //                                 itemIndex++
 
-                                }
-                                if(event.key == 'ArrowUp'){
-                                    itemIndex--
-                                }
-                            },
-                            click: ()=>{
-                                console.log('listItem clicked. State = '+state)
-                                let contactID = ipc.sendSync('get-contacts',event.target.id.substring(8))
-                                let txtSection = document.getElementById(listType+'-choice')
-                                let listBox = document.getElementById(listType+'-listbox')
-                                let input = document.getElementById(listType)
-                                let button = document.getElementById(listType+'-button')
-                                txtSection.innerHTML = customer.innerHTML
-                                listBox.style.animationDuration = '300ms'
-                                listBox.style.transform = 'scaleY(0)'
-                                input.classList.remove('flatBottom')
-                                input.classList.add('fullRound')
-                                button.classList.remove('pullUpButton');
-                                button.classList.add('dropDownButton');
-                                txtSection.classList.add('leftHalfRound')
-                                txtSection.classList.remove('leftFlatBottom')
-                                fillContactsNew(contactID)
-                                listBox.setAttribute('data-state','closed')
-                            },
-                            blur: ()=>{
+    //                             }
+    //                             if(event.key == 'ArrowUp'){
+    //                                 itemIndex--
+    //                             }
+    //                         },
+    //                         click: ()=>{
+    //                             console.log('listItem clicked. State = '+state)
+    //                             let contactID = ipc.sendSync('get-contacts',event.target.id.substring(8))
+    //                             let txtSection = document.getElementById(listType+'-choice')
+    //                             let listBox = document.getElementById(listType+'-listbox')
+    //                             let input = document.getElementById(listType)
+    //                             let button = document.getElementById(listType+'-button')
+    //                             txtSection.innerHTML = customer.innerHTML
+    //                             listBox.style.animationDuration = '300ms'
+    //                             listBox.style.transform = 'scaleY(0)'
+    //                             input.classList.remove('flatBottom')
+    //                             input.classList.add('fullRound')
+    //                             button.classList.remove('pullUpButton');
+    //                             button.classList.add('dropDownButton');
+    //                             txtSection.classList.add('leftHalfRound')
+    //                             txtSection.classList.remove('leftFlatBottom')
+    //                             fillContactsNew(contactID)
+    //                             listBox.setAttribute('data-state','closed')
+    //                         },
+    //                         blur: ()=>{
                                 
-                            }
-                        })
-                       element.appendChild(customer)
-                }
+    //                         }
+    //                     })
+    //                    element.appendChild(customer)
+    //             }
             
-            break;
-            case 'Designation':
+    //         break;
+    //         case 'Designation':
                     
-                    console.log('list in Designation = '+list[0])
-                    let input = document.getElementById(listType+'-choice')
-                    let txtSection = document.getElementById(listType+'-choice')
-                    let button = document.getElementById(listType+'-button')
-                    let listBox = document.getElementById(listType+'-listBox')                        
+    //                 console.log('list in Designation = '+list[0])
+    //                 let input = document.getElementById(listType+'-choice')
+    //                 let txtSection = document.getElementById(listType+'-choice')
+    //                 let button = document.getElementById(listType+'-button')
+    //                 let listBox = document.getElementById(listType+'-listBox')                        
                     
 
-                    for(var member in list){
-                        let designation = document.createElement('div')
-                        designation.setAttribute('id',listType+member)
-                        designation.setAttribute('class','listItem')
-                        designation.tabIndex = -1
+    //                 for(var member in list){
+    //                     let designation = document.createElement('div')
+    //                     designation.setAttribute('id',listType+member)
+    //                     designation.setAttribute('class','listItem')
+    //                     designation.tabIndex = -1
                         
 
-                        $(designation).on({
-                            keydown: (event)=>{
-                                if(event.key == 'ArrowDown' || event.key == 'ArrowUp'){
-                                    navigateListBox(event,listBox,list)
-                                }
-                                if(event.key == 'Enter'){
-                                    chooseListItem(event,input,txtSection,button,listBox)
-                                }
+    //                     $(designation).on({
+    //                         keydown: (event)=>{
+    //                             if(event.key == 'ArrowDown' || event.key == 'ArrowUp'){
+    //                                 navigateListBox(event,listBox,list)
+    //                             }
+    //                             if(event.key == 'Enter'){
+    //                                 chooseListItem(event,input,txtSection,button,listBox)
+    //                             }
                                 
-                            },
-                            click: (event)=>{
-                                console.log('clicking designation item and state = '+state)
-                                //open schedule input if schedule chosen
-                                if(event.target.innerHTML == 'Scheduled'){
+    //                         },
+    //                         click: (event)=>{
+    //                             console.log('clicking designation item and state = '+state)
+    //                             //open schedule input if schedule chosen
+    //                             if(event.target.innerHTML == 'Scheduled'){
                                    
-                                    document.getElementById('dateWrapper').classList.remove('hiddenInput')
-                                    document.getElementById('dateWrapper').classList.add('visibleInput')
-                                }else{
-                                    document.getElementById('dateWrapper').classList.remove('visibleInput')
-                                    document.getElementById('dateWrapper').classList.add('hiddenInput')
-                                }
-                                chooseListItem(event,input,txtSection,button,listBox)
-                            }
-                        })
+    //                                 document.getElementById('dateWrapper').classList.remove('hiddenInput')
+    //                                 document.getElementById('dateWrapper').classList.add('visibleInput')
+    //                             }else{
+    //                                 document.getElementById('dateWrapper').classList.remove('visibleInput')
+    //                                 document.getElementById('dateWrapper').classList.add('hiddenInput')
+    //                             }
+    //                             chooseListItem(event,input,txtSection,button,listBox)
+    //                         }
+    //                     })
                         
-                        let txtDesignation = document.createTextNode(list[member])
-                        designation.appendChild(txtDesignation)
-                        element.appendChild(designation)    
-                    }
-                break;
-                case 'Job-Type':
-                    {
-                    console.log('list in Designation = '+list[0])
-                    let input = document.getElementById(listType+'-choice')
-                    let txtSection = document.getElementById(listType+'-choice')
-                    let listBox = document.getElementById(listType+'-listBox')                        
-                    let button = document.getElementById(listType+'-button')
+    //                     let txtDesignation = document.createTextNode(list[member])
+    //                     designation.appendChild(txtDesignation)
+    //                     element.appendChild(designation)    
+    //                 }
+    //             break;
+    //             case 'Job-Type':
+    //                 {
+    //                 console.log('list in Designation = '+list[0])
+    //                 let input = document.getElementById(listType+'-choice')
+    //                 let txtSection = document.getElementById(listType+'-choice')
+    //                 let listBox = document.getElementById(listType+'-listBox')                        
+    //                 let button = document.getElementById(listType+'-button')
 
-                    for(var member in list){
-                        let jobType = document.createElement('div')
-                        jobType.setAttribute('id',listType+member)
-                        jobType.setAttribute('class','listItem')
-                        jobType.tabIndex = -1
+    //                 for(var member in list){
+    //                     let jobType = document.createElement('div')
+    //                     jobType.setAttribute('id',listType+member)
+    //                     jobType.setAttribute('class','listItem')
+    //                     jobType.tabIndex = -1
                         
-                        $(jobType).on({
-                            keydown: (event)=>{
-                                navigateListBox(event,listBox,list)
-                            }
-                        })
-                        jobType.addEventListener('click',(event)=>{
-                            console.log('clicking designation item and state = '+state)
-                            input.innerHTML = event.target.innerHTML;
-                            element.style.animationDuration = '300ms'
-                            element.style.transform = 'scaleY(0)'
-                            input.classList.remove('flatBottom')
-                            input.classList.add('fullRound')
-                            button.classList.remove('pullUpButton');
-                            button.classList.add('dropDownButton');
-                            txtSection.classList.add('leftHalfRound')
-                            txtSection.classList.remove('leftFlatBottom')
-                            element.setAttribute('data-state','closed')
-                        })
-                        let txtJobType = document.createTextNode(list[member])
-                        jobType.appendChild(txtJobType)
-                        element.appendChild(jobType)   
-                    } 
-                    }
-                break;
-                default:
-                    break;
+    //                     $(jobType).on({
+    //                         keydown: (event)=>{
+    //                             navigateListBox(event,listBox,list)
+    //                         }
+    //                     })
+    //                     jobType.addEventListener('click',(event)=>{
+    //                         console.log('clicking designation item and state = '+state)
+    //                         input.innerHTML = event.target.innerHTML;
+    //                         element.style.animationDuration = '300ms'
+    //                         element.style.transform = 'scaleY(0)'
+    //                         input.classList.remove('flatBottom')
+    //                         input.classList.add('fullRound')
+    //                         button.classList.remove('pullUpButton');
+    //                         button.classList.add('dropDownButton');
+    //                         txtSection.classList.add('leftHalfRound')
+    //                         txtSection.classList.remove('leftFlatBottom')
+    //                         element.setAttribute('data-state','closed')
+    //                     })
+    //                     let txtJobType = document.createTextNode(list[member])
+    //                     jobType.appendChild(txtJobType)
+    //                     element.appendChild(jobType)   
+    //                 } 
+    //                 }
+    //             break;
+    //             default:
+    //                 break;
        
        
         
-        }
-    }
+    //     }
+    // }
     let createSplitSelectBox = ()=>{
         container.setAttribute('data-type',componentType)
         //console.log('split select called')

@@ -135,12 +135,22 @@ ipc.on('user-data',(event,args, args2)=>{
 })
 ipc.on('refresh',(event,args,args2,args3)=>{
 	console.log('refresh page called')
+	console.log(args,args2,args3)
 	clearContacts()
 	if(args = "go"){
-		console.log(args2)
+		let props = {}
+		props.contacts = pullContacts(args2)
+		props.customer_ID = args2
+		props.launcher = 'add job page'
+		//console.log(args2)
 		
-		pullContacts(args2)
-		console.log('after pullcontacts called')
+		
+		//console.log('after pullcontacts called')
+		//fillContactsNew(props)
+		setTimeout(() => {
+			document.querySelector(`[method-id = '${args3}']`).click()
+		}, 00);
+		
 		//document.getElementById("txtContacts").selectedIndex =document.getElementById("txtContacts").options.length
 		
 		//var values = Array.from(document.getElementById("txtContacts").options).map(e => e.id);
@@ -167,26 +177,29 @@ ipc.on('refresh',(event,args,args2,args3)=>{
 })
 
 function setData(data){
-	document.getElementById('datepicker').value = data.date_scheduled
+	$('#Designation1').mousedown()
+	document.getElementById('DateSched-choice').value = data.date_scheduled
 	document.getElementById('rad'+data.time_of_day.toUpperCase()).checked = true
-	document.getElementById('selOrigin').value = 'Scheduled'
+	$('#JobType-choice').focus()
 	
-	openInput(event,document.getElementById('selOrigin'),'customerNameWrapper','dateSchWrapper')
+	
+	//openInput(event,document.getElementById('Designation-choice'),'customerNameWrapper','dateSchWrapper')
 	
 }
 function pullContacts(comp){
 	
     if(typeof comp != undefined){
+		let pcProps = {}
+    	pcProps.contacts = ipc.sendSync('get-contacts',comp)
 		
-    	let cont = ipc.sendSync('get-contacts',comp)
 		//createdropDown(cont)
 		//createComponent(document.getElementById('sbContacts'),'split select', cont, 'Contacts')
-		fillContactsNew(cont)
+		fillContactsNew(pcProps)
 		
     }else{
 		//send with non object to trigger else in fillcontacts
 		
-		fillContacts(comp)
+		//fillContacts(comp)
 	}
 
 }
@@ -537,11 +550,17 @@ function addJob (){
 	let objNewJob = new Object()
 	
 	console.log(txtCN.getAttribute('data-cid'))
+	var elem = document.createElement('textarea');
+		elem.innerHTML = txtCN.innerText.toUpperCase();
+		var decoded = elem.value;
+		console.log(decoded)
 	
 	//build job object
-	objNewJob.customer_ID =(txtCN.getAttribute('data-cid')!= null) ? txtCN.getAttribute('data-cid') :  addCompanyNoCantact(txtCN.innerHTML.trim().replace(/  +/g, ' '))
+	objNewJob.customer_ID =(txtCN.getAttribute('data-cid')!= null) ? txtCN.getAttribute('data-cid') :  addCompanyNoCantact(decoded.trim().replace(/  +/g, ' '))//addCompanyNoCantact(txtCN.innerHTML.trim().replace(/  +/g, ' '))
 	// objNewJob.customer_ID =(chosenCompanyID != null && chosenCompanyID != '') ? chosenCompanyID : ipc.sendSync('add-new-customer', txtCN.value.trim().replace(/  +/g, ' '))
-	objNewJob.customer_name = txtCN.innerHTML.toUpperCase()
+	console.log(txtCN.innerText.toUpperCase())
+	
+	objNewJob.customer_name = decoded
 	// objNewJob.customer_name = ipc.sendSync('db-get-customer-name',objNewJob.customer_ID)
 	if(txtCon.getAttribute("method")=="phone"){
 		objNewJob.number_ID = txtCon.getAttribute('method-ID')
@@ -644,7 +663,7 @@ function resetForm(){
 	window.location.reload()	
 }
 
-
+//openInput(event,document.getElementById('selOrigin'),'customerNameWrapper','dateSchWrapper')
 function openInput(e, active, inputID1, inputID2) {
 	// createComponent(document.getElementById('customerComboBoxContainer'),'comboBox',ipc.sendSync('get-customer-names'),'customerNames')
 	var v = active.value;	

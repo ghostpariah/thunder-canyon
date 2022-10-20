@@ -221,6 +221,14 @@ ipc.on('show-admin-elements', (event, args)=>{
 	
 	document.getElementById('whiteBoardContent').innerHTML = ipc.sendSync('get-whiteboard','read')	
 	console.timeEnd('show-admin')
+
+	// let notes = document.querySelectorAll(".notes")	
+	// let arrNotes = Array.from(notes)
+	// for(let note in arrNotes){	
+	// 	if(isOverflown(arrNotes[note])){		
+	// 		arrNotes[note].classList.add('notesOverFlow')
+	// 	}
+	// }
 })
 
 ipc.on('show-user-elements', (event, args)=>{
@@ -767,9 +775,11 @@ let createGlimpseToolTip = (e)=>{
     $(ttBox).on({
 		mouseleave: (event)=>{
 			event.stopPropagation()
-			console.log($(event.currentTarget).parent().find('.glimpseCustomer'))
-			console.log($(event.relatedTarget))
-			if( $(event.relatedTarget).parent().find('.glimpseCustomer')){
+			let tt_id = event.currentTarget.id.substring(3)
+			let rt_id = event.relatedTarget.parentNode.parentNode.id.substring(3)
+			
+			
+			if(tt_id != rt_id){	
 				$(ttBox).fadeOut(75)
 			}
 			
@@ -1680,7 +1690,7 @@ function makeJobDiv2(args){
 		if(args.number_ID != null && args.number_ID != '' && args.number_ID != 'null'){
 			objContact = ipc.sendSync('db-get-contact-name','phone', args.number_ID )
 			contactName = `${objContact?.first_name ?? ''} ${objContact?.last_name ?? ''}`
-		}else if(args.email_ID != null && args.email_ID != ''){
+		}else if(args.email_ID != null && args.email_ID != '' && args.email_ID != 'null'){
 			objContact = ipc.sendSync('db-get-contact-name','email', args.email_ID )
 			contactName = `${objContact?.first_name ?? ''} ${objContact?.last_name ?? ''}`
 		}else{
@@ -1701,7 +1711,7 @@ function makeJobDiv2(args){
 		
 		let n = (args.notes != null) ? '<b>Notes: </b>'+args.notes+'</br>' : '' 
 		let it = (typeof objContact != "undefined") 
-			? (objContact.item.includes('@')) 
+			? (objContact?.item?.includes('@')) 
 				? '<b>Email: </b>'+objContact.item + '</br>'
 				: '<b>Phone: </b>'+objContact.item + '</br>'
 			:'';
@@ -1710,9 +1720,14 @@ function makeJobDiv2(args){
 		//add customer name to job object for editing
 		let job = pullJob(args.job_ID)	
 		job.customer_name = customerName
+		let nameForContextMenu = ''
+		let strTest = "nameForContextMenu = " + JSON.stringify(customerName) + ";";
+    	eval(strTest);
+		nameForContextMenu = nameForContextMenu.replace(/'/g, "&apos;");
+    	console.log(nameForContextMenu);
 		//console.table(job)
 		const smallJobContainer = `<div class='vehicle' 
-		oncontextmenu='createContextMenu(this, pullJob(${args.job_ID}),${null},"${customerName}");return false;'		
+		oncontextmenu='createContextMenu(this, pullJob(${args.job_ID}),${null},"${nameForContextMenu}");return false;'		
 		id='drag${args.job_ID}' 
 		draggable='true' 
 		ondragstart='drag(event)'
@@ -2206,3 +2221,7 @@ function drop_window(event) {
     event.preventDefault();
     return false;
 }
+const isOverflown = ({ clientWidth, clientHeight, scrollWidth, scrollHeight }) => {
+    return scrollHeight > clientHeight || scrollWidth > clientWidth;
+}
+

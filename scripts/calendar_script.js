@@ -337,19 +337,37 @@ function getScheduled(){
 function countSchJobsForCalendar(){
     m=monthIndex+1;
     resetSCHcounts();
-    
+    let dim = daysInMonth(monthIndex, year)
     
     scheduledJobs = getScheduled()
-    
+    console.log('daysBefore = '+daysBefore, 'days in month = '+daysInMonth(monthIndex, year), 'daysAfter = '+daysAfter)
+    console.log(daysAfter+daysBefore+daysInMonth(monthIndex, year))
+    console.log(scheduledJobs.length)
     for(i=1;i<=daysInMonth(monthIndex, year)+daysAfter;i++){
         for(j=0;j<scheduledJobs.length;j++){
             let schD=scheduledJobs[j].date_scheduled;
             
             var calYear = schD.substr(schD.length - 4);
             
-            var todaysJulianDate=jDate(m.toString()+"/"+i.toString()+"/"+year.toString());
+            var todaysJulianDate
+            if(i<=daysInMonth(monthIndex, year)){
+                todaysJulianDate=jDate(m.toString()+"/"+i.toString()+"/"+year.toString());
+            }else{
+                
+                let nd = i - dim
+                if(monthIndex<11){
+                    let nm = m+1
+                    todaysJulianDate=jDate(nm.toString()+"/"+nd.toString()+"/"+year.toString());
+                }else{
+                    let nm = 1
+                    let ny = year+1
+                    todaysJulianDate=jDate(nm.toString()+"/"+nd.toString()+"/"+ny.toString());
+                }
+                
+
+            }
             var isEligible = (selectedYear==calYear || monthIndex==11) ? true:false;
-            
+            console.log(todaysJulianDate)
             if(todaysJulianDate==scheduledJobs[j].julian_date &&isEligible){
                
                 var ampm = scheduledJobs[j].time_of_day;
