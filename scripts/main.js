@@ -2296,7 +2296,7 @@ function createAddJobWindow(args, launcher){
         }
         
       }
-      if(zoomLevel == 1.5){
+      if(zoomLevel == 1.25){
         Object.assign(opts, {
             defaultFontSize: 12
             });

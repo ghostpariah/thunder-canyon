@@ -26,7 +26,8 @@ body {
 	display:flex;
 	
 	flex-direction:column;
-	width: 1600px;
+	/* width: 1600px; */
+	width: 100vw;
 	/* width:clamp(1200px,100%,1600px); */
 	
 	/* max-width:1600px; */
@@ -35,6 +36,11 @@ body {
 	/* border: 1px solid white;  */
 	max-height: 100vh;
 }
+/* @media screen and (max-width: 1550px) {
+	#main {
+	  width: 1535px;
+	}
+  } */
 
 
 #wpuJobContainer{
@@ -233,6 +239,7 @@ datalist{
 	margin-right: 2px;
 	margin-bottom: 1px;
 	overflow: visible;
+	box-sizing: border-box;
 }
 .cat {
 	width: 97%;
@@ -925,8 +932,9 @@ div.lineItem:first-child{
 	border: none;
 	height: 100%;
 	background-color:whitesmoke;
-	overflow-x: visible;
+	overflow-x: hidden;
 	overflow-y: scroll;
+	box-sizing: border-box;
 	
 	/* margin-left: 7px; */
 }
@@ -1472,6 +1480,7 @@ input {
 	/* overflow-y: auto; */
 	overflow:visible; 
 	font-family:Arial, Helvetica, sans-serif;
+	box-sizing: border-box;
 }
 .viewButton{
 	float:left;

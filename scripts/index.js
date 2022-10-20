@@ -64,12 +64,7 @@ window.onload = () =>{
 	let pr = window.devicePixelRatio
 	ipc.send('zoom-level',pr)
 	 try{
-		if(pr == 1){
-			window.resizeTo(1600, 700)
-		}else if(pr == 1.5){
-			window.moveTo(0, 0);
-			window.resizeTo(screen.width, screen.height)
-		}
+		
 		console.time('window.onload')
 		objLoggedInUser = getLoggedInObject()
 		
@@ -1553,9 +1548,9 @@ function closeBox(ev, e) {
 //function to place jobs in correct page locations
 function placeElement(args){
 	try{
-		console.time('placeElement')
+		//console.time('placeElement')
 		let placement = (args.shop_location != null && args.shop_location != '') ? makeJobDiv2(args) : findOpenSpace(args) 
-		console.timeEnd('placeElement')
+		//console.timeEnd('placeElement')
 		if(placement !=null) {
 			try{
 			document.getElementById(args.shop_location).innerHTML = placement
@@ -1724,7 +1719,7 @@ function makeJobDiv2(args){
 		let strTest = "nameForContextMenu = " + JSON.stringify(customerName) + ";";
     	eval(strTest);
 		nameForContextMenu = nameForContextMenu.replace(/'/g, "&apos;");
-    	console.log(nameForContextMenu);
+    	//console.log(nameForContextMenu);
 		//console.table(job)
 		const smallJobContainer = `<div class='vehicle' 
 		oncontextmenu='createContextMenu(this, pullJob(${args.job_ID}),${null},"${nameForContextMenu}");return false;'		
