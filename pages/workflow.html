@@ -6,10 +6,12 @@
 	<link id= "mainStyle" rel="stylesheet" type="text/css" href="../css/workflow.css">
 	<link rel="stylesheet" type="text/css" media="all" href="../scripts/jquery-ui-1.11.4.custom/jquery-ui.css">
 	<link rel="stylesheet" href="../css/print.css" type="text/css" media="print" />
-	<!--<link rel="stylesheet" type="text/css" href="../css/calendar_style.css"/>-->
+	
 	<link rel="stylesheet" type="text/css" href="../css/splash.css"/>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600&family=Quicksand:wght@500&family=Caveat&display=swap" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" media="all" href="../css/components.css">
+    <link rel="stylesheet" type="text/css" media="all" href="../css/formComponents.css">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	
 	<script src='../scripts/dbCon.js'></script>
@@ -23,6 +25,7 @@
 	<script src="../scripts/login.js"></script>
 	<script src="../scripts/index.js" defer></script>
 	<script src="../scripts/report.js"></script>
+	<script src='../scripts/createComponent.js' defer></script>
 	
 		
 	
@@ -347,20 +350,11 @@
                     
 					
 					<div class = 'header'>Whiteboard</div>
-					<div contenteditable="true" id="whiteBoardContent" ondragenter="event.preventDefault(); event.dataTransfer.dropEffect = 'none'" ondragover="event.preventDefault(); event.dataTransfer.dropEffect = 'none'" class="whiteBoardContent" ></div>
+					<div contenteditable="true" id="whiteBoardContent" ondragenter="event.preventDefault(); event.dataTransfer.dropEffect = 'none'" ondragover="event.preventDefault(); event.dataTransfer.dropEffect = 'none'" class="whiteBoardContent" tabindex="-1"></div>
 						
 				</div>
 				</div>
-				<!--
-				<div id="bottom">
-					
-                    
-					
-					<div class = 'header'>Whiteboard</div>
-					<div contenteditable="true" id="whiteBoardContent" ondragenter="event.preventDefault(); event.dataTransfer.dropEffect = 'none'" ondragover="event.preventDefault(); event.dataTransfer.dropEffect = 'none'" class="whiteBoardContent" ></div>
-						
-				</div>
-				-->	
+				
 				</div>
 				<div id="footer">
 				<div id="legend-statuses">					

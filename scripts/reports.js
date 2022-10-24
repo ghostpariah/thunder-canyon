@@ -38,13 +38,17 @@ document.addEventListener('keydown', function(event)
 
 $(function(){
     $("#reportStartDate").datepicker({
-        dateFormat : "m/d/yy"
+        beforeShowDay: $.datepicker.noWeekends,
+        constrainInput: false,
+        dateFormat : "mm/dd/yy", 
     });
     $("#reportEndDate").datepicker({
         dateFormat : "m/d/yy"
     });
     $("#datepickerReport").datepicker({
-        dateFormat : "m/d/yy"        
+        beforeShowDay: $.datepicker.noWeekends,
+        constrainInput: false,
+        dateFormat : "mm/dd/yy",        
     }).datepicker("setDate", getYesterday());
     console.log($('#datepickerReport').datepicker('getDate'))
     console.log("yesterday was "+getYesterday())
@@ -305,13 +309,81 @@ async function loadModal(){
                     
             //reportResultBox.innerHTML = (activity.length >0) ? activity.toString().replace(/\n/g, '<br/><br/>') : `No Activity On ${reportStartDate}`
             document.getElementById('activitySearch').style.display = 'block'            
+        },
+        keypress: (event)=>{							
+								
+            const numberKey = /[0-9]+/;
+            
+            if (!numberKey.test(event.key)) {
+              event.preventDefault();
+            }
+            let num = event.target.value
+            
+            if(num.length == 2){									
+                event.target.value += '/'
+            }
+            if(num.length == 5){									
+                event.target.value += '/'
+            }							
+                                    
+        },
+        
+        keyup:(event)=>{
+            if(event.key != 'Backspace' && event.key != 'Enter' && event.key != 'Tab'){
+                let num = event.target.value
+                if(num.length == 8){
+                    console.log(event.key)
+                    if(event.key != '0' && Number(event.target.value.substring(6,7)) >= 2){
+                        let year = event.target.value.substring(7)
+                        let pre = event.target.value.substring(0,6)
+                        console.log(year,pre)
+                        year = year.padStart(4,'20')
+                        console.log(year)
+                        event.target.value = pre+year
+                    }
+                }
+            }								
         }
     });
 
     $('#datepickerReport').on({
-        'change': function(event){
+        change: function(event){
             createEODitem(this,'date')
             console.log("calendar changed")
+        },
+        keypress: (event)=>{							
+								
+            const numberKey = /[0-9]+/;
+            
+            if (!numberKey.test(event.key)) {
+              event.preventDefault();
+            }
+            let num = event.target.value
+            
+            if(num.length == 2){									
+                event.target.value += '/'
+            }
+            if(num.length == 5){									
+                event.target.value += '/'
+            }							
+                                    
+        },
+        
+        keyup:(event)=>{
+            if(event.key != 'Backspace' && event.key != 'Enter' && event.key != 'Tab'){
+                let num = event.target.value
+                if(num.length == 8){
+                    console.log(event.key)
+                    if(event.key != '0' && Number(event.target.value.substring(6,7)) >= 2){
+                        let year = event.target.value.substring(7)
+                        let pre = event.target.value.substring(0,6)
+                        console.log(year,pre)
+                        year = year.padStart(4,'20')
+                        console.log(year)
+                        event.target.value = pre+year
+                    }
+                }
+            }								
         }
     });
 }

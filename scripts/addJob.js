@@ -57,8 +57,7 @@ document.addEventListener('keydown', (event)=>{
 	}
 })
 document.addEventListener('click',(event)=>{
-	//TODO: add code to close any open drop downs
-	console.log(event.target)
+	
 	if(event.target.classList != ''){
 		if(!event.target.classList.contains('listItem') && !event.target.parentNode.classList.contains('selectBox') && !event.target.parentNode.classList.contains('comboBox')){
 				
@@ -100,12 +99,12 @@ setTimeout(()=>{
 			
 			$("#DateSched-choice").datepicker({
 				dateFormat : "mm/dd/yy",
+				beforeShowDay: $.datepicker.noWeekends,
 				onSelect: function(dateText, inst) {
 					if($(`#Date-MessageContainer`)){
 						$(`#Date-MessageContainer`).remove()
 					}
-					//$(this).blur().change().focus();
-					console.log(this.getAttribute('tabindex'))
+					
 					this.setAttribute('data-state','closed');
                 	document.getElementById('btn-DateSched').firstElementChild.classList.remove('up');
 					document.getElementById('btn-DateSched').firstElementChild.classList.add('down');
@@ -113,9 +112,44 @@ setTimeout(()=>{
 					//$('#Customer-choice').focus()
 				}
 			});
-			console.log(document.activeElement)
+			$('#DateSched-choice').on({
+							
+				keypress: (event)=>{							
+					
+					const numberKey = /[0-9]+/;
+					
+					if (!numberKey.test(event.key)) {
+					  event.preventDefault();
+					}
+					let num = event.target.value
+					
+					if(num.length == 2){									
+						event.target.value += '/'
+					}
+					if(num.length == 5){									
+						event.target.value += '/'
+					}							
+											
+				},
+				
+				keyup:(event)=>{
+					if(event.key != 'Backspace' && event.key != 'Enter' && event.key != 'Tab'){
+						let num = event.target.value
+						if(num.length == 8){
+							
+							if(event.key != '0' && Number(event.target.value.substring(6,7)) >= 2){
+								let year = event.target.value.substring(7)
+								let pre = event.target.value.substring(0,6)
+								
+								year = year.padStart(4,'20')
+								
+								event.target.value = pre+year
+							}
+						}
+					}								
+				}
+			})
 			
-			console.log(document.activeElement)
 	
 },200)
 // setTimeout(() => {
@@ -550,9 +584,10 @@ function addJob (){
 	let objNewJob = new Object()
 	
 	console.log(txtCN.getAttribute('data-cid'))
-	var elem = document.createElement('textarea');
-		elem.innerHTML = txtCN.innerText.toUpperCase();
-		var decoded = elem.value;
+	let decoded = removeSpecialCharacters(txtCN.innerText)
+	// var elem = document.createElement('textarea');
+	// 	elem.innerHTML = txtCN.innerText.toUpperCase();
+	// 	var decoded = elem.value;
 		console.log(decoded)
 	
 	//build job object

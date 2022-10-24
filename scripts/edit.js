@@ -58,16 +58,181 @@ window.onload = ()=>{
 	radPM = document.getElementById('radPM')
 }
 setTimeout(()=>{		
-    $("#DateIn-choice").datepicker({dateFormat : "mm/dd/yy"}); 
-	$("#DateSched-choice").datepicker({dateFormat : "mm/dd/yy"}); 
-	$("#datepickerOTL").datepicker({dateFormat : "mm/dd/yy"});
-	$("#DateOTL-choice").datepicker({dateFormat : "mm/dd/yy"});
+    $("#DateIn-choice").datepicker({
+		dateFormat : "mm/dd/yy",
+		beforeShowDay: $.datepicker.noWeekends,
+		constrainInput: false
+
+	}); 
+	$('#DateIn-choice').on({
+							
+		keypress: (event)=>{							
+			
+			const numberKey = /[0-9]+/;
+			
+			if (!numberKey.test(event.key)) {
+			  event.preventDefault();
+			}
+			let num = event.target.value
+			
+			if(num.length == 2){									
+				event.target.value += '/'
+			}
+			if(num.length == 5){									
+				event.target.value += '/'
+			}							
+									
+		},
+		
+		keyup:(event)=>{
+			if(event.key != 'Backspace' && event.key != 'Enter' && event.key != 'Tab'){
+				let num = event.target.value
+				if(num.length == 8){
+					console.log(event.key)
+					if(event.key != '0' && Number(event.target.value.substring(6,7)) >= 2){
+						let year = event.target.value.substring(7)
+						let pre = event.target.value.substring(0,6)
+						console.log(year,pre)
+						year = year.padStart(4,'20')
+						console.log(year)
+						event.target.value = pre+year
+					}
+				}
+			}								
+		}
+	})
+	$("#DateSched-choice").datepicker({
+		dateFormat : "mm/dd/yy",
+		beforeShowDay: $.datepicker.noWeekends,
+		constrainInput: false
+	}); 
+	$('#DateSched-choice').on({
+							
+		keypress: (event)=>{							
+			
+			const numberKey = /[0-9]+/;
+			
+			if (!numberKey.test(event.key)) {
+			  event.preventDefault();
+			}
+			let num = event.target.value
+			
+			if(num.length == 2){									
+				event.target.value += '/'
+			}
+			if(num.length == 5){									
+				event.target.value += '/'
+			}							
+									
+		},
+		
+		keyup:(event)=>{
+			if(event.key != 'Backspace' && event.key != 'Enter' && event.key != 'Tab'){
+				let num = event.target.value
+				if(num.length == 8){
+					console.log(event.key)
+					if(event.key != '0' && Number(event.target.value.substring(6,7)) >= 2){
+						let year = event.target.value.substring(7)
+						let pre = event.target.value.substring(0,6)
+						console.log(year,pre)
+						year = year.padStart(4,'20')
+						console.log(year)
+						event.target.value = pre+year
+					}
+				}
+			}								
+		}
+	})
+	$("#datepickerOTL").datepicker({
+		dateFormat : "mm/dd/yy",
+		beforeShowDay: $.datepicker.noWeekends,
+		constrainInput: false
+	});
+	$('#datepickerOTL').on({
+							
+		keypress: (event)=>{							
+			
+			const numberKey = /[0-9]+/;
+			
+			if (!numberKey.test(event.key)) {
+			  event.preventDefault();
+			}
+			let num = event.target.value
+			
+			if(num.length == 2){									
+				event.target.value += '/'
+			}
+			if(num.length == 5){									
+				event.target.value += '/'
+			}							
+									
+		},
+		
+		keyup:(event)=>{
+			if(event.key != 'Backspace' && event.key != 'Enter' && event.key != 'Tab'){
+				let num = event.target.value
+				if(num.length == 8){
+					console.log(event.key)
+					if(event.key != '0' && Number(event.target.value.substring(6,7)) >= 2){
+						let year = event.target.value.substring(7)
+						let pre = event.target.value.substring(0,6)
+						console.log(year,pre)
+						year = year.padStart(4,'20')
+						console.log(year)
+						event.target.value = pre+year
+					}
+				}
+			}								
+		}
+	})
+	$("#DateOTL-choice").datepicker({
+		dateFormat : "mm/dd/yy",
+		beforeShowDay: $.datepicker.noWeekends,
+		constrainInput: false
+	});
+	$('#DateOTL-choice').on({
+							
+		keypress: (event)=>{							
+			
+			const numberKey = /[0-9]+/;
+			
+			if (!numberKey.test(event.key)) {
+			  event.preventDefault();
+			}
+			let num = event.target.value
+			
+			if(num.length == 2){									
+				event.target.value += '/'
+			}
+			if(num.length == 5){									
+				event.target.value += '/'
+			}							
+									
+		},
+		
+		keyup:(event)=>{
+			if(event.key != 'Backspace' && event.key != 'Enter' && event.key != 'Tab'){
+				let num = event.target.value
+				if(num.length == 8){
+					console.log(event.key)
+					if(event.key != '0' && Number(event.target.value.substring(6,7)) >= 2){
+						let year = event.target.value.substring(7)
+						let pre = event.target.value.substring(0,6)
+						console.log(year,pre)
+						year = year.padStart(4,'20')
+						console.log(year)
+						event.target.value = pre+year
+					}
+				}
+			}								
+		}
+	})
 },2000);
 
 
 document.addEventListener('click',(event)=>{
-	//TODO: add code to close any open drop downs
-	console.log(event.target)
+	
+	//console.log(event.target)
 	if(event.target.classList != ''){
 		if(!event.target.classList.contains('listItem') && !event.target.parentNode.classList.contains('selectBox') && !event.target.parentNode.classList.contains('comboBox')){
 				
@@ -117,16 +282,13 @@ async function treatData (input) {
  
   
 ipc.on('edit-data', async (event,args, args2, args3)=>{
-    // console.log(typeof(args))
-	editData = await treatData(args)
-	console.log(editData)
     
+	editData = await treatData(args)    
 	launcher = args2
-	currentUser = args3
-    //setTimeout(() => {
-		loadData(editData)
+	currentUser = args3    
+	loadData(editData)
         
-    //}, 1000);
+    
 	//add event handler to cbOTL_scheduled(otl&sched)
 	$(cbOTL_scheduled).on({
 		change:function(){
@@ -197,7 +359,7 @@ function loadData(objJobToEdit){
 	try{
 		
 		customerNamesList.forEach((item) =>{
-			console.log(item.innerText, d.customer_name)
+			
 			if(item.innerText === d.customer_name){
 				item.classList.add('focusedListItem')
 				item.setAttribute('data-selected', true)
@@ -226,9 +388,7 @@ function loadData(objJobToEdit){
     (d.date_scheduled != null) ? inpScheduledDate.value = d.date_scheduled : inpScheduledDate.value = "";
     (d.time_of_day == 'am')? radAM.checked = true : radAM.checked = false;
     (d.time_of_day == 'pm')? radPM.checked = true : radPM.checked = false;
-    // for(i=0;i<selJobType.options.length;i++){        
-    //     (d.job_type == selJobType.options[i].value)? selJobType.selectedIndex = i : '';        
-    // }
+    
     
     
     if(d.cash_customer != null){
@@ -242,8 +402,6 @@ function loadData(objJobToEdit){
         cbCash.checked = false;
     }
     
-    //(d.parts_needed != null) ? (d.parts_needed == 1)? cbParts.checked = true : cbParts.checked = false : cbParts.checked = false;
-    //(d.approval_needed != null) ? (d.approval_needed == 1)? cbApproval.checked = true : cbApproval.checked = false : cbApproval.checked = false;
     (d.checked != null) ? (d.checked == 1)? cbChecked.checked = true : cbChecked.checked = false : cbChecked.checked = false;
     if(d.comeback_customer != null){
 		if(d.comeback_customer == 1){
@@ -251,16 +409,20 @@ function loadData(objJobToEdit){
 			document.getElementById('dateWrapper_OTL_SCHEDULED').style.display = 'block';
 			if(d.date_scheduled != null){
 				createComponent(document.getElementById('dateWrapper_OTL_SCHEDULED'),'date OTL',null,'DateOTL','edit')
-				$("#DateOTL-choice").datepicker({dateFormat : "mm/dd/yy"});
+				$("#DateOTL-choice").datepicker({
+					dateFormat : "mm/dd/yy",
+					beforeShowDay: $.datepicker.noWeekends,
+					constrainInput: false
+				});
 				document.getElementById('DateOTL-choice').value = d.date_scheduled;
 				(d.time_of_day == 'am')? document.getElementById('radAM_OTL').checked = true : document.getElementById('radAM_OTL').checked = false;
     			(d.time_of_day == 'pm')? document.getElementById('radPM_OTL').checked = true : document.getElementById('radPM_OTL').checked = false;
 			}
 
 		}
-	}// ? (d.comeback_customer == 1)? cbComeback.checked = true : cbComeback.checked = false : cbComeback.checked = false;
-    (d.waiting_customer != null) ? (d.waiting_customer== 1)? cbWaiting.checked = true : cbWaiting.checked = false : cbWaiting.checked = false;
-    //(d.no_show != null) ? (d.no_show == 1)? cbNoShow.checked = true : cbNoShow.checked = false : cbNoShow.checked = false;
+	}
+	(d.waiting_customer != null) ? (d.waiting_customer== 1)? cbWaiting.checked = true : cbWaiting.checked = false : cbWaiting.checked = false;
+    
     (d.notes != null) ? txtNotes.value = d.notes : txtNotes.value = "";
 
     let ejProps = {}
@@ -268,19 +430,17 @@ function loadData(objJobToEdit){
 	ejProps.customer_ID = d.customer_ID
 	ejProps.customer_name = d.customer_name
 	ejProps.launcher = 'edit page'
-	console.log(ejProps.contacts)
+	
 	fillContactsNew(ejProps)
-    //fillContactsNew(ipc.sendSync('get-contacts',d.customer_ID),d.customer_ID,d.customer_name, 'edit page')
-	if(!ejProps.contacts){
+    if(!ejProps.contacts){
 		document.querySelector('#noContact').click()
 	}
 	let contactsList = Array.from(document.querySelectorAll('#Contacts-listBox .option'))
-	console.log(contactsList)
+	
     if(d.number_ID != null && d.number_ID != ''){
 
 		contactsList.forEach((item)=>{
-			console.log(item.getAttribute('method-id'))
-			console.log(d.number_ID)
+			
 			if(item.getAttribute('method-id') == d.number_ID){
 				selContacts.innerHTML = item.innerHTML
 				selContacts.setAttribute('method','phone')
@@ -290,29 +450,11 @@ function loadData(objJobToEdit){
 				document.querySelector('#Contacts-info').innerHTML = item.parentNode.firstChild.innerText
 			}
 		})
-		//document.getElementById('Contacts-choice').innerHTML = document.querySelector(`[method-id='${d.number_ID}']`).innerHTML
-		//chooseListItem(null,document.getElementById('Contacts-choice'),document.getElementById('Contacts-choice'),document.getElementById(d.number_ID),document.getElementById('Contacts-listBox'))	
-		// for(var i=0; i<selContacts.options.length;i++) {
-		// 	if(selContacts.options[i].id == d.number_ID && selContacts.options[i].getAttribute('method') == 'phone') {
-				
-		// 		selContacts.options[i].selected = true
-		// 		showLabel()
-		// 		break;
-		// 	}
-		// }
-
-		//setSelectedContact(method,methodID)
+		
 	}
 	if(d.email_ID != null && d.email_ID != ''){
 
-		// for(var i=0; i<selContacts.options.length;i++) {
-		// 	if(selContacts.options[i].id == d.email_ID && selContacts.options[i].getAttribute('method') == 'email') {
-		// 		selContacts.options[i].selected = true
-				
-		// 		showLabel()
-		// 		break;
-		// 	}
-		// }
+		
 
 		contactsList.forEach((item)=>{
 			console.log(item.getAttribute('method-id'))
@@ -730,9 +872,9 @@ function openOTLandScheduled(event,cb,OTL_container){
 	 * 
 	 */
 
-	console.log('change event fired on OTL cb')
+	
 
-	console.log('open', alreadyScheduled)
+	
 	if (cb.checked == true) {
 		//$('#Designation0').mousedown()
 		if(alreadyScheduled || selDesignation.innerText == 'Scheduled'){
@@ -743,7 +885,49 @@ function openOTLandScheduled(event,cb,OTL_container){
 		}
 		document.getElementById(OTL_container).className = "visibleInput";
 		createComponent(document.getElementById('dateWrapper_OTL_SCHEDULED'),'date OTL',null,'DateOTL','edit')
-		$("#DateOTL-choice").datepicker({dateFormat : "mm/dd/yy"});
+		$("#DateOTL-choice").datepicker({
+			dateFormat : "mm/dd/yy",
+			beforeShowDay: $.datepicker.noWeekends,
+			constrainInput: false
+		});
+
+		$('#DateOTL-choice').on({
+							
+			keypress: (event)=>{							
+				
+				const numberKey = /[0-9]+/;
+				
+				if (!numberKey.test(event.key)) {
+				  event.preventDefault();
+				}
+				let num = event.target.value
+				
+				if(num.length == 2){									
+					event.target.value += '/'
+				}
+				if(num.length == 5){									
+					event.target.value += '/'
+				}							
+										
+			},
+			
+			keyup:(event)=>{
+				if(event.key != 'Backspace' && event.key != 'Enter' && event.key != 'Tab'){
+					let num = event.target.value
+					if(num.length == 8){
+						console.log(event.key)
+						if(event.key != '0' && Number(event.target.value.substring(6,7)) >= 2){
+							let year = event.target.value.substring(7)
+							let pre = event.target.value.substring(0,6)
+							console.log(year,pre)
+							year = year.padStart(4,'20')
+							console.log(year)
+							event.target.value = pre+year
+						}
+					}
+				}								
+			}
+		})
 	} else {
 		if(alreadyScheduled){
 			$('#Designation1').mousedown()

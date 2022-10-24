@@ -2036,6 +2036,7 @@ function createMainWindow(){
         win = null
     })
     win.once('ready-to-show', () => {
+        //win.webContents.openDevTools()
         win.webContents.send('load-page')
         autoUpdater.checkForUpdates()
       })

@@ -203,6 +203,6 @@ input[type=button].mediumButton{
     box-sizing:unset;
 }
 input[type=button].mediumButton:focus-within{
-    border:none;
+    border:spx solid white;
     color: rgb(216, 215, 215);
 }

@@ -6,15 +6,16 @@ let gListType
 let contactChosen = false
 let glComponentType
 let currentTabIndex
+let glPage 
 
 $('.cb').on({
     keydown: (event)=>{
         event.stopPropagation
         let ti = Number(event.target.getAttribute('tabindex'))
-        console.log(ti)
+        
         switch(event.key){
             case 'Enter':
-                console.log('enter hit on checkbox')
+                
                 if(event.target.checked){
                     event.target.checked = false
                 }else{
@@ -24,18 +25,20 @@ $('.cb').on({
                 
                 break;
             default:
-                console.log(event.key)
+               
                 break;
         }
         
         
-        console.log(ti)
+        
         
     }
 })
 
 function createComponent(container, componentType, list, listType, callingPage){
+    
     glComponentType = componentType
+    glPage = callingPage
     let page = callingPage
     let part = 'text'
     let state = 'closed'
@@ -74,7 +77,10 @@ function createComponent(container, componentType, list, listType, callingPage){
 
         let txtSection = document.createElement('div')
         txtSection.setAttribute('id',listType+'-choice')
+        
         txtSection.setAttribute('class','choice leftHalfRound')
+      
+        
         txtSection.setAttribute('contenteditable', true)
         txtSection.setAttribute('part','text')
         
@@ -84,8 +90,7 @@ function createComponent(container, componentType, list, listType, callingPage){
             focus: (event=>{
                 event.stopPropagation()
                 //event.preventDefault()                
-                console.log('txtSection focus fired')
-                console.log(txtSection.getAttribute('tabindex'))
+               
                 focused = true 
                 
                 //close all open dropdowns               
@@ -119,6 +124,30 @@ function createComponent(container, componentType, list, listType, callingPage){
                 if(!usingListBox){
                     closeDropDowns()
                 }
+                if(listType == 'Customer'){
+                    // safeguard to check if the name entered in the field matches an existing company or when leaving
+                    // the field without selecting the item that matches what you typed
+                    // if NO MATCH - it fills contacts with default
+                    // if MATCH - it simulates clicking the matching item in the list
+                    let matched = 0
+                    let id
+                    
+                    let customer_text = removeSpecialCharacters(txtSection.innerText)
+                    for(let name in list){
+                        if(list[name].customer_name == customer_text){
+                            matched+=1
+                            id = list[name].customer_ID
+                        }
+                    }
+                    
+                    if(customer_text != '' && matched == 0){
+                        fillContactsNew(null)
+                    }else{
+                        $(`#listItem${id}`).mousedown()
+                    }
+                    
+                }
+                
                 
             },
             mouseup: (event)=>{
@@ -144,12 +173,11 @@ function createComponent(container, componentType, list, listType, callingPage){
                         
                         if(event.key == 'Tab' && event.shiftKey){
                             navigateTabs('up', ti +1)
-                            console.log('reverse tab focused element is ')
-                            console.log(document.activeElement)
+                            
                             break;
                          }
                          navigateTabs('down', ti -1)
-                         console.log('Tab')
+                         
                          break;
                     case 'ArrowDown':
                         event.preventDefault()
@@ -178,7 +206,7 @@ function createComponent(container, componentType, list, listType, callingPage){
                         usingListBox = true;
                         
                         
-                        console.log(e.length)
+                        
                         e[focusedIndex].focus()
                         e[focusedIndex].classList.add('focusedListItem')
                         
@@ -187,7 +215,7 @@ function createComponent(container, componentType, list, listType, callingPage){
                         pastFocusedItem = e[pastIndex]
                         currentFocusedItem = e[focusedIndex]
                         nextFocusedItem = e[nextIndex]
-                        console.log(currentFocusedItem)
+                        
                         break;
                     case 'ArrowUp':
                         usingListBox = true
@@ -257,7 +285,7 @@ function createComponent(container, componentType, list, listType, callingPage){
                             
                                 r = /[^sSoO]/gi,
                                 v = txtSection.innerText;
-                                console.log(r,v)
+                                
                                 if(r.test(v)) {
                                     txtSection.innerText = v.replace(r,'')                     
                                 }
@@ -302,13 +330,13 @@ function createComponent(container, componentType, list, listType, callingPage){
                         default:
                             //only allow s and o
                             let t = txtSection.innerHTML
-                            console.log(t)
+                            
                             if(t !== 'Spring' && t !== 'Alignment' && t !== 'Check All' && t !== 'King Pin' && t !== 'Frame'){
 
                             
                                 r = /[^sScCaAkKfF]/gi,
                                 v = txtSection.innerText;
-                                console.log(r,v)
+                                
                                 if(r.test(v)) {
                                     txtSection.innerText = v.replace(r,'')                     
                                 }
@@ -329,11 +357,11 @@ function createComponent(container, componentType, list, listType, callingPage){
                     }
                     filterListBox(txtSection, Array.from($('#Customer-listBox div')))
                     let fl =$('#Customer-listBox div:visible')
-                    console.log(fl.length, event.key)
+                    
                     //if there are no matches then its a new company
                     if(fl.length == 0){
-                        //TODO: add programming to add new company
-                        console.log('newCompany')
+                        
+                        
                         fillContactsNew(null)
                     }
                     if(fl.length == 1 && event.key == "Tab"){
@@ -359,7 +387,7 @@ function createComponent(container, componentType, list, listType, callingPage){
                         resetListBox(listType)
                         resetContacts()
                     }else{
-                        console.log(true)
+                        
                     }
                     
                    
@@ -371,22 +399,22 @@ function createComponent(container, componentType, list, listType, callingPage){
             input: (event)=>{
                 event.target.innerText = event.target.innerText.toLocaleUpperCase()
                 if(event.target.hasChildNodes()){
-                let hashtagRange = document.createRange();
+                let inputRange = document.createRange();
                 let windowSelection = window.getSelection();
                 //remove any previously created ranges
                 windowSelection.removeAllRanges();
                 let theNodes = event.target.childNodes;
-                //this.hashtagsDivElement.focus();
+                
                 let firstNode = theNodes[0];
                 let lastNode = theNodes[theNodes.length - 1];
                 let start = theNodes[0];
                 let end = theNodes[theNodes.length - 1];
-                console.log('Start is ' + start.nodeName + ' end is ' + end.nodeName + " node count " + theNodes.length);
-                hashtagRange.setStartBefore(firstNode);
-                hashtagRange.setEndAfter(lastNode);
-                hashtagRange.collapse(false);
+                //console.log('Start is ' + start.nodeName + ' end is ' + end.nodeName + " node count " + theNodes.length);
+                inputRange.setStartBefore(firstNode);
+                inputRange.setEndAfter(lastNode);
+                inputRange.collapse(false);
             //add the range to a window selection object.
-                windowSelection.addRange(hashtagRange);
+                windowSelection.addRange(inputRange);
                 windowSelection.collapseToEnd();
                 }
             }
@@ -446,7 +474,12 @@ function createComponent(container, componentType, list, listType, callingPage){
         let listBox = document.createElement('div')
         
         listBox.setAttribute('id',listType+'-listBox')
-        listBox.setAttribute('class','listBox')
+        if(callingPage == 'popup'){
+            listBox.setAttribute('class','listBox popupJobType')
+        }else{
+            listBox.setAttribute('class','listBox')
+        }
+        
         listBox.setAttribute('data-state','closed')
        
         
@@ -463,9 +496,10 @@ function createComponent(container, componentType, list, listType, callingPage){
 
         //populate dropdown
         fillListBox2(listBox)
+        
     }
     let getTabIndex = (type, page)=>{
-        console.log('page ='+page)
+        
         let index
         if(page == 'edit'){
         
@@ -509,9 +543,7 @@ function createComponent(container, componentType, list, listType, callingPage){
                 default:
                     break;
             }
-            console.log(`type = ${type}
-            page = ${page}
-            tabindex = ${index}`)
+            
             return index
         }
         if(page == 'add'){
@@ -546,11 +578,31 @@ function createComponent(container, componentType, list, listType, callingPage){
                 default:
                     break;
             }
-            console.log('create tabindex')
-            console.log(`type = ${type}
-        page = ${page}
-        tabindex = ${index}`)
+            
             return index            
+        }
+        if(page == 'popup'){
+            switch(type){
+                
+                case 'radAM':
+                    index = 2
+                break;
+                case 'radPM':
+                    index = 3
+                    break;
+                case 'DateSched':
+                    index = 4
+                break;
+                
+                
+                case 'JobType':
+                    index = 5
+                break;
+                default:
+                    break;
+            } 
+            
+            return index          
         }
     }
     let fillListBox2 = (box)=>{
@@ -600,18 +652,13 @@ function createComponent(container, componentType, list, listType, callingPage){
                                         props.customer_name = listItem.innerText
                                         props.launcher = page
                                         fillContactsNew(props)
-                                        //fillContactsNew(ipc.sendSync('get-contacts',listItem.id.substring(8)),listItem.id.substring(8),listItem.innerText)
-                                        // $('#Contacts-choice').click()
-                                        // $('#Contacts-choice').focus()
                                         
-                                        console.log('index in customer listItem keydown enter = '+index)
                                         navigateTabs('down',index)
                                     }   
-                                    //console.log('parent tabindex = '+listItem.parentNode.previousElementSibling.lastChild.firstChild.getAttribute('tabindex'))
-                                    //console.log(listItem.parentNode)
+                                    
                                     chooseListItem(event,input,txtSection,event.target,box)
                                     
-                                    //toggleDropDowns('l',listItem.parentNode,listItem.parentNode.parentNode.firstElementChild.lastChild.lastChild.firstChild)
+                                    
                                     break;
                             }
                             
@@ -619,10 +666,7 @@ function createComponent(container, componentType, list, listType, callingPage){
                         },
                         mousedown: (event)=>{
                             let index = Number(document.getElementById(`${listType}-choice`).getAttribute('tabindex'))
-                            // let index = Number(event.target.parentNode.previousElementSibling.lastChild.firstChild.getAttribute('tabindex'))
-                            //console.log(txtSection)
-                            //console.log('clicking Customer item -> state = '+state)
-                            //open schedule input if schedule chosen
+                           
                             
                             button.firstChild.classList.remove('up')
                             button.firstChild.classList.add('down')
@@ -632,35 +676,21 @@ function createComponent(container, componentType, list, listType, callingPage){
                             props.customer_name = listItem.innerText
                             props.launcher = page
                             fillContactsNew(props)
-                            //fillContactsNew(ipc.sendSync('get-contacts',listItem.id.substring(8)),listItem.id.substring(8),listItem.innerText)
+                           
                             currentFocusedItem = event.target
-                            console.log('index in customer listItem mousedown = '+index)
+                            
                             
                             chooseListItem(event,input,txtSection,event.target,box)
                             setTimeout(() => {
                                 navigateTabs('down',index)
                             }, 75);
                             
-                        },
-                        // click: (event)=>{
-                            
-                            
-                        // },
-                        hover: (event)=>{
-                            
-                            //$(listItem).focus()
-                            //console.log(document.activeElement)
                         }
+                       
+                        
                     })
                 break;
-                // case 'Designation':
-                //     //console.log(listType)
-                //     listItem.setAttribute('id',listType+member)
-                //     text = document.createTextNode(list[member])
-                //     break;
-                // case 'Job-Type':
-                //     listItem.setAttribute('id',listType+member)
-                //     text = document.createTextNode(list[member])
+               
                 default:
                     
                     listItem.setAttribute('id',listType+member)
@@ -669,7 +699,7 @@ function createComponent(container, componentType, list, listType, callingPage){
                         keydown: (event)=>{
                             let filteredList = $('#'+listType+'-listBox .listItem:visible')
                             let index = Number(document.getElementById(`${listType}-choice`).getAttribute('tabindex'))
-                            // let index = Number(listItem.parentNode.previousElementSibling.lastChild.firstChild.getAttribute('tabindex'))
+                           
                             switch(event.key){
                                 case 'Tab':
                                     closeDropDowns()
@@ -682,7 +712,7 @@ function createComponent(container, componentType, list, listType, callingPage){
                                     navigateListBox(event,box,filteredList)
                                 break;
                                 case 'Enter':
-                                    console.log('enter hit while focus on listitem')
+                                    
                                     listItem.click()
                                     switch(listType){
                                         case 'Designation' :
@@ -707,16 +737,12 @@ function createComponent(container, componentType, list, listType, callingPage){
                             
                            
                         },
-                        // mousedown: (event)=>{
-                        //     console.log('mousedown')
-                        // },
+                       
                         mousedown: (event)=>{
                             event.preventDefault()
-                            // let index = Number(listItem.parentNode.previousElementSibling.lastChild.firstChild.getAttribute('tabindex'))
+                           
                             let index = Number(document.getElementById(`${listType}-choice`).getAttribute('tabindex'))
-                            console.log(txtSection)
-                            console.log('mousedown index ='+index)
-                            console.log('clicking designation item and state = '+state)
+                            
 
                             switch(listType){
                                 case 'Designation' :
@@ -960,14 +986,13 @@ function createComponent(container, componentType, list, listType, callingPage){
                 event.preventDefault()
                 closeDropDowns()
                 if(state == 'closed'){
-                    console.log('toggling in split select choice focus event')
+                    
                     toggleDropDowns('Customer txtSection mousedown',listBox,arrow)
                 }
-                //toggleDropDowns('Customer txtSection mousedown',listBox,arrow)
-                console.log('split select choice element focus fired')
+               
             },
             keydown: (event)=>{
-                // event.preventDefault()
+               
                 let e = $('#'+listType+'-listBox .optionGroup .option')
                 let focusedIndex
                 let pastIndex
@@ -1551,7 +1576,7 @@ function createComponent(container, componentType, list, listType, callingPage){
             focus: (event)=>{
                 closeDropDowns()
                 state = event.target.getAttribute('data-state')
-                console.log('mousedown date txtsection')
+                
                 if(state == 'closed'){
                     
                     event.target.setAttribute('data-state','open')
@@ -1560,6 +1585,11 @@ function createComponent(container, componentType, list, listType, callingPage){
                     
                 }
                 
+            },
+            keydown: (event)=>{
+                if($(`#Date-MessageContainer`)){
+                    $(`#Date-MessageContainer`).remove()
+                }
             },
             blur: (event)=>{
                 event.target.setAttribute('data-state','closed')
@@ -1570,7 +1600,7 @@ function createComponent(container, componentType, list, listType, callingPage){
             mousedown: (event)=>{
                 closeDropDowns()
                 state = event.target.getAttribute('data-state')
-                console.log('mousedown date txtsection')
+                
                 if(state == 'closed'){
                     
                     event.target.setAttribute('data-state','open')
@@ -1819,13 +1849,13 @@ let isDOM = (Obj)=> {
 }
    
     let navigateListBox = (event,listBox,list,ii)=>{
-        console.log(list)
+        
         
         if(event.key == 'ArrowDown'){
             event.preventDefault()
-            console.log(currentFocusedItem)
             
-            //console.log(list[itemIndex])
+            
+            
             /***
              *  if its not the last item in the list increment index by one
              *  if it is the last reset index to 0
@@ -1841,7 +1871,7 @@ let isDOM = (Obj)=> {
                 itemIndex = 0
             }
 
-            console.log('itemIndex after increment in arrow down = '+itemIndex)
+            
             currentFocusedItem = list[itemIndex]
                    
             if(itemIndex == 0){
@@ -1851,7 +1881,7 @@ let isDOM = (Obj)=> {
             }
             
             if(itemIndex == list.length -1){
-                console.log('itemIndex = length -1')
+                
                 nextFocusedItem = list[0]
             }else{
                 nextFocusedItem = list[itemIndex+1]
@@ -1859,22 +1889,17 @@ let isDOM = (Obj)=> {
            
 
             
-            console.log(itemIndex)
-            console.log('curentFocusedItem below')
-            console.log(currentFocusedItem)
+           
             currentFocusedItem.focus()
-            console.log(document.activeElement)
+            
             currentFocusedItem.classList.add('focusedListItem')
             pastFocusedItem.classList.remove('focusedListItem')
             
-            console.log(' ArrowDown past focused item = '+pastFocusedItem.innerHTML)
-            console.log('ArrowDown current focused item = '+currentFocusedItem.innerHTML)
-            console.log('ArrowDown next focused item = '+nextFocusedItem.innerHTML)
-            console.log('itemIndex = '+itemIndex)
+           
         }
         if(event.key == 'ArrowUp'){
             event.preventDefault()
-            console.log('itemIndex before arrow down = '+itemIndex)
+            
             if(itemIndex< 1){
                 itemIndex = list.length-1
                 
@@ -1882,7 +1907,7 @@ let isDOM = (Obj)=> {
                 
                 itemIndex--
             }
-            console.log('itemIndex after arrow down = '+itemIndex)
+            
             if(itemIndex == list.length - 1){
                 pastFocusedItem = list[0]
             }else{
@@ -1894,39 +1919,28 @@ let isDOM = (Obj)=> {
             }else{
                 nextFocusedItem = list[itemIndex-1]
             }
-            //nextFocusedItem = list[itemIndex - 1]
-            
-            //pastFocusedItem = currentFocusedItem
+           
             currentFocusedItem = list[itemIndex]
             
 
            
-            console.log('itemIndex after = '+itemIndex)
-            //pastFocusedItem = (pastFocusedItem.previousElementSibling)? pastFocusedItem.previousElementSibling : listBox.lastChild
-            //console.log(listBox.childNodes)
-            //console.log(nextFocusedItem.nextElementSibling)
-           // nextFocusedItem = (nextFocusedItem.nextElementSibling)? nextFocusedItem.nextElementSibling : listBox.firstChild
-            //$(`#${listType+'-listBox'} :nth-Child(${itemIndex})`)
-            console.log('ArrowUp past focused item = '+pastFocusedItem.innerHTML)
-            console.log('ArrowUp current focused item = '+currentFocusedItem.innerHTML)
-            console.log('ArrowUp next focused item = '+nextFocusedItem.innerHTML)
+           
+           
             currentFocusedItem.focus()
             currentFocusedItem.classList.add('focusedListItem')
             pastFocusedItem.classList.remove('focusedListItem')
-            //navigateTabs()
+            
         }
     
 
     }
 let navigateTabs = (direction, ind)=>{
     let tabbable = document.querySelectorAll('[tabindex]:not(.listItem):not(.option)')
-    let rect
-    console.log(tabbable.length)
+    let rect    
     let nextElement 
     let dex = ind
-    // ind = 7
-    //direction = 'up'
-    console.log(document.querySelectorAll(`[tabindex="${ind}"]`))
+   
+    
     if(direction == 'up'){
         if(dex > 1){
             dex = ind -1           
@@ -1935,13 +1949,16 @@ let navigateTabs = (direction, ind)=>{
         }
         
         rect = document.querySelectorAll(`[tabindex="${dex}"]`)[0].getBoundingClientRect()
-        while(rect.top == 0){
-            dex-=1
-            rect = document.querySelectorAll(`[tabindex="${dex}"]`)[0].getBoundingClientRect()
+        if(glPage != 'popup'){
+            while(rect.top == 0){
+                console.log('dex = '+dex)
+                dex-=1
+                rect = document.querySelectorAll(`[tabindex="${dex}"]`)[0].getBoundingClientRect()
+            }
         }
         
         nextElement = document.querySelectorAll(`[tabindex="${dex}"]`)[0]  
-        console.log('next element index is '+nextElement.getAttribute('tabindex'))     
+            
         nextElement.focus()
     }
 
@@ -1952,16 +1969,17 @@ let navigateTabs = (direction, ind)=>{
         }else{
             dex = ind + 1            
         }
-        console.log(dex)
-        rect = document.querySelectorAll(`[tabindex="${dex}"]`)[0].getBoundingClientRect()
-        while(rect.top == 0){
-            console.log('dex = '+dex)
-            dex+=1
-            rect = document.querySelectorAll(`[tabindex="${dex}"]`)[0].getBoundingClientRect()
-        }
         
+        rect = document.querySelectorAll(`[tabindex="${dex}"]`)[0].getBoundingClientRect()
+        if(glPage != 'popup'){
+            while(rect.top == 0){
+                
+                dex+=1
+                rect = document.querySelectorAll(`[tabindex="${dex}"]`)[0].getBoundingClientRect()
+            }
+        }
         nextElement = document.querySelectorAll(`[tabindex="${dex}"]`)[0]  
-        console.log('next element index is '+nextElement.getAttribute('tabindex'))     
+             
         nextElement.focus()
     }
     tabbable.forEach(item =>{
@@ -1981,7 +1999,7 @@ let clearSelected = (type)=>{
     }else{
         filteredListItems = $('#'+type+'-listBox .listItem')
     }
-    console.log('length of list = '+filteredListItems.length)
+   
     for(let el in filteredListItems){
         if(isDOM(filteredListItems[el])){
             filteredListItems[el].classList.remove('focusedListItem')
@@ -1991,9 +2009,7 @@ let clearSelected = (type)=>{
 let chooseListItem = (event, input, txtSection, chosen,listBox)=>{
     usingListBox = false
     contactChosen = true
-    //console.log(chosen)
-    console.log(event.type)
-    //console.log(input.id)
+   
     let type = input.getAttribute('id').split('-')
 
     if($(`#${type[0]}-MessageContainer`)){
@@ -2025,30 +2041,19 @@ let chooseListItem = (event, input, txtSection, chosen,listBox)=>{
             break;
         case 'Customer':
             let cid = chosen.getAttribute('id').substring(8)
-            console.log('cid = '+cid)
-            txtSection.setAttribute('data-cid',cid)			
+            
+            txtSection.setAttribute('data-cid',cid)	
+            
+            if(checkForNoShows(cid)){
+                if($('#Customer-MessageContainer')){
+                    $('#Customer-MessageContainer').remove()
+                }
+                
+                
+                txtSection.parentNode.parentNode.appendChild(createMessageBox(type[0],'no_show'))
+                
+            }
 			
-			//if(arrVisibleItems.length == 1){
-				//if(checkForNoShows(arrVisibleItems[0].getAttribute('id').substring(8))){
-                    console.log('before check for no shows')
-                if(checkForNoShows(cid)){
-					if($('#Customer-MessageContainer')){
-						$('#Customer-MessageContainer').remove()
-					}
-					
-					//if(arrVisibleItems[0].innerHTML == txtSection.innerHTML.toUpperCase()){
-                        console.log('inside check for no show')
-						txtSection.parentNode.parentNode.appendChild(createMessageBox(type[0],'no_show'))
-					//}
-				
-					
-				}
-			// }else{
-			// 	if($('#Customer-MessageContainer')){
-			// 		$('#Customer-MessageContainer').remove()
-			// 	}
-				
-			// }
             break;
         case 'Contacts':
             txtSection.setAttribute('method',`${chosen.getAttribute('method')}`)
@@ -2058,15 +2063,15 @@ let chooseListItem = (event, input, txtSection, chosen,listBox)=>{
     }
     
     
-    console.log(txtSection)
+    
     if(glComponentType == 'split select'){
         txtSection.previousSibling.innerHTML = event.target.parentNode.firstElementChild.innerHTML 
     }
     
-    console.log(input)
+    
     //split input id by - in order to get the listType for clearing suggestion
     
-    console.log(type)
+    
     clearSuggestion(type[0])
     listBox.style.animationDuration = '100ms'
     listBox.style.transform = 'scaleY(0)'
@@ -2201,7 +2206,7 @@ let createMessageBox = (lt, messageType)=>{
              *  to the no show report
              */
             let name = document.querySelector('#Customer-choice').innerText
-            console.log(name)
+            
             if(messageType == 'no_show'){
                 messageContainer.setAttribute('class','messageContainer warning')
                 messageText = document.createTextNode('CUSTOMER HAS NO-SHOW ON RECORD')
@@ -2243,4 +2248,16 @@ let createMessageBox = (lt, messageType)=>{
     }          
     
     return messageContainer
+}
+
+/**
+ * 
+ * @param {string} item 
+ * @returns the string stripped of any html formating like &nbsp
+ */
+let removeSpecialCharacters = (item)=>{
+    let elem = document.createElement('textarea');
+	elem.innerHTML = item.trim().toUpperCase();
+	return  elem.value;
+		
 }

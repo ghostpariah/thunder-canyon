@@ -236,58 +236,7 @@ fieldset{
         overflow: hidden;
         height: 2.5em;
 }
-.messageContainer{
-  display:flex;
-  justify-content: right;
-  flex-direction: row;
-  align-items: center;
-  /* color:rgb(192, 1, 1); */
-  width: 250px;
-  box-sizing: border-box;
-  margin-top:12px;
-  font-size: .8em;
-  /* border: 1px solid red;/*rgb(77, 77, 77);
-  background-color: rgb(253, 212, 212); */
-  padding: 5px;
-  position: relative;
- border-radius: 5px;
-  
-}
-.warning{
-  color:rgb(192, 1, 1);
-  border: 1px solid rgb(5, 5, 5);/*rgb(77, 77, 77);*/
-  background-color: rgb(255, 245, 152);
-}
-.warning::before{
-  
-  border-left: 1px solid rgb(5, 5, 5);
-  border-top: 1px solid rgb(5, 5, 5);
-  background-color: rgb(255, 245, 152); 
-  
-}
-.invalid{
-  color:rgb(192, 1, 1);
-  border: 1px solid red;/*rgb(77, 77, 77);*/
-  background-color: rgb(253, 212, 212);
-}
-.invalid::before{
-  background-color: rgb(253, 212, 212);
-  /* border: 1px solid black; */
-  /* border-width: 0 6px 6px 6px; */
-  border-left: 1px solid red;
-  border-top: 1px solid red;
-}
-.messageContainer::before{
-  content:'';
-  position:absolute;
-  aspect-ratio: 1/1;
-  width:15px;
-  
-  top: -9px;
-  left: 25%;
-  transform: rotate(45deg);
-  /* z-index: 3; */
-}
+
 .actionLink{
   font-size: .8rem;
   cursor: pointer;

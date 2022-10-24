@@ -153,7 +153,7 @@ function fillContacts(cont){
 
 function fillContactsNew(props){//contacts,cust_ID,cusName,launcher
 	//object for passing properties to 'open-contacts' in main
-	console.log(props)
+	
 	let contacts
 	let cust_ID
 	let cusName
@@ -213,7 +213,7 @@ function fillContactsNew(props){//contacts,cust_ID,cusName,launcher
 							console.log('is new company')
 							objContactProps.isNew = true
 							//TODO: add new company to database
-							objContactProps.customer_ID = addNewCompany(document.getElementById('Customer-choice').innerHTML)
+							objContactProps.customer_ID = addNewCompany(document.getElementById('Customer-choice').innerText.trim())
 							ipc.send('pass-new-customer-to-main-window', objContactProps.customer_ID)
 							document.getElementById('Customer-choice').setAttribute('data-cid',objContactProps.customer_ID)
 						}else{
@@ -256,7 +256,7 @@ function fillContactsNew(props){//contacts,cust_ID,cusName,launcher
 					console.log('is new company')
 					objContactProps.isNew = true
 					//TODO: add new company to database
-					objContactProps.customer_ID = addNewCompany(document.getElementById('Customer-choice').innerHTML)
+					objContactProps.customer_ID = addNewCompany(document.getElementById('Customer-choice').innerText.trim())
 					ipc.send('pass-new-customer-to-main-window', objContactProps.customer_ID)
 					document.getElementById('Customer-choice').setAttribute('data-cid',objContactProps.customer_ID)
 				}else{
@@ -288,7 +288,7 @@ function fillContactsNew(props){//contacts,cust_ID,cusName,launcher
     //--then create header and create name and plus sign divs and fill name with contact name
     //----thencreate an option for each contact info item and fill with phone number or email
 	if(contacts){ // was contacts.length>0
-		console.log(contacts)
+		
 		contacts.sort((a, b) => (a.primary_contact > b.primary_contact) ? -1 : 1)
 		for(i=0;i<contacts.length;i++){
 					//create group

@@ -26,6 +26,7 @@ const arrBottomHalf = ['wfw7','wfw8','wfw9','wfw10','wfw11',
 						'wfw55','wfw56','wfw57','wfw58','wfw59']
 
 const arrShopLocations = ['wip0','wip1','wip2','wip3','wip4','wip5','wip6','wip7','wip8','wip9','wip10','wip11']
+let objPopUp = {}
 let popupDate
 let objLoggedInUser
 let admin = false
@@ -198,7 +199,7 @@ ipc.on('placeNewJob', (event, args)=>{
 //show admin elements for admin user
 ipc.on('show-admin-elements', (event, args)=>{
 	
-	console.log('show-admin triggered')
+	
 	currentUser = args	
 	admin = true;
 	
@@ -217,13 +218,7 @@ ipc.on('show-admin-elements', (event, args)=>{
 	document.getElementById('whiteBoardContent').innerHTML = ipc.sendSync('get-whiteboard','read')	
 	console.timeEnd('show-admin')
 
-	// let notes = document.querySelectorAll(".notes")	
-	// let arrNotes = Array.from(notes)
-	// for(let note in arrNotes){	
-	// 	if(isOverflown(arrNotes[note])){		
-	// 		arrNotes[note].classList.add('notesOverFlow')
-	// 	}
-	// }
+	
 })
 
 ipc.on('show-user-elements', (event, args)=>{
@@ -395,6 +390,7 @@ function deselectExpiredOTL_Scheduled(jobs){
 			saveWhiteBoard(this);
 		}
 	})
+	
  }
 
  function createCompleted(args){
@@ -456,6 +452,12 @@ function sortScheduled(arrToSort){
 		direction: 1
 	  },{
 		prop:'time_of_day',
+		direction: 1
+	  },{
+		prop:'job_type',
+		direction: 1
+	  },{
+		prop: 'date_called',
 		direction: 1
 	  }];
 
@@ -540,7 +542,7 @@ function fillScheduleGlimpse(args){
 	let data
 	let glimpseID
 	let glimpseContext
-	console.log('length of glimpse items is '+k.length)
+	
 	for(j=0;j<k.length;j++){
 		glimpse = document.createElement('div')
 		glimpse.setAttribute('class', 'upcomingBox')
@@ -584,8 +586,8 @@ function fillScheduleGlimpse(args){
 					event.preventDefault()
 					event.stopPropagation()
 					let t = $(event.currentTarget).parent().find('.glimpseToolTip')	
-					console.log(event.currentTarget)
-					console.log(event.relatedTarget)
+					//console.log(event.currentTarget)
+					//console.log(event.relatedTarget)
 					//console. log('they are siblings '+$(event.currentTarget).siblings().is(event.relatedTarget))
 					//console.log(event.relatedTarget.getAttribute('class'))
 					if(event.relatedTarget.getAttribute('class')!= 'glimpseToolTip' && event.relatedTarget.nodeName != 'B'){
@@ -1298,34 +1300,47 @@ async function changeLocation(targetID,cellOccupied,data){
 			if(tt) tt.className = tooltip	
 			
 		//jquery function to bind the hover event to the created element
-		$('.vehicle').on('mouseenter',function() {
-			$(this).find('.tooltip').fadeIn(50);
-		});
+		// $('.vehicle').on('mouseenter',function(event) {
+		// 	//event.preventDefault()
+		// 	//event.stopImmediatePropagation()
+		// 	console.log(event.target)
+		// 	if(!event.target.id.contains('context')){
+		// 		//$(this).find('.tooltip').fadeIn(50);
+		// 	}
+			
+		// });
 		
-		$('.vehicle').on('mouseleave',function() {
-			$(this).find('.tooltip').fadeOut(50);
-		});
-		$('.vehicle').on('mouseenter',function() {
-			$(this).find('.toolTipBottom').fadeIn(50);
-		});
+		// $('.vehicle').on('mouseleave',function(event) {
+			
+		// 	$(this).find('.tooltip').fadeOut(50);
+		// });
+		// $('.vehicle').on('mouseenter',function(event) {
+			
+		// 	$(this).find('.toolTipBottom').fadeIn(50);
+		// });
 		
-		$('.vehicle').on('mouseleave',function() {
-			$(this).find('.toolTipBottom').fadeOut(50);
-		});
-		$('.vehicle').on('mouseenter',function() {
-			$(this).find('.tooltipLast').fadeIn(50);		
-		});
+		// $('.vehicle').on('mouseleave',function(event) {
+			
+		// 	$(this).find('.toolTipBottom').fadeOut(50);
+		// });
+		// $('.vehicle').on('mouseenter',function(event) {
+			
+		// 	$(this).find('.tooltipLast').fadeIn(50);		
+		// });
 		
-		$('.vehicle').on('mouseleave',function() {
-			$(this).find('.tooltipLast').fadeOut(50);
-		});
-		$('.vehicle').on('mouseenter',function() {
-			$(this).find('.tooltipRight').fadeIn(50);
-		});
+		// $('.vehicle').on('mouseleave',function(event) {
 		
-		$('.vehicle').on('mouseleave',function() {
-			$(this).find('.tooltipRight').fadeOut(50);
-		});
+		// 	$(this).find('.tooltipLast').fadeOut(50);
+		// });
+		// $('.vehicle').on('mouseenter',function(event) {
+			
+		// 	$(this).find('.tooltipRight').fadeIn(50);
+		// });
+		
+		// $('.vehicle').on('mouseleave',function(event) {
+			
+		// 	$(this).find('.tooltipRight').fadeOut(50);
+		// });
 
 		countStatuses();
 		
@@ -1362,16 +1377,16 @@ document.addEventListener("drop", async (event) => {
 		if(cellOccupied || isJobIndicator || isJobCat){
 			console.log('has kids')
 		}else{
-			console.log(dragged)
+			
 			let draggedID = dragged.id;
 			let targetID = event.target.id;
-			console.log(draggedID)
+			
 			dragged.parentNode.removeChild(dragged);
 			event.target.appendChild(dragged);
 			console.timeEnd('dropEvent')
-			//setTimeout(() => {
+			
 			changeLocation(targetID,cellOccupied,draggedID);
-			//}, 50);
+			
 			
 		}
 	  
@@ -1877,20 +1892,18 @@ function pullJob(id){
 function createContextMenu(e,objJobData,g,customerName) {
 	try{
 		objJobData.customer_name = customerName
-		console.log(g)
+		
 		let thisMenu = (g) ? document.getElementById(`gc${e.id}`) : document.getElementById('context-Menu-'+objJobData.job_ID);	
 		let status = objJobData.status
 		for(member in allJobs){
 			if(document.getElementById('context-Menu-'+allJobs[member].job_ID)){
 				document.getElementById('context-Menu-'+allJobs[member].job_ID).style.display = 'none'
 			}
-			// if(allJobs[member].job_ID == e.id.substr(4)){			
-			// 	status = allJobs[member].status
-			// }
+			
 		}
 		
 			//create context menu
-			//let menuBox = document.getElementById('context-Menu-'+e.id.substr(4))
+			
 			let menuBox = document.getElementById('context-Menu-'+objJobData.job_ID)
 			
 			let item1Box = document.createElement('span')
@@ -2027,43 +2040,167 @@ function createContextMenu(e,objJobData,g,customerName) {
 				item3Box.setAttribute('class','item')
 				item3Box.setAttribute('id','schedule'+objJobData.job_ID)
 				item3Box.addEventListener('click',(event)=>{
+					cancelScheduleAdd()
+					objPopUp = {}
 					document.getElementById(e.childNodes[1].id).style.display='none';
 					event.target.parentNode.nextElementSibling.style.display = 'block'
-					let sub_content = `<div class= 'popupHeader'>CONFIRM OR CHANGE SCHEDULED DATE</div><br/>
-					<div class='popuprow'><label> Scheduled Date:&nbsp;&nbsp;</label>
-					<input type="text" id="datepicker" class = "popup"></div>
+					$(event.target.parentNode.nextElementSibling).on({
+						mouseenter: (event)=>{
+							event.stopPropagation()
+							event.preventDefault()
+						}
+					})
+					let sub_content = `
+					<div class= 'popupHeader'>CONFIRM OR CHANGE SCHEDULED DATE</div>
 					<br/>
+					<div class = "flexRow">
+						<label>On the Lot & Scheduled:</label>
+                        <input id="cbOTL_scheduled"type="checkbox" tabindex="1"/>
+                  	</div>
+					
+					<div id="sdWrapper" class='popuprow'>
+
+					</div>
+					
 					<div class='popuprow'>
-						<div class= 'halfrow'>
-							<label>AM</label>
-							<input type='radio' id="radAM" tabindex='6'name='ampm2' value='am'>
-							<label>PM</label>
-							<input type='radio' id="radPM" tabindex='7' name='ampm2' value='pm'>
+						
+						<div id="jtWrapper">
 							
 						</div>
-						<div class='popupButton' onclick= 'moveToScheduled(this, ${false})' >MOVE</div><div class='popupButton' onclick='cancelScheduleAdd(this)'>CANCEL</div>
 					</div>
+					<div class="popuprow">
+						<div class="inputAndLabelWrapper" id="notesWrapper">
+							<label>Notes</label>
+							<textarea id="txtNotes" rows="7" cols="50" tabindex="6" type="text" style="vertical-align:middle;"></textarea>
+						</div>
 						
+					</div>
+					<div class="popuprow">
+						<div class="buttonrow">
+							<input type="button" class="mediumButton" tabindex="7" value="MOVE" onclick= 'moveToScheduled(this, ${false})' ></input>
+							<input type="button" class="mediumButton" tabindex="8" value="CANCEL" onclick='cancelScheduleAdd(this)'></input>
+						</div>
+					</div>	
 						`
+						
 						event.target.parentNode.nextElementSibling.innerHTML = sub_content;
+						createComponent(document.getElementById('jtWrapper'),'comboBox',['Spring','Check All','Alignment','King Pin','Frame'],'JobType','popup');		
+						createComponent(document.getElementById('sdWrapper'),'date sched',null,'DateSched','popup');
+						$("#DateSched-choice").datepicker({
+							beforeShowDay: $.datepicker.noWeekends,
+							constrainInput: false,
+							dateFormat : "mm/dd/yy",
+							onSelect: function(dateText, inst) {
+								if($(`#Date-MessageContainer`)){
+									$(`#Date-MessageContainer`).remove()
+								}
+								document.getElementById('JobType-listBox').style.top = document.getElementById('jtWrapper').offsetTop + 55
+								this.setAttribute('data-state','closed');
+								document.getElementById('btn-DateSched').firstElementChild.classList.remove('up');
+								document.getElementById('btn-DateSched').firstElementChild.classList.add('down');
+								navigateTabs('down',Number(this.getAttribute('tabindex')))
 								
+							}});
+						$('#DateSched-choice').on({
+							
+							keypress: (event)=>{							
+								
+								const numberKey = /[0-9]+/;
+								
+								if (!numberKey.test(event.key)) {
+								  event.preventDefault();
+								}
+								let num = event.target.value
+								
+								if(num.length == 2){									
+									event.target.value += '/'
+								}
+								if(num.length == 5){									
+									event.target.value += '/'
+								}							
+														
+							},
+							
+							keyup:(event)=>{
+								if(event.key != 'Backspace' && event.key != 'Enter' && event.key != 'Tab'){
+									let num = event.target.value
+									if(num.length == 8){
+										console.log(event.key)
+										if(event.key != '0' && Number(event.target.value.substring(6,7)) >= 2){
+											let year = event.target.value.substring(7)
+											let pre = event.target.value.substring(0,6)
+											console.log(year,pre)
+											year = year.padStart(4,'20')
+											console.log(year)
+											event.target.value = pre+year
+										}
+									}
+								}								
+							}
+						})
+
+																		
+						document.getElementById('JobType-listBox').style.top = document.getElementById('jtWrapper').offsetTop + 55//txtSection.getBoundingClientRect().bottom
+						
 						for(member in allJobs){
 							if (allJobs[member].job_ID == event.target.id.substr(8)){
+								objPopUp = allJobs[member]
+								document.querySelector('#txtNotes').value = allJobs[member].notes
+								
 								popupDate = (allJobs[member].date_scheduled) ? allJobs[member].date_scheduled : "";
 								
+								(allJobs[member].comeback_customer == 1)? document.getElementById('cbOTL_scheduled').checked = true : document.getElementById('cbOTL_scheduled').checked = false;
+								
 								(allJobs[member].time_of_day == 'am')? document.getElementById('radAM').checked = true : document.getElementById('radAM').checked = false;
+
 								(allJobs[member].time_of_day == 'pm')? document.getElementById('radPM').checked = true : document.getElementById('radPM').checked = false;
+
+
+								switch(allJobs[member].job_type){
+									case 'Spring':
+										$("#JobType0").mousedown()
+										console.log('spring')
+										break;
+									case 'Check All':
+										$("#JobType1").mousedown()
+										break;
+									case 'Alignment':
+										$("#JobType2").mousedown()
+										break;
+									case 'King Pin':
+										$("#JobType3").mousedown()
+										break;
+									case 'Frame':
+										$("#JobType4").mousedown()
+										break;
+									default:
+										break;
+								}
+								
 							}
 
 						}	
+						$('#cbOTL_scheduled').focus()
 						
-						
-						$('.popup').datepicker().datepicker('setDate', popupDate );
-						$('#datepicker').datepicker({
-							onSelect: function () {
-								$('#datepicker').text(this.value);
+						$('#DateSched-choice').datepicker().datepicker('setDate', popupDate );
+						$('#txtNotes').on({
+							focus: (event)=>{
+								closeDropDowns()
 							}
-						});
+						})
+						let tRect = event.target.parentNode.nextElementSibling.getBoundingClientRect()
+						
+						//if tooltip extends beyond bottom of window, shift up highr so that it doesnt trigger scroll bar
+						if(tRect.bottom>window.innerHeight){ 
+							console.log(tRect)
+							let shift = (window.innerHeight-tRect.height - 50)
+							event.target.parentNode.nextElementSibling.style.top = shift								
+						} 
+						if(tRect.right>window.innerWidth){
+							console.log(tRect)
+							let shift = (tRect.width - 50)
+							event.target.parentNode.nextElementSibling.style.right = shift
+						}  
 						
 					})
 					item4Text = document.createTextNode('COMPLETED')			
@@ -2148,37 +2285,99 @@ function createContextMenu(e,objJobData,g,customerName) {
 
 
 function cancelScheduleAdd(el){
-	el.parentNode.parentNode.style.display='none'
-	document.getElementById('tt'+el.parentNode.parentNode.id.substr(8)).style.display='none';
+	let openPopUps = document.querySelectorAll('.context-submenu')
+	let op = Array.from(openPopUps)
+	//console.log(op)
+	for(let p in op){
+		op[p].style.display = 'none'
+		op[p].innerHTML = ''
 	
-	$(`#drag${el.parentNode.parentNode.id.substr(8)}`)
-	.on('mouseenter', function(){		
-		document.getElementById(`tt${this.id.substr(4)}`).style.display ='block'		
-	})
-	.on('mouseleave', function(){		
-		document.getElementById(`tt${this.id.substr(4)}`).style.display ='none'		
-	})
-
+		// el.parentNode.parentNode.parentNode.style.display = 'none'
+		// el.parentNode.parentNode.parentNode.innerHTML = ''
+		
+		//document.getElementById('tt'+el.parentNode.parentNode.id.substr(8)).style.display='none';
+	
+		$(`#drag${op[p].id.substring(8)}`)
+		.on('mouseenter', function(event){	
+			event.stopPropagation()	
+			document.getElementById(`tt${op[p].id.substring(8)}`).style.display ='block'		
+		})
+		.on('mouseleave', function(event){	
+			event.stopPropagation()	
+			document.getElementById(`tt${op[p].id.substring(8)}`).style.display ='none'		
+		})
+	}
 }
 function moveToScheduled(e, drop){
 	const radAM = document.getElementById('radAM')
 	const radPM = document.getElementById('radPM')
+	const cbOTL = document.getElementById('cbOTL_scheduled')
+	const datePicked = document.getElementById('DateSched-choice')
+	const jt = document.getElementById('JobType-choice')
+	const notes = document.getElementById('txtNotes')
 	const d = new Object()
-	d.job_ID = e.parentNode.parentNode.id.substr(8)
-	d.status = 'sch'
-	d.designation = 'Scheduled'
-	if(drop == false){
+	d.job_ID = objPopUp.job_ID
+	//d.job_ID = e.parentNode.parentNode.parentNode.id.substr(8)
+
+	//verify that required inputs are entered
+	if(datePicked.value){
+		console.log('verified')
+	}else{
+		document.querySelector('#sdWrapper').appendChild(createMessageBox('Date'))
+		document.getElementById('JobType-listBox').style.top = document.getElementById('jtWrapper').offsetTop + 55
+		console.log('unverified')
+		return
+	}
+	console.log(cbOTL.checked)
+	if(cbOTL.checked == true){
+		d.status = 'wfw'
+		d.designation = 'On the Lot'
+		d.comeback_customer = 1
+	}else{
+		d.status = 'sch'
+		d.designation = 'Scheduled'
 		d.shop_location = ''
 	}
+	if(objPopUp.date_scheduled){
+		console.log('already scheduled')
+		if(objPopUp.date_scheduled?.localeCompare(datePicked.value)!=0){
+			d.date_scheduled = datePicked.value
+			d.julian_date = jDate(d.date_scheduled);
+		}
+	}else{
+		d.date_scheduled = datePicked.value
+		d.julian_date = jDate(d.date_scheduled);
+	}
 	
-	d.date_scheduled = $('.popup').datepicker().val();
-	d.julian_date = jDate(d.date_scheduled);
+	
+
+	(objPopUp.job_type.localeCompare(jt.innerText)!=0)
+			? d.job_type = jt.innerText
+			: '';
+	
+	if(objPopUp.notes){
+		(objPopUp.notes.localeCompare(notes.value)!=0)
+				? d.notes = notes.value
+				: '';
+		
+	
+	}else{
+		
+		if(notes.value){
+			d.notes = notes.value
+		}
+	}
+	//d.date_scheduled = datePicked.value
+	
 	(radAM.checked) ? d.time_of_day = 'am' 
 		: (radPM.checked) ? d.time_of_day = 'pm'
-			: d.time_of_day = '';
+			: d.time_of_day = 'am';
 	
 	ipc.send('update-job', d, 'move')
-	e.parentNode.parentNode.parentNode.remove()
+
+	//cancelScheduledAdd used to clean out data and close popup
+	//cancelScheduleAdd()
+	console.log(d)
 }
 
 
