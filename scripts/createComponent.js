@@ -98,7 +98,9 @@ function createComponent(container, componentType, list, listType, callingPage){
 
                 //toggle between open and closed styling on focused element
                 toggleDropDowns('Customer txtSection focus',listBox,arrow)
-
+               
+                
+                
                 
                
 
@@ -143,7 +145,10 @@ function createComponent(container, componentType, list, listType, callingPage){
                     if(customer_text != '' && matched == 0){
                         fillContactsNew(null)
                     }else{
+                       if(page != 'edit'){
                         $(`#listItem${id}`).mousedown()
+                       }
+                        //$(`#listItem${id}`).mousedown()
                     }
                     
                 }
@@ -166,6 +171,7 @@ function createComponent(container, componentType, list, listType, callingPage){
                 let pastIndex 
                 let nextIndex 
                 
+
                 let ti = Number(event.target.getAttribute('tabindex'))
                 let e = $('#'+listType+'-listBox .listItem:visible')
                 switch(event.key){
@@ -652,6 +658,22 @@ function createComponent(container, componentType, list, listType, callingPage){
                                         props.customer_name = listItem.innerText
                                         props.launcher = page
                                         fillContactsNew(props)
+                                        if(props.contacts.primary_contact){
+                                            let txtField = document.querySelector('#Contacts-choice')
+                                            let nameBox = document.querySelector('#Contacts-info')
+                                            let primaryItem = $(`#${props.contacts.primary_contact}`).parent().next()
+                                            let primaryName = $(`#${props.contacts.primary_contact}`).prev().text()
+                                            console.log(primaryName, primaryItem.text())
+            
+                                            //simulate chosing an option
+                                            nameBox.innerText = primaryName
+                                            txtField.innerText = primaryItem.text()
+                                            primaryItem.addClass('focusedListItem')
+                                            txtField.setAttribute('method-id',primaryItem.attr('method-id')) 
+                                            txtField.setAttribute('method',primaryItem.attr('method'))
+            
+                                            
+                                        }
                                         
                                         navigateTabs('down',index)
                                     }   
@@ -671,14 +693,31 @@ function createComponent(container, componentType, list, listType, callingPage){
                             button.firstChild.classList.remove('up')
                             button.firstChild.classList.add('down')
                             let props = {}
+                            
                             props.contacts = ipc.sendSync('get-contacts',listItem.id.substring(8))
                             props.customer_ID = listItem.id.substring(8)
                             props.customer_name = listItem.innerText
                             props.launcher = page
+                            console.log(props)
                             fillContactsNew(props)
-                           
-                            currentFocusedItem = event.target
                             
+                            currentFocusedItem = event.target
+                            if(props.contacts.primary_contact){
+                                let txtField = document.querySelector('#Contacts-choice')
+                                let nameBox = document.querySelector('#Contacts-info')
+                                let primaryItem = $(`#${props.contacts.primary_contact}`).parent().next()
+                                let primaryName = $(`#${props.contacts.primary_contact}`).prev().text()
+                                console.log(primaryName, primaryItem.text())
+
+                                //simulate chosing an option
+                                nameBox.innerText = primaryName
+                                txtField.innerText = primaryItem.text()
+                                primaryItem.addClass('focusedListItem')
+                                txtField.setAttribute('method-id',primaryItem.attr('method-id')) 
+                                txtField.setAttribute('method',primaryItem.attr('method'))
+
+                                
+                            }
                             
                             chooseListItem(event,input,txtSection,event.target,box)
                             setTimeout(() => {

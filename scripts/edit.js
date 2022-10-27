@@ -436,7 +436,7 @@ function loadData(objJobToEdit){
 		document.querySelector('#noContact').click()
 	}
 	let contactsList = Array.from(document.querySelectorAll('#Contacts-listBox .option'))
-	
+	console.log(d.number_ID)
     if(d.number_ID != null && d.number_ID != ''){
 
 		contactsList.forEach((item)=>{
@@ -764,9 +764,9 @@ function updateJob (){
 			if(txtCon.innerText){
 				if(method == 'phone'){
 					objNewJob.number_ID = method_ID
-					objNewJob.email_ID = ''
+					objNewJob.email_ID = null
 				}else{
-					objNewJob.number_ID = ''
+					objNewJob.number_ID = null
 					objNewJob.email_ID = method_ID
 				}
 			}
@@ -813,27 +813,6 @@ function updateJob (){
 			objNewJob.comeback_customer = 0
 		}
 	}
-
-    
-	
-    
-    
-    
-	
-    
-    
-
-   
-		
-		
-	
-    
-	
-	
-    
-
-    
-    
 
     
 
@@ -1061,4 +1040,8 @@ let verifyInputs = ()=>{
 		verified = false
 	}
     return [verified, arrInvalid]
+}
+//function to check if the company has a no show on record
+function checkForNoShows(id){
+	return ipc.sendSync('check-for-no-shows',id)
 }

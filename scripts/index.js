@@ -447,17 +447,47 @@ function sortScheduled(arrToSort){
 	 * direction: (1 ascending() (-1 descending)
 	 * 
 	 */
+	 var naiveReverse = (string)=> {
+		//return string.split('/').reverse().join('');
+		return string.substring(6)
+	}
+	
+	//create year property to sort by year first so that 01/01/2023 doesnt show as first because of 01 being before others
+	for(let sd in arrToSort){
+		console.log(arrToSort[sd])
+		arrToSort[sd].year = naiveReverse(arrToSort[sd].date_scheduled)
+		switch(arrToSort[sd].job_type){
+			case 'Frame':
+				arrToSort[sd].job_type_order = '1'
+				break;
+			case 'King Pin':
+				arrToSort[sd].job_type_order = '2'
+				break;
+			case 'Spring':
+				arrToSort[sd].job_type_order = '3'
+				break;
+			case 'Alignment':
+				arrToSort[sd].job_type_order = '4'
+				break;
+			case 'Check All':
+				arrToSort[sd].job_type_order = '5'
+				break;
+			default:
+				break;
+		}
+	}
+	
 	let sortBy = [{
+		prop: 'year',
+		direction: 1
+		},{
 		prop:'date_scheduled',
 		direction: 1
 	  },{
 		prop:'time_of_day',
 		direction: 1
 	  },{
-		prop:'job_type',
-		direction: 1
-	  },{
-		prop: 'date_called',
+		prop:'job_type_order',
 		direction: 1
 	  }];
 
@@ -466,7 +496,9 @@ function sortScheduled(arrToSort){
 	let x = arrToSort.sort(function(a,b){
 		let i = 0, result = 0;
 		while(i < sortBy.length && result === 0) {
-		  result = sortBy[i].direction*(a[ sortBy[i].prop ].toString() < b[ sortBy[i].prop ].toString() ? -1 : (a[ sortBy[i].prop ].toString() > b[ sortBy[i].prop ].toString() ? 1 : 0));
+			console.log(a)
+			console.log(b)
+		  result = sortBy[i]?.direction*(a[ sortBy[i]?.prop ].toString() < b[ sortBy[i]?.prop ].toString() ? -1 : (a[ sortBy[i]?.prop ].toString() > b[ sortBy[i]?.prop ].toString() ? 1 : 0));
 		  i++;
 		}
 		return result;

@@ -214,11 +214,9 @@ select {
     /* reset */
   
     margin: 0;      
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
+    
     box-sizing: border-box;
-    -webkit-appearance: none;
-    -moz-appearance: none;
+    
   }
   
   
@@ -489,5 +487,9 @@ select {
     display:flex;
     align-items: center;
     width: 80%;
+   
+}
+#reportResult >p{
+    margin-left: 10px;
 }
 .no-show-container:nth-child(even) {background: rgb(216, 215, 215)}

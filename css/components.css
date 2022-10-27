@@ -199,7 +199,9 @@
     display:table-cell;
     /* align-items: center; */
     height:35px;
-    vertical-align: middle;
+    vertical-align:middle;
+    
+    
     background-color:white;
     outline: none;
     padding-left: 10px;

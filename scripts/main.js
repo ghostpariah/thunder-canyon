@@ -964,9 +964,12 @@ ipcMain.on('update-job',(event, args, args2, args3, args4)=>{
     let strColumns 
     let strValues 
     for(i=1;i<k.length;i++){
-            
+            if(v[i] == null){
+                arrC.push(`${k[i]}=${v[i]}`)  
+            }else{
             arrC.push(`${k[i]}='${v[i]}'`)
             arrV.push(v[i])
+            }
     }
     if(arrC.length > 1){
     strColumns = arrC.join(',')
@@ -1143,7 +1146,7 @@ ipcMain.on('get-jobs', (event,args)=>{
         }
         
     })
-    let sql = `SELECT * FROM jobs WHERE customer_ID = ${args} AND (active ISNULL OR active=0) AND (no_show ISNULL OR no_show =0) AND (cancelled=0 OR cancelled ISNULL)`
+    let sql = `SELECT * FROM jobs WHERE customer_ID = ${args} AND (active ISNULL OR active=0) AND (cancelled=0 OR cancelled ISNULL)` //AND (no_show ISNULL OR no_show =0) 
     dboJob.all(sql,function (err,row){
         if(err){
             console.log('first select'+err.message)
@@ -2357,7 +2360,7 @@ function createCreateUserWindow(){
 function createContactsWindow(args1, args2, args3, args4, args5,args6,args7,args8){
     contactWin = new BrowserWindow({
             parent: win,
-            modal: false,            
+            modal: true,            
             width:550,
             height: 650,
             
@@ -2928,7 +2931,7 @@ ipcMain.on('pass-contact', (event,args, args2)=>{
 })
 
 ipcMain.on('get-contacts', (event, args)=>{
-    
+    let primary_contact
     let insertCount = 0
     if(args != undefined){
         let dboContacts = new sqlite3.Database(workflowDB, (err)=>{
@@ -2938,18 +2941,27 @@ ipcMain.on('get-contacts', (event, args)=>{
             
         })
         dboContacts.serialize(function(){
-        //make sql query for dboContacts
-        let sql = `SELECT DISTINCT contacts.*, phone_numbers.phone_ID, phone_numbers.number, emails.email_ID, emails.email
-        FROM contacts 
-        LEFT JOIN phone_numbers ON contacts.contact_ID = phone_numbers.p_contact_ID
-        LEFT JOIN emails ON contacts.contact_ID = emails.e_contact_ID        
-        WHERE contacts.customer_ID=${args}`;
-        let sqltest = `SELECT * FROM contacts WHERE customer_ID = ${args}
-        UNION 
-        SELECT * FROM contacts, phone_numbers WHERE p_contact_ID = contacts.contact_ID
-        UNION
-        SELECT * FROM contacts, emails WHERE e_contact_ID = contacts.contact_ID`
-        let sql1 = `SELECT * FROM contacts WHERE customer_ID=${args} AND active=1`
+            //make sql query for dboContacts
+            let sql = `SELECT DISTINCT contacts.*, phone_numbers.phone_ID, phone_numbers.number, emails.email_ID, emails.email
+            FROM contacts 
+            LEFT JOIN phone_numbers ON contacts.contact_ID = phone_numbers.p_contact_ID
+            LEFT JOIN emails ON contacts.contact_ID = emails.e_contact_ID        
+            WHERE contacts.customer_ID=${args}`;
+            let sqltest = `SELECT * FROM contacts WHERE customer_ID = ${args}
+            UNION 
+            SELECT * FROM contacts, phone_numbers WHERE p_contact_ID = contacts.contact_ID
+            UNION
+            SELECT * FROM contacts, emails WHERE e_contact_ID = contacts.contact_ID`
+            let sqlPrimary = `SELECT primary_contact FROM customers WHERE customer_ID = ${args}`
+            dboContacts.all(sqlPrimary,[], function(err,rowPrimary){
+                if(err){
+                    console.log(err)
+                    return err
+                }else{
+                    primary_contact = rowPrimary
+                }
+            })
+            let sql1 = `SELECT * FROM contacts WHERE customer_ID=${args} AND active=1`
         
             dboContacts.all(sql1,[], function (err, row){
                 if(err){
@@ -2959,7 +2971,7 @@ ipcMain.on('get-contacts', (event, args)=>{
                     
                     if(row.length>0){
                     for(let member in row){
-                    let sql2 = `SELECT * FROM phone_numbers WHERE EXISTS (SELECT p_contact_ID FROM phone_numbers) AND p_contact_ID = ${row[member].contact_ID} AND active=1`
+                        let sql2 = `SELECT * FROM phone_numbers WHERE EXISTS (SELECT p_contact_ID FROM phone_numbers) AND p_contact_ID = ${row[member].contact_ID} AND active=1`
                         dboContacts.all(sql2,[], function (err, row2){
                             if(err){
                                 console.log(err)
@@ -2973,7 +2985,9 @@ ipcMain.on('get-contacts', (event, args)=>{
                                         console.log(err)
                                         return err
                                     }else{
-                                        
+                                            if(primary_contact.length){
+                                                row.primary_contact = primary_contact[0].primary_contact
+                                            }
                                         
                                             if(row2.length){
                                                 row[member].phonenumbers = row2
@@ -2984,15 +2998,10 @@ ipcMain.on('get-contacts', (event, args)=>{
                                             let packagedData = new Array()
                                             packagedData = row
                                             insertCount++
-                                              if(insertCount==row.length){
-
-                                                
-                                                 
+                                            if(insertCount==row.length){
                                                 event.returnValue = row
-                                                
-                                            
-                                            event.sender.send('set-contacts', row)
-                                            dboContacts.close()
+                                                event.sender.send('set-contacts', row)
+                                                dboContacts.close()
                                             }
                                         
                                     }
@@ -3062,7 +3071,8 @@ ipcMain.on('edit-email', (event,args,args2)=>{
         }); 
          
 })
-ipcMain.on('edit-primary-contact', (event, args1, args2)=>{
+
+ipcMain.on('get-primary-contact',(event,args)=>{
     let dboCN = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
@@ -3070,14 +3080,33 @@ ipcMain.on('edit-primary-contact', (event, args1, args2)=>{
         
     })
 
-    let sql = `UPDATE contacts SET primary_contact = ${args1} WHERE contact_ID = ${args2}`
+    let sql = `SELECT * FROM customers WHERE customer_ID = ${Number(args)}`
+    console.log(sql)
+    dboCN.get(sql, function(err,row) {
+        if (err) {
+            return console.error(err.message);
+        }
+        
+        event.returnValue = row.primary_contact
+        dboCN.close() 
+        }); 
+})
+ipcMain.on('edit-primary-contact', (event, args1, args2,args3)=>{
+    let dboCN = new sqlite3.Database(workflowDB, (err)=>{
+        if(err){
+            console.error(err.message)
+        }
+        
+    })
+
+    let sql = `UPDATE customers SET primary_contact = ${args2} WHERE customer_ID = ${args3}`
     console.log(sql)
     dboCN.run(sql, function(err) {
         if (err) {
             return console.error(err.message);
         }
         console.log(`Row(s) updated: ${this.changes}`);
-        
+        event.sender.send('reload',args3,'primary')
         dboCN.close() 
         });  
 })

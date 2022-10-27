@@ -3,157 +3,11 @@
  * function used to fill contacts drop down on edit and add job windows
  *  
  */
-function fillContacts(cont){
-	
-	
-	let t=document.createTextNode('add contact')
-	let newOption=document.createElement("OPTION");
-	
-	//const contactContent = document.getElementById('txtContacts')
-	const contactContent = document.getElementById('Contacts-listBox')
-	contactContent.innerHTML=""	
-	
-	if(typeof cont != undefined && typeof cont === 'object'){ 
-		cont.sort((a, b) => (a.primary_contact > b.primary_contact) ? -1 : 1)
-		newOption=document.createElement("OPTION");
-		t=document.createTextNode('add contact')
-		
-        for(member in cont){
-			let optGroup = document.createElement("optgroup")
-			let optNewNumber = document.createElement("OPTION")
-			let optNewEmail = document.createElement("OPTION")			
-			let newNumber = document.createTextNode('+ add number')
-			let txtAddEmail = document.createTextNode('+ add email')
-			
-			chosenFirstname = cont[member].first_name
-			chosenLastname = cont[member].last_name
-			let fn = (cont[member].first_name) ? cont[member].first_name : ""
-			let ln = (cont[member].last_name) ? cont[member].last_name : ""
 
-			if(cont[member].primary_contact == 1){				
-				optGroup.setAttribute('label',`*${fn} ${ln}`)
-			}else{
-			optGroup.setAttribute('label',`${fn} ${ln}`)
-			}
-
-			if(cont[member].phonenumbers){
-				optGroup.setAttribute('pncount',cont[member].phonenumbers.length)
-			}
-
-			if(cont[member].emails){
-				optGroup.setAttribute('ecount', cont[member].emails.length)
-			}
-
-			optGroup.setAttribute('position', member)
-
-			if(cont[member].contact_ID){	
-				optGroup.setAttribute('contactID', Number(cont[member].contact_ID))				
-			}
-
-			 contactContent.appendChild(optGroup);
-			//  let dashOpt = document.createElement('option')					
-			//  let dash = document.createTextNode("")//did say Phone Numbers
-			//  dashOpt.setAttribute("disabled","disabled")
-			//  dashOpt.setAttribute('class','cmHeader')
-			//  dashOpt.appendChild(dash)
-			//  optGroup.appendChild(dashOpt)
-			 
-			
-            for(n in cont[member].phonenumbers){
-				//create number element unless there is no number
-				if(cont[member].phonenumbers[n].number !=null){
-					let newOption=document.createElement("OPTION");				 	
-					t = document.createTextNode(`${cont[member].phonenumbers[n].number}`)					
-					newOption.setAttribute("position", Number(n)+1)
-					newOption.setAttribute("id",`${cont[member].phonenumbers[n].phone_ID}` )
-					newOption.appendChild(t)
-					newOption.setAttribute("method","phone")				
-					newOption.setAttribute('value', `${cont[member].phonenumbers[n].number}`)					
-					optGroup.appendChild(newOption)	
-				}
-
-				if(n == cont[member].phonenumbers.length-1){
-					optNewNumber.appendChild(newNumber)
-					optGroup.appendChild(optNewNumber)
-					optGroup.lastChild.style.color = 'blue'
-					optGroup.lastChild.style.fontWeight = 'bold'
-					optGroup.lastChild.style.fontSize = '.65em'
-					
-				}			
-			}
-			// let eDashOpt = document.createElement('option')					
-			// let eDash = document.createTextNode("")//did say EMAIL
-			// eDashOpt.setAttribute("disabled","disabled")
-			// eDashOpt.appendChild(eDash)
-			// optGroup.appendChild(eDashOpt)
-
-						 
-			for(n in cont[member].emails){
-
-				//create email element unless there is no email
-				if(cont[member].emails[n].email !=null){
-					let newOption=document.createElement("OPTION");				 	
-					t = document.createTextNode(`${cont[member].emails[n].email}`)
-					newOption.appendChild(t)
-					newOption.setAttribute("method","email")	
-					newOption.setAttribute("id",`${cont[member].emails[n].email_ID}`)			
-					newOption.setAttribute('value', `${fn} ${ln} ~ ${cont[member].emails[n].email}`)				
-					optGroup.appendChild(newOption)	
-				}			
-		   }
-			
-			
-			optNewEmail.appendChild(txtAddEmail)
-			optGroup.appendChild(optNewEmail)
-			optGroup.lastChild.style.color = 'blue'
-			optGroup.lastChild.style.fontWeight = 'bold'
-			optGroup.lastChild.style.fontSize = '.65em'		
-              
-		}
-		newOption=document.createElement("OPTION");
-		newOption.setAttribute("value","no contact");	
-		
-		let ac = document.createTextNode(`+ add new contact`)		
-		newOption.appendChild(ac)
-		contactContent.insertBefore(newOption,contactContent.firstChild)		
-		contactContent.firstChild.style.fontWeight = 'bold'
-		contactContent.firstChild.style.color = 'teal'
-		contactContent.firstChild.classList.add('teal')
-	}else{		
-		//parameter passed into function was undefined or not an object so fill drop down with options 
-        //when no contact exists. such as adding a contact or chosing "no contact"
-		let blankOption = document.createElement('option')
-		let b_o_text = document.createTextNode('--select option--')
-        
-		blankOption.appendChild(b_o_text)
-		blankOption.disabled = true
-		contactContent.appendChild(blankOption)
-
-		let noOption = document.createElement('option')
-		let n_o_text = document.createTextNode('no contact')
-		noOption.appendChild(n_o_text)		
-		contactContent.appendChild(noOption)
-		
-		let addOption = document.createElement('option')
-		let a_o_text = document.createTextNode('+ add contact')
-		addOption.appendChild(a_o_text)		
-		contactContent.appendChild(addOption)
-		
-
-	}	
-	$('#txtContacts').focus()
-	
-	$(contactContent).on('change',()=>{
-		
-		tellParent()
-		
-	}).off('change')
-	$(contactContent).trigger('change')
-}
 
 function fillContactsNew(props){//contacts,cust_ID,cusName,launcher
 	//object for passing properties to 'open-contacts' in main
-	
+	console.log(props)
 	let contacts
 	let cust_ID
 	let cusName
@@ -213,7 +67,8 @@ function fillContactsNew(props){//contacts,cust_ID,cusName,launcher
 							console.log('is new company')
 							objContactProps.isNew = true
 							//TODO: add new company to database
-							objContactProps.customer_ID = addNewCompany(document.getElementById('Customer-choice').innerText.trim())
+							let decoded = removeSpecialCharacters(document.getElementById('Customer-choice').innerText.trim())
+							objContactProps.customer_ID = addNewCompany(decoded)
 							ipc.send('pass-new-customer-to-main-window', objContactProps.customer_ID)
 							document.getElementById('Customer-choice').setAttribute('data-cid',objContactProps.customer_ID)
 						}else{
@@ -222,7 +77,7 @@ function fillContactsNew(props){//contacts,cust_ID,cusName,launcher
 						
 						console.log('there are not contacts')
 					}
-					if(props.launcher == 'edit page'){
+					if(launcher == 'edit page'){
 						objContactProps.launcher = 'edit page'
 					}else{
 						objContactProps.launcher = 'add job page'
@@ -256,7 +111,8 @@ function fillContactsNew(props){//contacts,cust_ID,cusName,launcher
 					console.log('is new company')
 					objContactProps.isNew = true
 					//TODO: add new company to database
-					objContactProps.customer_ID = addNewCompany(document.getElementById('Customer-choice').innerText.trim())
+					let decoded = removeSpecialCharacters(document.getElementById('Customer-choice').innerText.trim())
+					objContactProps.customer_ID = addNewCompany(decoded)
 					ipc.send('pass-new-customer-to-main-window', objContactProps.customer_ID)
 					document.getElementById('Customer-choice').setAttribute('data-cid',objContactProps.customer_ID)
 				}else{
@@ -289,7 +145,9 @@ function fillContactsNew(props){//contacts,cust_ID,cusName,launcher
     //----thencreate an option for each contact info item and fill with phone number or email
 	if(contacts){ // was contacts.length>0
 		
-		contacts.sort((a, b) => (a.primary_contact > b.primary_contact) ? -1 : 1)
+		//contacts.sort((a, b) => (a.primary_contact > b.primary_contact) ? -1 : 1)
+		let first = contacts.primary_contact
+        contacts.sort((x,y)=> x.contact_ID == first ? -1 : y.contact_ID == first ? 1 : 0 );
 		for(i=0;i<contacts.length;i++){
 					//create group
 					let contactOptionGroup = document.createElement('div')
@@ -303,7 +161,7 @@ function fillContactsNew(props){//contacts,cust_ID,cusName,launcher
 
 					//create header name container
 					let cohName = document.createElement('div')
-					if(contacts[i].primary_contact == true){
+					if(contacts.primary_contact == contacts[i].contact_ID){
 						cohName.setAttribute('class','name primaryContact')
 					}else{
 						cohName.setAttribute('class','name')
@@ -325,10 +183,11 @@ function fillContactsNew(props){//contacts,cust_ID,cusName,launcher
 							props.action = 'edit'
 							props.contacts = contacts
 							props.customer_name = cusName
-							props.launcher = 'add job page'
+							props.launcher = launcher
 							for(let contact in contacts){
 								if(contacts[contact].contact_ID == event.target.id){
 									props.contact = contacts[contact]
+									break;
 								}
 							}
 							props.customer_ID = event.target.getAttribute('data-customer-id')
@@ -452,6 +311,7 @@ function fillContactsNew(props){//contacts,cust_ID,cusName,launcher
 							// })
 							$(contactOption).on({
 								click: (event)=>{
+									console.log('item clicked')
 									let ti = Number(document.getElementById('Contacts-choice').getAttribute('tabindex'))
 									displayedName.innerHTML = event.target.parentNode.firstChild.firstChild.innerHTML
 									choice.innerHTML = event.target.innerHTML
@@ -511,6 +371,9 @@ function fillContactsNew(props){//contacts,cust_ID,cusName,launcher
 					optionsBox.appendChild(contactOptionGroup)
 					
 					
+			}
+			if(props.contacts.primary_contact){
+				console.log('primary is '+props.contacts.primary_contact)
 			}
 	}else{
 		console.log('contacts length = 0')

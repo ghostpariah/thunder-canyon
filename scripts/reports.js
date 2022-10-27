@@ -1423,7 +1423,7 @@ async function pullNoShows(){
     console.timeEnd('no-show-forLoop')
     for(i=arrData.length-1;i>=0;i--){
 
-        strForDisplay+= `${arrData[i]}<br/><br/>`
+        strForDisplay+= `<p>${arrData[i]}</p>`
     }
     
     noShowResultsForDisplay = strForDisplay
@@ -1440,6 +1440,7 @@ function displayHistory(result){
     for(i=0;i<result.length;i++){
         if(typeof result[i] === 'object'){
             let strData = `${ipc.sendSync('db-get-customer-name',result[i].customer_ID)} ${result[i].job_type} job on UNIT: ${result[i].unit} on ${result[i].date_in}   NOTES: ${result[i].notes}`
+            strData += (result[i].no_show)? `  <<<NO SHOW on ${result[i].date_scheduled}>>>`: ''
             lineItem+= `${strData}\n`
             strForDisplay += `${strData}<br/><br/>`
 

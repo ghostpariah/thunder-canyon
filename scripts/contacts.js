@@ -272,7 +272,9 @@
       ipc.on("open-contact-page", (event, args) => {
       customerNameWrapper.style.display = "block";
       });
-
+      ipc.on('reload', (event,args, args2)=>{
+        reloadPage(args,args2)
+      })
 
      
       function togglePageView(action) {
@@ -298,7 +300,7 @@
               break;
             case 'edit':
               
-              document.getElementById('btnMainEdit').click()
+                document.getElementById('btnMainEdit').click()
                 document.getElementById('btnMainEdit').setAttribute('class','mainContactButton buttonSelected')
                 contactContent.style.display = "block";
                 contactForm.style.display = "none";              
@@ -381,13 +383,13 @@
           
          
         try{  
-          console.log(args1)
+          
           let argCount = 0;
           props = args1
 
           addCN = props.customer_name
           addCID = props.customer_ID
-          console.log(props.launcher)
+          console.log(props)
           //launching page
           switch (props.launcher) {
             case "main page":
@@ -396,23 +398,25 @@
               loadContactsPage(true)
               return
               break;
+            case 'add':
             case "add job page":
               //console.log(`${args1} ${args2} ${args3} ${args4} ${args5} ${args6} ${args7} ${args8} ${args9}`)
               if(props.action == 'add'){
                 contactsMain.style.display = "block";
                 contactForm.style.display = "block";
                 inpFirstname.focus();
-                setTimeout(() => {
+                //setTimeout(() => {
                   togglePageView("add");
-                }, 50);
+               // }, 50);
               }
               if(props.action == 'edit'){
+                document.getElementById('customerNameWrapper').style.display = 'none'
                 addCN = props.customer_name
                 addCID = props.customer_ID
                 setTimeout(() => {
-                  togglePageView("edit");
-                }, 50);
-                document.getElementById('customerNameWrapper').style.display = 'none'
+                  document.getElementById('btnMainEdit').click()
+                }, 300);
+                
               }
               pageLauncher = "add job";
               loadContactsPage(false)
@@ -422,14 +426,29 @@
              
               break;
             case "edit page":
-              console.log("your mom")
+              
               pageLauncher = "edit";
-              setTimeout(() => {
-                togglePageView("edit");
+              if(props.action == 'edit'){
+                
+                  
+                  loadHeader(addCN);
+                  pullContacts(ipc.sendSync('get-customer-ID',addCN))
+                  //togglePageView("edit");
+                  setTimeout(() => {
+                  document.getElementById('btnMainEdit').click()
+                  
+                }, 300);
+              }
+              if(props.action == 'add'){
+
+              
+              //setTimeout(() => {
+                
                 loadHeader(addCN);
                 pullContacts(ipc.sendSync('get-customer-ID',addCN))
                 togglePageView("add");
-              }, 300);
+              //}, 300);
+              }
               break;
             default:
               break;
@@ -622,9 +641,14 @@
 
       function loadHeader(arg, id) {
         //gaurdian clause to exit function if arg is undefined
+        if(props.launcher == 'main page'){
+          props.customer_ID = id
+        }
         console.log(`companyName is ${arg} and companyID is ${props.customer_ID}`)
+        console.log(props)
+        
         if(arg == undefined || arg == null ) return console.log(`arg was undefined line 414 in loadHeader()`)
-        companyID = addCN;
+        //companyID = addCN;
         //companyID = ipc.sendSync('get-customer-ID', arg);
         console.log(`companyName is ${arg} and companyID is ${companyID} after guardian clause`)
         
@@ -878,21 +902,7 @@
         let itemID
 
         
-        // if(addCID){
-        //   data.customer_ID = companyHeader.firstChild.childNodes[0].id
-        //   data.contact_ID = addCID
-        //   data.closingWindow = true
-        //   data.active = 1
-        //   if(addCM == 'phone'){
-        //     data.text = inpPhoneNumber.value
-            
-        //     itemID = ipc.sendSync('phone',data)
-        //   }else if(addCM == 'email'){
-        //     data.text = inpEmail.value
-            
-        //     itemID = ipc.sendSync('add-email',data)
-        //   }
-        // }else{
+        
         data.customer_name = props.customer_name;
         
         if (inpFirstname.value != "") {
@@ -907,9 +917,14 @@
         if (inpEmail.value != "") {
           data.email = inpEmail.value;
         }
-        if(cbPrimary.checked){
+        if(props.contacts){
+          if(cbPrimary.checked){
+            data.primary_contact = 1
+          }
+        }else{
           data.primary_contact = 1
         }
+        
         data.active = 1
         
         
@@ -985,6 +1000,7 @@
       ipc.on('set-contacts', (event, args) => { 
         console.log('set-contacts triggered')       
         globalObjectContact = args[0]
+        console.log(args)
         fillContacts(args);
         
       });
@@ -1214,6 +1230,7 @@
         switch(from){
           case 'primary':
             pullContacts(cont)
+            
             toggleActionLinkVisibility('off')
             togglePageView()
           break;
@@ -1226,7 +1243,9 @@
       function fillContacts(cont) {
         console.log('fill contacts started')
         console.time('fill')
-        cont.sort((a, b) => (a.primary_contact > b.primary_contact) ? -1 : 1)
+        //cont.sort((a, b) => (a.primary_contact > b.primary_contact) ? -1 : 1)
+        let first = cont.primary_contact
+        cont.sort((x,y)=> x.contact_ID == first ? -1 : y.contact_ID == first ? 1 : 0 );
         
         contactContent.innerHTML = "";
         let wholeCompanyList = document.createElement("ul");
@@ -1237,472 +1256,481 @@
         let pnText = "";
 
         for (member in cont) {
-          let li = document.createElement("li");
-          li.setAttribute(
-            "id",
-            `c${String(cont[member].contact_ID).padStart(5, "0")}`
-          );
-          
-          let divPrimaryIndicator = document.createElement('div')
-          divPrimaryIndicator.setAttribute('class','primary')
-
-          let spanPrimaryIndicator = document.createElement('span')
-          
-          spanPrimaryIndicator.setAttribute('class','indicator visible')
-          let divPrimaryCheckbox = document.createElement('div')
-          divPrimaryCheckbox.setAttribute('class','divPrimaryCheckbox')
-          let cbPrimary = document.createElement('input')
-          
-          cbPrimary.setAttribute('type', 'checkbox')
-          cbPrimary.setAttribute('name','primary')
-          //cbPrimary.setAttribute('class','cbPrimary hidden')
-          cbPrimary.setAttribute('class','cbPrimary')
-          cbPrimary.setAttribute('id',`ci${String(cont[member].contact_ID).padStart(5, "0")}`)
-          cbPrimary.addEventListener('click',(event)=>{
-            let isPrimary = (event.target.checked) ? 1:0
-            let id = parseInt(Number(event.target.id.substring(2)),10)
-
-            ipc.send('edit-primary-contact', isPrimary,id)
-            
-            setTimeout(() => {
-              reloadPage(cont[member].customer_ID, 'primary')
-              
-            }, 200);
-            
-          })
-          let cbLabel = document.createElement('label')
-          let cbText = document.createTextNode(` Primary Contact`)
-          cbLabel.appendChild(cbText)
-          
-          if(cont[member].primary_contact == 1){
-            currentPrimary = cont[member].contact_ID
-            cbPrimary.setAttribute('checked', true)
-            let indicatorText = document.createTextNode('P')
-            spanPrimaryIndicator.appendChild(indicatorText)
-          }
-          divPrimaryIndicator.appendChild(spanPrimaryIndicator)
-          divPrimaryCheckbox.appendChild(cbPrimary)
-          divPrimaryCheckbox.appendChild(cbLabel)
-          
-
-          let spanFirstName = document.createElement("span");
-          spanFirstName.setAttribute("class", "contactName");
-          let spanFirstNameText = document.createTextNode(
-            cont[member].first_name
-          );
-          spanFirstName.appendChild(spanFirstNameText);
-          let spanLastName = document.createElement("span");
-          spanLastName.setAttribute("class", "contactName");
-          let spanLastNameText =
-            cont[member].last_name != null
-              ? document.createTextNode(cont[member].last_name)
-              : document.createTextNode("");
-          spanLastName.appendChild(spanLastNameText);
-          let linkEl1 = document.createElement("span");
-          let linkEl2 = document.createElement("span");
-          //linkEl1.setAttribute('id', `${cont[member].contacts[member].contactID}editLink`)
-          linkEl1.setAttribute("class", "actionLink");
-          //linkEl2.setAttribute('id', `${cont[member].contacts[member].contactID}deleteLink`)
-          linkEl2.setAttribute("class", "actionLink");
-          let link = document.createTextNode(`  edit  `);
-          let deleteLink = document.createTextNode(`  delete  `);
-          linkEl1.appendChild(link);
-          linkEl2.appendChild(deleteLink);
-          linkEl1.addEventListener("click", () => {
-            toggleActionLinkVisibility("on");
-            //remove open created input for add
-            if (document.getElementById("addCreatedListItem") != null) {
-              document.getElementById("addCreatedListItem").remove();
-            }
-            //close open edit box when 'add' clicked
-            if (document.getElementById("editCreatedListItem") != null) {
-              document
-                .getElementById("editCreatedListItem")
-                .childNodes[2].click();
-            }
-
-            let pnList = event.target.parentNode;
-            let pnListItem = event.target.nextSibling;
-            let fnText = event.target.parentNode.childNodes[2].textContent;
-            let lnText = event.target.parentNode.childNodes[3].textContent;
-            let p = event.target.parentNode.id;
-            let cust_ID = event.target.parentNode.parentNode.id.substr(4);
-            objListItemTray.listItem = pnListItem;
-            let newListItem = createDoubleInputs(
-              p.substr(1),
-              fnText,
-              lnText,
-              cust_ID
-            );
-            pnList.insertBefore(newListItem, pnListItem);
-            
-            newListItem.firstChild.focus();
-          });
-
-          
-          linkEl2.addEventListener("click", () => {
-            
-            toggleActionLinkVisibility("on");
-            let p = event.target.parentNode.id;
-            let gp = event.target.parentNode.parentNode.id;
-            let gggp =
-              event.target.parentNode.parentNode.parentNode.parentNode.id;
-            let objDel = new Object();
-            let pJobs
-            let eJobs
-            let aJobs =[]
-            let count = 0
-            let method = p.substr(0, 1);
-            let contact_ID = p.substr(1);
-            
-            for(i=0;i<cont.length;i++){
-              
-              if(cont[i].contact_ID == p.substring(1)){
-                
-                //compare list of numbers with numbers in jobs  
-                //console.log('phonenumbers length is'+cont[i].phonenumbers.length)
-               
-                for(member in cont[i].phonenumbers){//for(j=0;j<cont[i].phonenumbers.length;j++){
-                  let objD = new Object()
-                  pJobs = new Array()
-                    
-                  console.log(cont[i].phonenumbers[member].phone_ID)
-                  objD.method = method
-                  objD.contact_ID = contact_ID
-                  objD.methodID = cont[i].phonenumbers[member].phone_ID 
-                  objD.searchGroup = 'p'
-                  console.log(objD)                 
-                  pJobs = checkJobsForItem(objD)
-                  console.log(pJobs)
-                  aJobs.push(pJobs)
-                  count+= Number(pJobs.jobCount)
-                  
-                }
-                console.log()
-                
-              //compare list of emails with emails in jobs
-              
-              for(member in cont[i].emails){ 
-                  let objD = new Object()                 
-                  objD.method = method
-                  objD.contact_ID = contact_ID
-                  objD.methodID = cont[i].emails[member].email_ID   
-                  objD.searchGroup = 'e'               
-                  eJobs = checkJobsForItem(objD)
-                  aJobs.push(eJobs)
-                  count+= Number(eJobs.jobCount)
-                }
-                
-                
-              }
-            }
-            aJobs.jobCount = count
-            aJobs.onCurrentJob = (count>0) ?  true : false
-            aJobs.method = 'c'
-            aJobs.contact_ID = contact_ID
-            console.log(aJobs);
-            processDeleteDecision(aJobs, 'Contact', objDel)
-            
-            
-            
-            setTimeout(() => {
-              pullContacts(gp.substr(4));
-            }, 100);
-          });
-          wholeCompanyList.appendChild(li);
-          li.appendChild(divPrimaryIndicator)
-          li.appendChild(spanFirstName);
-          li.appendChild(spanLastName);
-          li.appendChild(linkEl1);
-          li.appendChild(linkEl2);
-          var nUl = document.createElement("ul");
-          nUl.setAttribute(
-            "id",
-            `pnList${String(cont[member].contact_ID).padStart(5, "0")}`
-          );
-          let ULheader = document.createTextNode(`Phone Numbers `);
-          nUl.appendChild(ULheader);
-
-          //create add links for each category header(Phone Numbers, Email)
-
-          //Phone Numbers
-          let pnHeaderLinkBox = document.createElement("span");
-          let pnHeaderLinkText = document.createTextNode("add");
-          pnHeaderLinkBox.appendChild(pnHeaderLinkText);
-          pnHeaderLinkBox.setAttribute("class", "actionLink");
-
-          pnHeaderLinkBox.setAttribute(
-            "id",
-            `${cont[member].contact_ID}pnHeaderEditLink`
-          );
-          pnHeaderLinkBox.addEventListener("click", () => {
-            
-            toggleActionLinkVisibility("on");
-            //remove open created input for add
-            if (document.getElementById("addCreatedListItem") != null) {
-              document.getElementById("addCreatedListItem").remove();
-            }
-            //close open edit box when 'add' clicked
-            if (document.getElementById("editCreatedListItem") != null) {
-              document
-                .getElementById("editCreatedListItem")
-                .childNodes[2].click();
-            }
-
-            let p = event.target.parentNode.id.substr(6);
-            let newListItem = createInput("phone", p, "", "add");
-
-            event.target.parentNode.insertBefore(
-              newListItem,
-              event.target.nextSibling
-            );
-            
-            event.target.nextSibling.firstChild.focus();
-          });
-          nUl.appendChild(pnHeaderLinkBox);
-
-          //create phone number list for contact
-
-          for (n in cont[member].phonenumbers) {
-            let nLi = document.createElement("li");
-            let tNu = document.createTextNode(
-              cont[member].phonenumbers[n].number
-            );
-            nLi.appendChild(tNu);
-            /*------/
-                * naming convention for list item ID
-                * first character - p for phone or e for email
-                * followed by 13 digit contact ID
-                * followed by a dash - then the position of the item in the main file array
-                * example p1596725987081-0 for a (p)phone number for contact id 1596725987081 that is first in the list(0)
-                /------*/
-            nLi.setAttribute(
+          console.log(member)
+          if(member != 'primary_contact'){
+            let li = document.createElement("li");
+            li.setAttribute(
               "id",
-              `p${String(cont[member].phonenumbers[n].phone_ID).padStart(
-                5,
-                "0"
-              )}`
+              `c${String(cont[member].contact_ID).padStart(5, "0")}`
             );
+            
+            let divPrimaryIndicator = document.createElement('div')
+            divPrimaryIndicator.setAttribute('class','primary')
 
-            //create edit link for each number
-            let pnEditLinkBox = document.createElement("span");
-            let pnEditLinkText = document.createTextNode(" edit");
-            pnEditLinkBox.appendChild(pnEditLinkText);
-            pnEditLinkBox.setAttribute("class", "actionLink");
-            pnEditLinkBox.addEventListener("click", (event) => {
+            let spanPrimaryIndicator = document.createElement('span')
+            
+            spanPrimaryIndicator.setAttribute('class','indicator visible')
+            let divPrimaryCheckbox = document.createElement('div')
+            divPrimaryCheckbox.setAttribute('class','divPrimaryCheckbox')
+            let cbPrimary = document.createElement('input')
+            
+            cbPrimary.setAttribute('type', 'radio')
+            cbPrimary.setAttribute('name','primary')
+            //cbPrimary.setAttribute('class','cbPrimary hidden')
+            cbPrimary.setAttribute('class','cbPrimary')
+            cbPrimary.setAttribute('id',`ci${String(cont[member].contact_ID).padStart(5, "0")}`)
+            cbPrimary.addEventListener('click',(event)=>{
+              let isPrimary = (event.target.checked) ? 1:0
+              let id = parseInt(Number(event.target.id.substring(2)),10)
+              let cuID = parseInt(Number(event.target.parentNode.parentNode.parentNode.id.substring(5)),10)
+              console.log(cuID)
+              ipc.send('edit-primary-contact', isPrimary,id,cuID)
+              
+              // setTimeout(() => {
+              //   reloadPage(cont[member].customer_ID, 'primary')
+                
+              // }, 200);
+              
+            })
+            let cbLabel = document.createElement('label')
+            let cbText = document.createTextNode(` Primary Contact`)
+            cbLabel.appendChild(cbText)
+            
+            // if(cont[member].primary_contact == 1){
+            //   currentPrimary = cont[member].contact_ID
+            //   cbPrimary.setAttribute('checked', true)
+            //   let indicatorText = document.createTextNode('P')
+            //   spanPrimaryIndicator.appendChild(indicatorText)
+            // }
+            if(cont.primary_contact == cont[member].contact_ID){
+              currentPrimary = cont[member].contact_ID
+              cbPrimary.setAttribute('checked', true)
+              let indicatorText = document.createTextNode('P')
+              spanPrimaryIndicator.appendChild(indicatorText)
+            }
+            divPrimaryIndicator.appendChild(spanPrimaryIndicator)
+            divPrimaryCheckbox.appendChild(cbPrimary)
+            divPrimaryCheckbox.appendChild(cbLabel)
+            
+
+            let spanFirstName = document.createElement("span");
+            spanFirstName.setAttribute("class", "contactName");
+            let spanFirstNameText = document.createTextNode(
+              cont[member].first_name
+            );
+            spanFirstName.appendChild(spanFirstNameText);
+            let spanLastName = document.createElement("span");
+            spanLastName.setAttribute("class", "contactName");
+            let spanLastNameText =
+              cont[member].last_name != null
+                ? document.createTextNode(cont[member].last_name)
+                : document.createTextNode("");
+            spanLastName.appendChild(spanLastNameText);
+            let linkEl1 = document.createElement("span");
+            let linkEl2 = document.createElement("span");
+            //linkEl1.setAttribute('id', `${cont[member].contacts[member].contactID}editLink`)
+            linkEl1.setAttribute("class", "actionLink");
+            //linkEl2.setAttribute('id', `${cont[member].contacts[member].contactID}deleteLink`)
+            linkEl2.setAttribute("class", "actionLink");
+            let link = document.createTextNode(`  edit  `);
+            let deleteLink = document.createTextNode(`  delete  `);
+            linkEl1.appendChild(link);
+            linkEl2.appendChild(deleteLink);
+            linkEl1.addEventListener("click", () => {
               toggleActionLinkVisibility("on");
-              /*
-                    let al = document.getElementsByClassName('actionLink');
-                        for(i=0;i<al.length;i++){
-                        al[i].style.display = "none"
-                    }
-                    */
+              //remove open created input for add
+              if (document.getElementById("addCreatedListItem") != null) {
+                document.getElementById("addCreatedListItem").remove();
+              }
+              //close open edit box when 'add' clicked
               if (document.getElementById("editCreatedListItem") != null) {
                 document
                   .getElementById("editCreatedListItem")
                   .childNodes[2].click();
               }
-              if (document.getElementById("addCreatedListItem") != null) {
-                document
-                  .getElementById("addCreatedListItem")
-                  .childNodes[2].click();
-              }
 
-              let pnList = event.target.parentNode.parentNode;
-              let pnListItem = event.target.parentNode;
-              let pnText = pnListItem.firstChild.textContent;
+              let pnList = event.target.parentNode;
+              let pnListItem = event.target.nextSibling;
+              let fnText = event.target.parentNode.childNodes[2].textContent;
+              let lnText = event.target.parentNode.childNodes[3].textContent;
               let p = event.target.parentNode.id;
+              let cust_ID = event.target.parentNode.parentNode.id.substr(4);
               objListItemTray.listItem = pnListItem;
-              let newListItem = createInput(
-                "phone",
+              let newListItem = createDoubleInputs(
                 p.substr(1),
-                pnText,
-                "edit"
+                fnText,
+                lnText,
+                cust_ID
               );
-              pnList.replaceChild(newListItem, pnListItem);
+              pnList.insertBefore(newListItem, pnListItem);
+              
               newListItem.firstChild.focus();
             });
-            nLi.appendChild(pnEditLinkBox);
 
-            //create delete link for each phone number
-            let pnDeleteLinkBox = document.createElement("span");
-            let pnDeleteLinkText = document.createTextNode(" delete");
-            pnDeleteLinkBox.appendChild(pnDeleteLinkText);
-            pnDeleteLinkBox.setAttribute("class", "actionLink");
             
-            pnDeleteLinkBox.addEventListener("click", (event) => {
-              toggleActionLinkVisibility("on");
-              let p = event.target.parentNode.id;
-              let gp = event.target.parentNode.parentNode.id;
-              let gggp = event.target.parentNode.parentNode.parentNode.parentNode.id;
-              let objDel = new Object();
-              objDel.companyID = gggp.substr(4);
-              objDel.contactID = gp.substr(6);
-              objDel.method = p.substr(0, 1);
-              objDel.methodID = p.substr(1);
-              objDel.searchGroup = 'p'
-              let jobs = checkJobsForItem(objDel)
-              console.log(jobs)
-              console.log(objDel)
-              processDeleteDecision(jobs, 'Phone Number', objDel)
+            linkEl2.addEventListener("click", () => {
               
-              
-              setTimeout(() => {
-                pullContacts(gggp.substr(4));
-              }, 30);
-            });
-            nLi.appendChild(pnDeleteLinkBox);
-
-            nUl.appendChild(nLi);
-            
-          }
-          li.appendChild(nUl);
-          
-          // create input field for the contact chosen on add page
-          if (cont[member].contact_ID == conID && addCM == "phone") {
-            console.log(`input created foradding ${addCM} to contact id ${conID}`)
-            nUl.appendChild(createInput(addCM, conID,"",'add'));
-            $("#inp" + conID).focus();
-            formatPN("#inp" + conID);
-          }
-
-          var eUl = document.createElement("ul");
-          let ULEmailHeader = document.createTextNode(`Email `);
-          eUl.setAttribute(
-            "id",
-            `emList${String(cont[member].contact_ID).padStart(5, "0")}`
-          );
-          eUl.appendChild(ULEmailHeader);
-
-          let eHeaderLinkBox = document.createElement("span");
-          let eHeaderLinkText = document.createTextNode("add");
-          eHeaderLinkBox.appendChild(eHeaderLinkText);
-          eHeaderLinkBox.setAttribute("class", "actionLink");
-
-          eHeaderLinkBox.setAttribute(
-            "id",
-            `${cont[member].contact_ID}eHeaderEditLink`
-          );
-          eHeaderLinkBox.addEventListener("click", () => {
-            
-            toggleActionLinkVisibility("on");
-
-            //remove open created input for add
-            if (document.getElementById("addCreatedListItem") != null) {
-              document.getElementById("addCreatedListItem").remove();
-            }
-            //close open edit box when 'add' clicked
-            if (document.getElementById("editCreatedListItem") != null) {
-              document
-                .getElementById("editCreatedListItem")
-                .childNodes[2].click();
-            }
-            let p = event.target.parentNode.id.substr(6);
-
-            let newListItem = createInput("email", p, "", "add");
-
-            event.target.parentNode.insertBefore(
-              newListItem,
-              event.target.nextSibling
-            );
-            event.target.nextSibling.firstChild.focus();
-          });
-          eUl.appendChild(eHeaderLinkBox);
-
-          for (n in cont[member].emails) {
-            let nLi = document.createElement("li");
-            let tNu = document.createTextNode(cont[member].emails[n].email);
-            nLi.appendChild(tNu);
-            nLi.setAttribute(
-              "id",
-              `e${String(cont[member].emails[n].email_ID).padStart(5, "0")}`
-            );
-
-            //create edit link for each email
-            let eEditLinkBox = document.createElement("span");
-            let eEditLinkText = document.createTextNode(" edit");
-            eEditLinkBox.appendChild(eEditLinkText);
-            eEditLinkBox.setAttribute("class", "actionLink");
-            eEditLinkBox.addEventListener("click", (event) => {
-              toggleActionLinkVisibility("on");
-
-              if (document.getElementById("editCreatedListItem") != null) {
-                document
-                  .getElementById("editCreatedListItem")
-                  .childNodes[2].click();
-              }
-              if (document.getElementById("addCreatedListItem") != null) {
-                document
-                  .getElementById("addCreatedListItem")
-                  .childNodes[2].click();
-              }
-              let eList = event.target.parentNode.parentNode;
-              let eListItem = event.target.parentNode;
-              let eText = eListItem.firstChild.textContent;
-              let p = event.target.parentNode.parentNode.id;
-              objListItemTray.listItem = eListItem;
-              //alert(cont[member].id)
-              console.log(
-                "the parameter p in createInput() = " +
-                  p +
-                  " which should be a single digit position marker"
-              );
-              let newListItem = createInput(
-                "email",
-                event.target.parentNode.id.substr(1),
-                eText,
-                "edit"
-              );
-              eList.replaceChild(newListItem, eListItem);
-              newListItem.firstChild.focus();
-            });
-            nLi.appendChild(eEditLinkBox);
-            eUl.appendChild(nLi);
-
-            //create delete link for each email
-            let eDeleteLinkBox = document.createElement("span");
-            let eDeleteLinkText = document.createTextNode(" delete");
-            eDeleteLinkBox.appendChild(eDeleteLinkText);
-            eDeleteLinkBox.setAttribute("class", "actionLink");
-           
-            eDeleteLinkBox.addEventListener("click", (event) => {
               toggleActionLinkVisibility("on");
               let p = event.target.parentNode.id;
               let gp = event.target.parentNode.parentNode.id;
               let gggp =
                 event.target.parentNode.parentNode.parentNode.parentNode.id;
               let objDel = new Object();
-              objDel.companyID = gggp.substr(4);
-              objDel.contactID = gp.substr(6);
-              objDel.method = p.substr(0, 1);
-              objDel.methodID = p.substr(1);
-              objDel.searchGroup = 'e'
+              let pJobs
+              let eJobs
+              let aJobs =[]
+              let count = 0
+              let method = p.substr(0, 1);
+              let contact_ID = p.substr(1);
               
-              let jobs = checkJobsForItem(objDel)
+              for(i=0;i<cont.length;i++){
+                
+                if(cont[i].contact_ID == p.substring(1)){
+                  
+                  //compare list of numbers with numbers in jobs  
+                  //console.log('phonenumbers length is'+cont[i].phonenumbers.length)
+                
+                  for(member in cont[i].phonenumbers){//for(j=0;j<cont[i].phonenumbers.length;j++){
+                    let objD = new Object()
+                    pJobs = new Array()
+                      
+                    console.log(cont[i].phonenumbers[member].phone_ID)
+                    objD.method = method
+                    objD.contact_ID = contact_ID
+                    objD.methodID = cont[i].phonenumbers[member].phone_ID 
+                    objD.searchGroup = 'p'
+                    console.log(objD)                 
+                    pJobs = checkJobsForItem(objD)
+                    console.log(pJobs)
+                    aJobs.push(pJobs)
+                    count+= Number(pJobs.jobCount)
+                    
+                  }
+                  console.log()
+                  
+                //compare list of emails with emails in jobs
+                
+                for(member in cont[i].emails){ 
+                    let objD = new Object()                 
+                    objD.method = method
+                    objD.contact_ID = contact_ID
+                    objD.methodID = cont[i].emails[member].email_ID   
+                    objD.searchGroup = 'e'               
+                    eJobs = checkJobsForItem(objD)
+                    aJobs.push(eJobs)
+                    count+= Number(eJobs.jobCount)
+                  }
+                  
+                  
+                }
+              }
+              aJobs.jobCount = count
+              aJobs.onCurrentJob = (count>0) ?  true : false
+              aJobs.method = 'c'
+              aJobs.contact_ID = contact_ID
+              console.log(aJobs);
+              processDeleteDecision(aJobs, 'Contact', objDel)
               
               
-              processDeleteDecision(jobs, 'Email', objDel)
-             
+              
               setTimeout(() => {
-                pullContacts(gggp.substr(4));
-              }, 30);
+                pullContacts(gp.substr(4));
+              }, 100);
             });
-            nLi.appendChild(eDeleteLinkBox);
+            wholeCompanyList.appendChild(li);
+            li.appendChild(divPrimaryIndicator)
+            li.appendChild(spanFirstName);
+            li.appendChild(spanLastName);
+            li.appendChild(linkEl1);
+            li.appendChild(linkEl2);
+            var nUl = document.createElement("ul");
+            nUl.setAttribute(
+              "id",
+              `pnList${String(cont[member].contact_ID).padStart(5, "0")}`
+            );
+            let ULheader = document.createTextNode(`Phone Numbers `);
+            nUl.appendChild(ULheader);
 
-            eUl.appendChild(nLi);
-          }
+            //create add links for each category header(Phone Numbers, Email)
 
-          li.appendChild(eUl);
-          li.insertBefore(divPrimaryCheckbox,li.firstChild)
-         
-          if (cont[member].contact_ID == conID && addCM == "email") {
-            eUl.appendChild(createInput('email', conID, "",'add'));
-            $("#inp" + conID).focus();
-           
-          }        
+            //Phone Numbers
+            let pnHeaderLinkBox = document.createElement("span");
+            let pnHeaderLinkText = document.createTextNode("add");
+            pnHeaderLinkBox.appendChild(pnHeaderLinkText);
+            pnHeaderLinkBox.setAttribute("class", "actionLink");
+
+            pnHeaderLinkBox.setAttribute(
+              "id",
+              `${cont[member].contact_ID}pnHeaderEditLink`
+            );
+            pnHeaderLinkBox.addEventListener("click", () => {
+              
+              toggleActionLinkVisibility("on");
+              //remove open created input for add
+              if (document.getElementById("addCreatedListItem") != null) {
+                document.getElementById("addCreatedListItem").remove();
+              }
+              //close open edit box when 'add' clicked
+              if (document.getElementById("editCreatedListItem") != null) {
+                document
+                  .getElementById("editCreatedListItem")
+                  .childNodes[2].click();
+              }
+
+              let p = event.target.parentNode.id.substr(6);
+              let newListItem = createInput("phone", p, "", "add");
+
+              event.target.parentNode.insertBefore(
+                newListItem,
+                event.target.nextSibling
+              );
+              
+              event.target.nextSibling.firstChild.focus();
+            });
+            nUl.appendChild(pnHeaderLinkBox);
+
+            //create phone number list for contact
+
+            for (n in cont[member].phonenumbers) {
+              let nLi = document.createElement("li");
+              let tNu = document.createTextNode(
+                cont[member].phonenumbers[n].number
+              );
+              nLi.appendChild(tNu);
+              /*------/
+                  * naming convention for list item ID
+                  * first character - p for phone or e for email
+                  * followed by 13 digit contact ID
+                  * followed by a dash - then the position of the item in the main file array
+                  * example p1596725987081-0 for a (p)phone number for contact id 1596725987081 that is first in the list(0)
+                  /------*/
+              nLi.setAttribute(
+                "id",
+                `p${String(cont[member].phonenumbers[n].phone_ID).padStart(
+                  5,
+                  "0"
+                )}`
+              );
+
+              //create edit link for each number
+              let pnEditLinkBox = document.createElement("span");
+              let pnEditLinkText = document.createTextNode(" edit");
+              pnEditLinkBox.appendChild(pnEditLinkText);
+              pnEditLinkBox.setAttribute("class", "actionLink");
+              pnEditLinkBox.addEventListener("click", (event) => {
+                toggleActionLinkVisibility("on");
+                /*
+                      let al = document.getElementsByClassName('actionLink');
+                          for(i=0;i<al.length;i++){
+                          al[i].style.display = "none"
+                      }
+                      */
+                if (document.getElementById("editCreatedListItem") != null) {
+                  document
+                    .getElementById("editCreatedListItem")
+                    .childNodes[2].click();
+                }
+                if (document.getElementById("addCreatedListItem") != null) {
+                  document
+                    .getElementById("addCreatedListItem")
+                    .childNodes[2].click();
+                }
+
+                let pnList = event.target.parentNode.parentNode;
+                let pnListItem = event.target.parentNode;
+                let pnText = pnListItem.firstChild.textContent;
+                let p = event.target.parentNode.id;
+                objListItemTray.listItem = pnListItem;
+                let newListItem = createInput(
+                  "phone",
+                  p.substr(1),
+                  pnText,
+                  "edit"
+                );
+                pnList.replaceChild(newListItem, pnListItem);
+                newListItem.firstChild.focus();
+              });
+              nLi.appendChild(pnEditLinkBox);
+
+              //create delete link for each phone number
+              let pnDeleteLinkBox = document.createElement("span");
+              let pnDeleteLinkText = document.createTextNode(" delete");
+              pnDeleteLinkBox.appendChild(pnDeleteLinkText);
+              pnDeleteLinkBox.setAttribute("class", "actionLink");
+              
+              pnDeleteLinkBox.addEventListener("click", (event) => {
+                toggleActionLinkVisibility("on");
+                let p = event.target.parentNode.id;
+                let gp = event.target.parentNode.parentNode.id;
+                let gggp = event.target.parentNode.parentNode.parentNode.parentNode.id;
+                let objDel = new Object();
+                objDel.companyID = gggp.substr(4);
+                objDel.contactID = gp.substr(6);
+                objDel.method = p.substr(0, 1);
+                objDel.methodID = p.substr(1);
+                objDel.searchGroup = 'p'
+                let jobs = checkJobsForItem(objDel)
+                console.log(jobs)
+                console.log(objDel)
+                processDeleteDecision(jobs, 'Phone Number', objDel)
+                
+                
+                setTimeout(() => {
+                  pullContacts(gggp.substr(4));
+                }, 30);
+              });
+              nLi.appendChild(pnDeleteLinkBox);
+
+              nUl.appendChild(nLi);
+              
+            }
+            li.appendChild(nUl);
+            
+            // create input field for the contact chosen on add page
+            if (cont[member].contact_ID == conID && addCM == "phone") {
+              console.log(`input created foradding ${addCM} to contact id ${conID}`)
+              nUl.appendChild(createInput(addCM, conID,"",'add'));
+              $("#inp" + conID).focus();
+              formatPN("#inp" + conID);
+            }
+
+            var eUl = document.createElement("ul");
+            let ULEmailHeader = document.createTextNode(`Email `);
+            eUl.setAttribute(
+              "id",
+              `emList${String(cont[member].contact_ID).padStart(5, "0")}`
+            );
+            eUl.appendChild(ULEmailHeader);
+
+            let eHeaderLinkBox = document.createElement("span");
+            let eHeaderLinkText = document.createTextNode("add");
+            eHeaderLinkBox.appendChild(eHeaderLinkText);
+            eHeaderLinkBox.setAttribute("class", "actionLink");
+
+            eHeaderLinkBox.setAttribute(
+              "id",
+              `${cont[member].contact_ID}eHeaderEditLink`
+            );
+            eHeaderLinkBox.addEventListener("click", () => {
+              
+              toggleActionLinkVisibility("on");
+
+              //remove open created input for add
+              if (document.getElementById("addCreatedListItem") != null) {
+                document.getElementById("addCreatedListItem").remove();
+              }
+              //close open edit box when 'add' clicked
+              if (document.getElementById("editCreatedListItem") != null) {
+                document
+                  .getElementById("editCreatedListItem")
+                  .childNodes[2].click();
+              }
+              let p = event.target.parentNode.id.substr(6);
+
+              let newListItem = createInput("email", p, "", "add");
+
+              event.target.parentNode.insertBefore(
+                newListItem,
+                event.target.nextSibling
+              );
+              event.target.nextSibling.firstChild.focus();
+            });
+            eUl.appendChild(eHeaderLinkBox);
+
+            for (n in cont[member].emails) {
+              let nLi = document.createElement("li");
+              let tNu = document.createTextNode(cont[member].emails[n].email);
+              nLi.appendChild(tNu);
+              nLi.setAttribute(
+                "id",
+                `e${String(cont[member].emails[n].email_ID).padStart(5, "0")}`
+              );
+
+              //create edit link for each email
+              let eEditLinkBox = document.createElement("span");
+              let eEditLinkText = document.createTextNode(" edit");
+              eEditLinkBox.appendChild(eEditLinkText);
+              eEditLinkBox.setAttribute("class", "actionLink");
+              eEditLinkBox.addEventListener("click", (event) => {
+                toggleActionLinkVisibility("on");
+
+                if (document.getElementById("editCreatedListItem") != null) {
+                  document
+                    .getElementById("editCreatedListItem")
+                    .childNodes[2].click();
+                }
+                if (document.getElementById("addCreatedListItem") != null) {
+                  document
+                    .getElementById("addCreatedListItem")
+                    .childNodes[2].click();
+                }
+                let eList = event.target.parentNode.parentNode;
+                let eListItem = event.target.parentNode;
+                let eText = eListItem.firstChild.textContent;
+                let p = event.target.parentNode.parentNode.id;
+                objListItemTray.listItem = eListItem;
+                //alert(cont[member].id)
+                console.log(
+                  "the parameter p in createInput() = " +
+                    p +
+                    " which should be a single digit position marker"
+                );
+                let newListItem = createInput(
+                  "email",
+                  event.target.parentNode.id.substr(1),
+                  eText,
+                  "edit"
+                );
+                eList.replaceChild(newListItem, eListItem);
+                newListItem.firstChild.focus();
+              });
+              nLi.appendChild(eEditLinkBox);
+              eUl.appendChild(nLi);
+
+              //create delete link for each email
+              let eDeleteLinkBox = document.createElement("span");
+              let eDeleteLinkText = document.createTextNode(" delete");
+              eDeleteLinkBox.appendChild(eDeleteLinkText);
+              eDeleteLinkBox.setAttribute("class", "actionLink");
+            
+              eDeleteLinkBox.addEventListener("click", (event) => {
+                toggleActionLinkVisibility("on");
+                let p = event.target.parentNode.id;
+                let gp = event.target.parentNode.parentNode.id;
+                let gggp =
+                  event.target.parentNode.parentNode.parentNode.parentNode.id;
+                let objDel = new Object();
+                objDel.companyID = gggp.substr(4);
+                objDel.contactID = gp.substr(6);
+                objDel.method = p.substr(0, 1);
+                objDel.methodID = p.substr(1);
+                objDel.searchGroup = 'e'
+                
+                let jobs = checkJobsForItem(objDel)
+                
+                
+                processDeleteDecision(jobs, 'Email', objDel)
+              
+                setTimeout(() => {
+                  pullContacts(gggp.substr(4));
+                }, 30);
+              });
+              nLi.appendChild(eDeleteLinkBox);
+
+              eUl.appendChild(nLi);
+            }
+
+            li.appendChild(eUl);
+            li.insertBefore(divPrimaryCheckbox,li.firstChild)
           
-        }
-
+            if (cont[member].contact_ID == conID && addCM == "email") {
+              eUl.appendChild(createInput('email', conID, "",'add'));
+              $("#inp" + conID).focus();
+            
+            }        
+            
+          }
+        }//end if member != primary_contact
         //append list of contacts for company to container
         contactContent.appendChild(wholeCompanyList);
         console.log('fill contacts ended')
