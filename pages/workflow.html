@@ -3,6 +3,7 @@
 <head>
 
 	<title>Workflow App</title>
+	
 	<link id= "mainStyle" rel="stylesheet" type="text/css" href="../css/workflow.css">
 	<link rel="stylesheet" type="text/css" media="all" href="../scripts/jquery-ui-1.11.4.custom/jquery-ui.css">
 	<link rel="stylesheet" href="../css/print.css" type="text/css" media="print" />
@@ -13,7 +14,7 @@
 	<link rel="stylesheet" type="text/css" media="all" href="../css/components.css">
     <link rel="stylesheet" type="text/css" media="all" href="../css/formComponents.css">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	
+	<script src="https://kit.fontawesome.com/ea20293ee7.js" crossorigin="anonymous"></script>
 	<script src='../scripts/dbCon.js'></script>
 	<script src="../scripts/splash.js"></script>
 	<script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
@@ -67,7 +68,7 @@
                             </div>
                             <div id="wpuBox" class="waitingForParts">
                                     <div id="wpuBoxHeader" class="header">
-                                        <div id='t' ondrop="deleteDrop(event)" ondragover="allowDrop(event)"><img onclick='deleteCompletedJobs()' src="../images/trashCanIcon.svg" width="25" height="25"> </object></div>
+                                        <div id='t' ondrop="deleteDrop(event)" ondragover="allowDrop(event)"><img onclick='deleteCompletedJobs()' src="../images/trashCanIcon.svg" width="25" height="25"> </img></div>
                                         Completed Jobs
                                         <div class="closeButton" onclick="closeBox(event,this)">X</div>                                        
                                     </div>

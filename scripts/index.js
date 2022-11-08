@@ -454,7 +454,7 @@ function sortScheduled(arrToSort){
 	
 	//create year property to sort by year first so that 01/01/2023 doesnt show as first because of 01 being before others
 	for(let sd in arrToSort){
-		console.log(arrToSort[sd])
+		
 		arrToSort[sd].year = naiveReverse(arrToSort[sd].date_scheduled)
 		switch(arrToSort[sd].job_type){
 			case 'Frame':
@@ -496,8 +496,7 @@ function sortScheduled(arrToSort){
 	let x = arrToSort.sort(function(a,b){
 		let i = 0, result = 0;
 		while(i < sortBy.length && result === 0) {
-			console.log(a)
-			console.log(b)
+			
 		  result = sortBy[i]?.direction*(a[ sortBy[i]?.prop ].toString() < b[ sortBy[i]?.prop ].toString() ? -1 : (a[ sortBy[i]?.prop ].toString() > b[ sortBy[i]?.prop ].toString() ? 1 : 0));
 		  i++;
 		}
@@ -1742,7 +1741,7 @@ function makeJobDiv2(args){
 		
 		customerName = (args.customer_ID != null) ? getCustomerNames(args.customer_ID): 'no name'
 		//console.log(customerName)
-		let cuN = '<b>'+customerName.toUpperCase()+'</b><br/>'
+		let cuN = "<span style=font-size:20px><b>"+customerName.toUpperCase()+"</b></span><br/>"
 		let dIn =(args.date_in == null) ? '': '<b>Date In:</b>'+ args.date_in+'<br/>'
 		let ec = (args.estimated_cost == undefined || args.estimated_cost =='') ? '': '<b>Est Cost:</b> $'+args.estimated_cost+'</br>'
 		let u = (args.unit == null || args.unit == '')?'': '<b>Unit #: </b>'+args.unit+'</br>'

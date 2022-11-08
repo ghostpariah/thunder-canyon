@@ -4,30 +4,39 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Contacts</title>
+    
+    <link rel="stylesheet" type="text/css" href="../css/components.css" />
+    <link rel="stylesheet" type="text/css" href="../css/formComponents.css" />
     <link rel="stylesheet" type="text/css" href="../css/contacts.css" />
-
-    <script>
+    
+     <script>
       if (typeof module === "object") {
         window.module = module;
         module = undefined;
       }
     </script>
     <script src='../scripts/dbCon.js'></script>
+    
+    <script src='../scripts/createComponent.js' defer></script>
     <script src='../scripts/contacts.js' defer></script>
+    
+    
     <script src="../scripts/jquery-1.11.3.min.js"></script>
     <script src="../scripts/jquery-ui-1.11.4.custom/jquery-ui.min.js"></script>
-
+    <script src="https://kit.fontawesome.com/ea20293ee7.js" crossorigin="anonymous"></script>
     <script>
       if (window.module) module = window.module;
     </script>
   </head>
   <body>
-    <div class="visibleInput" id="customerNameWrapper">
+   
+    <div id="customerNameWrapper">
       
-
+      <!--
       <input
-        id="txtCustomerName"
-        autocomplete="on"
+        id="Customer-choice"
+        class="txtCustomerName"
+        autocomplete="off"
         tabindex="1"
         list="lstCustomer"
         onfocus="fillCustomerDataList()"
@@ -37,6 +46,7 @@
       />
 
       <datalist id="lstCustomer" class="classic"></datalist>
+      -->
     </div>
     <div id="editCustNameWrapper">
       <input
@@ -74,7 +84,7 @@
           <div class="inline-input-group">
             <div class="input-block">
               <label>First Name</label><br />
-              <input id="txtFirstName" required/>
+              <input id="txtFirstName" type="text" required/>
             </div>
             <div id="firstname_message_container" class="inline-input-group hidden">
               <div class="input-block">
@@ -145,6 +155,6 @@
         </form>
       </div>
     </div>
-    
+  
   </body>
 </html>

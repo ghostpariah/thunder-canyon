@@ -343,10 +343,12 @@ ipc.on('contacts-updated', (event,args,args2)=>{
  */
 function cancelAdd(){
 	ipc.send('close-window')
+	window.close()
 }
 
 /* function to load current job data into edit form inputs*/
 function loadData(objJobToEdit){
+	console.log(objJobToEdit)
 	let d
 	if(Array.isArray(objJobToEdit)){
 		d = objJobToEdit[0]
@@ -359,12 +361,12 @@ function loadData(objJobToEdit){
 	try{
 		
 		customerNamesList.forEach((item) =>{
-			
-			if(item.innerText === d.customer_name){
+			//item.innerText === d.customer_name || 
+			if(Number(item.id.substring(8)) === d.customer_ID){
 				item.classList.add('focusedListItem')
 				item.setAttribute('data-selected', true)
 				inpCustomer.setAttribute('data-cid',d.customer_ID)
-				inpCustomer.innerText = d.customer_name
+				inpCustomer.innerText = item.innerText//d.customer_name
 				
 			}
 		})
@@ -824,8 +826,10 @@ function updateJob (){
 		
 	    ipc.send('update-job',objNewJob, launcher, currentUser, txtCN.value)
 		ipc.send('close-window')
+		window.close()
     }else{
 		ipc.send('close-window')
+		window.close()
 	}
 
 }

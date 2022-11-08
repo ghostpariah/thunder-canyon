@@ -674,7 +674,7 @@ function isNewCustomer(args){
 
 function addNewCompany(name){
 	let id = ipc.sendSync('add-new-customer', name.trim())
-	
+	document.getElementById('addNewContact').setAttribute('data-cid',id)
 	return id
 }
 

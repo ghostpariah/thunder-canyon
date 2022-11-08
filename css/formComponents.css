@@ -49,6 +49,9 @@ input[type=checkbox]{
     height:20px;
     outline-color: dodgerblue;
 }
+input[type=checkbox] + label{
+    margin-left: 10px;
+}
 /* radio element */
 input[type=radio]{
     width: 20px;

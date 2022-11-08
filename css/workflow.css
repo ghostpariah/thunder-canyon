@@ -23,7 +23,7 @@
 
 	
 }
- html, body {
+html, body {
     margin: 0;
 	padding: 0;
 	border: 0;
@@ -35,12 +35,8 @@
 body {
 	display:flex;
 	justify-content: center;
-	width:100%;
-	/* background-color: #f1e9db; */
-	/* background-color:#78a1d3; */
-	background: hsl(0, 1%, 15%);
-	
-	/* vertical-align: middle; */
+	width:100%;	
+	background-color: var(--clr-bg-secondary);	
 	box-sizing: border-box;
 	clear:both;
 	margin:0;
@@ -167,7 +163,7 @@ datalist{
 	width: 100%;
 	min-height:25px;
 	max-height:30px;	
-	background: var(--clr-bg-legend);	
+	background-color: var(--clr-bg-legend);	
 	text-align: center;
 	vertical-align: middle;
 	font-family: Arial, Helvetica, sans-serif;
@@ -198,16 +194,16 @@ datalist{
 	color: white;
 }
 .frame {
-	background: red;
+	background-color: red;
 }
 .spring {
-	background: blue;
+	background-color: blue;
 }
 .alignment {
-	background: purple;
+	background-color: purple;
 }
 #kingPin {
-	background: green;
+	background-color: green;
 }
 #middle {
 	width: 55%;
@@ -246,7 +242,7 @@ datalist{
 	float: left;
 	height: 300px;
 	/* margin: 2px; */
-	background: whitesmoke;
+	background-color: whitesmoke;
 }
 #cBucket{
 margin-right: px;
@@ -301,7 +297,7 @@ margin-right: px;
 
 .glimpseHead{
 	width:100%;
-	background: #4d3394;
+	background-color: #4d3394;
 	color: white;
 	float:left;
 	
@@ -317,7 +313,7 @@ margin-right: px;
 .glimpseData{
 	width:100%;
 	position:relative;
-	background:white;
+	background-color:white;
 	/* font-family: 'Arial Narrow'; */
 	float:left;
 	cursor:pointer;
@@ -332,7 +328,7 @@ margin-right: px;
 	z-index: 10000;
 	width:150px;
 	height: 100px;
-	background: #1b1a1a;
+	background-color: #1b1a1a;
 	margin-left: 150px;
 	margin-top: -40px;
 	box-shadow: 5px 10px 18px #888888;
@@ -353,7 +349,7 @@ margin-right: px;
 .glimpseToolTip {
 	display: none; /* NEW */
 	
-	background: white;
+	background-color: white;
 	border: 1px solid var(--clr-bg-main-header-border);
 	top:10px;
 	left:50px;
@@ -429,7 +425,7 @@ margin-right: px;
 	border:2px solid var(--clr-bg-main-header-border);
 	float:left;
 	/* margin:3px; */
-	background: black;
+	background-color: black;
 	color:var(--clr-font-header);
 }
 .bottomBox .header{
@@ -464,7 +460,7 @@ margin-right: px;
 }
 .bottomBoxOpen {
 	display: none; /* NEW */
-	background: whitesmoke;
+	background-color: whitesmoke;
 	
 	left:300px;
 	top:125px;
@@ -766,7 +762,7 @@ div.lineItem:first-child{
 	
 }
 .adminMenuItem:hover{
-	background: #335f94;
+	background-color: #335f94;
 	
 	
 }
@@ -843,7 +839,7 @@ div.lineItem:first-child{
 	height: 30px;
 	cursor: pointer;
 	color: #736f73;
-	background: whitesmoke;
+	background-color: whitesmoke;
 	border: 2px solid #cecece;
 }
 
@@ -876,7 +872,7 @@ div.lineItem:first-child{
 	float: left;
 	margin: 5px;
 	border: 1px solid black;
-	background: white;
+	background-color: white;
 	color: #525252;
 	font-size: 40px;
 }
@@ -989,7 +985,7 @@ div.lineItem:first-child{
 	justify-content: space-around;	
 	width:100%;/*1580px;	*/
 	height: clamp(120px,20%,130px);	
-	background: var(--clr-bg-header-main);
+	background-color: var(--clr-bg-header-main);
 	/*border: 2px solid #cdcdcd;*/
 	color: #736F6E;
 	text-align: center;	
@@ -1049,7 +1045,7 @@ div.lineItem:first-child{
 .schTopCountHeader{
 	border-bottom:1px solid var(--clr-bg-header-main-border);
 	font-size: 14px;
-	background: var(--clr-font-header);
+	background-color: var(--clr-font-header);
 	color: black;
 }
 
@@ -1057,11 +1053,11 @@ div.lineItem:first-child{
 #formHeader.header {
 	font-size: 30px;
 	border-bottom-color: whitesmoke;
-	background: rgb(167, 223, 188);
+	background-color: rgb(167, 223, 188);
 }
 input {
 	border: 1px solid black;
-	background: white;
+	background-color: white;
 }
 .headerShop {
 	width: 100%;
@@ -1090,7 +1086,7 @@ input {
 	border: 1px solid black;
 	width: 100px;
 	color: black;
-	background: #CECECE;
+	background-color: #CECECE;
 	cursor: pointer;
 	font-size: 15px;
 }
@@ -1190,7 +1186,7 @@ input {
 
 .tooltip {
 	display: none; /* NEW */
-	background: white;
+	background-color: white;
 	border: 1px solid var(--clr-bg-main-header-border);
 	
 	
@@ -1214,7 +1210,7 @@ input {
 }
 .toolTipBottom {
 	display: none; /* NEW */
-	background: white;
+	background-color: white;
 	border: 1px solid var(--clr-bg-main-header-border);
 	
 	margin-left: 115px;
@@ -1237,7 +1233,7 @@ input {
 }
 .tooltipRight{
 	display: none; /* NEW */
-	background: white;
+	background-color: white;
 	border: 1px solid var(--clr-bg-main-header-border);
 	
 	margin-left: -115px;
@@ -1259,7 +1255,7 @@ input {
 }
 .tooltipLast{
 	display: none; /* NEW */
-	background: white;
+	background-color: white;
 	border: 1px solid black;
 	/* margin-top: -50px; */
 	clear: both;
@@ -1283,7 +1279,7 @@ input {
 
 .waitingForParts {
 	display: none; /* NEW */
-	background: whitesmoke;
+	background-color: whitesmoke;
 	
 	margin-top: -145px;
 	margin-right: 430px;
@@ -1324,7 +1320,7 @@ input {
 	padding-top: 5px;
 }
 .closeButton:hover{
-	background: red;
+	background-color: red;
 	color:white;
 }
 .closeButton img{
@@ -1361,7 +1357,7 @@ input {
 	margin: 100px;
 }
 #SCH .catButton{
-	background: var(--clr-bg-main-header-border);
+	background-color: var(--clr-bg-main-header-border);
 	color:black;
 	cursor:default;
 	margin:0;
@@ -1408,7 +1404,7 @@ input {
 	float:left;
 	font-size: 18px;;
 	font-family: "Arial Narrow";
-	
+	border-radius: 5px;
 	height: 23px;
 	width: 80%;
 	margin: 5px 0 5px 20px;
@@ -1418,11 +1414,13 @@ input {
 	cursor: pointer;
 	color:white;
 	padding-top: 2px;
+	box-sizing: border-box;
 	
 }
 .viewButton:hover{
-	background: black;
+	background-color: black;
 	color:white;
+	
 }
 #schQuestionBox{
 	position:relative;
@@ -1475,7 +1473,7 @@ input {
 	z-index: 10000;
 	width:150px;
 	height: 100px;
-	background: #1b1a1a;
+	background-color: #1b1a1a;
 	/* margin-left: 150px; */
 	/* margin-top: -20px; */
 	transform: translate(50%,-90%);
@@ -1562,7 +1560,7 @@ input {
 	z-index: 100000;
 	width:270px;
 	/* height: 390px; */
-	background: var(--clr-bg-main-header-border);/*#1b1a1a;*/
+	background-color: #5e81ad;/*#1b1a1a;*/
 	margin-left: 150px;
 	margin-top: -60px;
 	box-shadow: 5px 10px 18px #888888;
@@ -1592,7 +1590,7 @@ input {
 
 .item:hover{
 	
-	background: var(--clr-bg-header-section);
+	background-color: var(--clr-bg-header-section);
 	color: var(--clr-font-header-section);
 	
 }
@@ -1631,7 +1629,7 @@ input {
 	max-height:30px;
 	/* height:clamp(25px,4%,30px); */
 	/* float:left; */
-	background: var(--clr-bg-header-section);
+	background-color: var(--clr-bg-header-section);
 	color:#525252;
 	/* padding-top: 5px; */
 	text-align: center;

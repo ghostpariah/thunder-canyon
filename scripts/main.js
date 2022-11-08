@@ -377,6 +377,8 @@ async function createDatabase(file){
     let customersSQL = `CREATE TABLE "customers" (
         "customer_ID"	INTEGER NOT NULL UNIQUE,
         "customer_name"	TEXT NOT NULL,
+        "primary_contact"	INTEGER,
+	    FOREIGN KEY("primary_contact") REFERENCES "contacts"("contact_ID") ON UPDATE CASCADE ON DELETE CASCADE,
         PRIMARY KEY("customer_ID" AUTOINCREMENT)
     )`
     let contactsSQL = `CREATE TABLE "contacts" (
@@ -423,7 +425,7 @@ async function createDatabase(file){
         "status"	TEXT,
         "shop_location"	TEXT,
         "unit"	TEXT,
-        "unit-type" TEXT,
+        "unit_type" TEXT,
         "job_type"	TEXT,
         "cash_customer"	INTEGER,
         "approval_needed"	INTEGER,
@@ -1756,18 +1758,15 @@ ipcMain.on('db-contact-add', (event,args)=>{
         objCon.first_name = args.first_name
         objCon.last_name = args.last_name
         objCon.customer_ID = args.customer_ID
-        if(args.primary_contact){
-            objCon.primary_contact = args.primary_contact
-        }
+        
+        
         objCon.active = 1
 
         let p = Object.keys(objCon)
         let v = Object.values(objCon)
-
-         
-
         let columnPlaceholders = p.map((col) => '?').join(',');
 
+        
         
         let sql = `INSERT INTO contacts(${p}) VALUES(${columnPlaceholders})`;
         
@@ -1780,7 +1779,15 @@ ipcMain.on('db-contact-add', (event,args)=>{
             console.log(`${this.changes} items inserted at row: ${this.lastID} of contacts`)
             objPhone.p_contact_ID = this.lastID
             objEmail.e_contact_ID = this.lastID
-
+            if(args.primary_contact){
+                let sqlP = `UPDATE customers SET primary_contact = ${new_contact_ID} WHERE customer_ID = ${args.customer_ID}`
+                dboContacts.run(sqlP, function (err){
+                if(err){
+                    console.log(err)
+                }
+    
+            })
+        }
             
             
             if(args.number != null){
@@ -1825,7 +1832,7 @@ ipcMain.on('db-contact-add', (event,args)=>{
                     //if a number and email were added
                     
                     if(method_count>1){
-
+                        event.returnValue = item_ID
                     }else{
                         item_ID =  this.lastID
                         console.log(`${this.changes} items inserted at row: ${this.lastID} of emails`)
@@ -1995,6 +2002,7 @@ ipcMain.on('db-get-contact-name',(event, args1, args2)=>{
 function createMainWindow(){
     
     win = new BrowserWindow({
+        show: false,
         width: 1200,//1620
         height: 600, //841 
         hasShadow: false,   
@@ -2040,6 +2048,7 @@ function createMainWindow(){
     })
     win.once('ready-to-show', () => {
         //win.webContents.openDevTools()
+        win.show()
         win.webContents.send('load-page')
         autoUpdater.checkForUpdates()
       })
@@ -2097,7 +2106,7 @@ function createEditWindow(args, args2, args3){
                  
         autoHideMenuBar: true,
         modal: true,     
-        icon: path.join(__dirname, '../images/icon.png'),
+        icon: path.join(__dirname, '../images/logo.ico'),
         
         webPreferences: {
             nodeIntegration: true,
@@ -2184,7 +2193,7 @@ function createLoginWindow(){
         height: 250,
         autoHideMenuBar: true,
         modal: true,
-        icon: path.join(__dirname, '../images/icon.png'),
+        icon: path.join(__dirname, '../images/logo.ico'),
         
         webPreferences: {
             nodeIntegration: true,
@@ -2220,6 +2229,7 @@ function createReportWindow(args,args2,args3, args4){
             modal: true,
             width:900,
             height:550,
+            icon: path.join(__dirname, '../images/logo.ico'),
             autoHideMenuBar: true,
             show: true,
             webPreferences: {
@@ -2258,6 +2268,7 @@ function createRestoreWindow(){
             width:415,
             height:550,
             autoHideMenuBar: true,
+            icon: path.join(__dirname, '../images/logo.ico'),
             show: true,
             webPreferences: {
                 nodeIntegration: true,
@@ -2289,7 +2300,7 @@ function createAddJobWindow(args, launcher){
         modal: true,            
         width:920,//500,
         height: 700,//850,
-        
+        icon: path.join(__dirname, '../images/logo.ico'),
         autoHideMenuBar: true,
         show: false,
         webPreferences: {
@@ -2337,7 +2348,7 @@ function createCreateUserWindow(){
         height: 650,//w425 h300
         autoHideMenuBar: true,
         show: false,
-        icon: path.join(__dirname, '../images/icon.png'),
+        icon: path.join(__dirname, '../images/logo.ico'),
         webPreferences: {
             nodeIntegration: true,
             webSecurity: false,
@@ -2363,7 +2374,7 @@ function createContactsWindow(args1, args2, args3, args4, args5,args6,args7,args
             modal: true,            
             width:550,
             height: 650,
-            
+            icon: path.join(__dirname, '../images/logo.ico'),
             autoHideMenuBar: true,
             show: false,
             webPreferences: {
@@ -2413,6 +2424,7 @@ function createCalendarWindow(args,args2){
         width:1200,//1087
         height: 477,//600
         autoHideMenuBar: true,
+        icon: path.join(__dirname, '../images/logo.ico'),
         show: false,
         webPreferences: {
             nodeIntegration: true,
@@ -3125,7 +3137,7 @@ ipcMain.on('edit-contact-name', (event,args,args2)=>{
 
     for(i=0;i<k.length;i++){
             
-        arrC.push(`${k[i]}='${v[i]}'`)
+        arrC.push(`${k[i]}="${v[i]}"`)
         //arrV.push(v[i])
     }
     if(arrC.length > 1){

@@ -53,6 +53,7 @@
       let phoneValid = false
       let props
 
+      let itemIndex = 0
 
       $(inpFirstname).on({
         keydown: function(event){
@@ -137,7 +138,10 @@
           }
           })
          
-        
+          document.addEventListener('DOMContentLoaded', (event) => {
+            createCompanyDropDown()
+           // createComponent(document.getElementById('customerNameWrapper'),'comboBox',ipc.sendSync('get-customer-names'),'Customer','contacts')
+          });
         
         
       /*******
@@ -270,7 +274,7 @@
 
       formatPN(inpPhoneNumber);
       ipc.on("open-contact-page", (event, args) => {
-      customerNameWrapper.style.display = "block";
+      customerNameWrapper.style.display = "flex";
       });
       ipc.on('reload', (event,args, args2)=>{
         reloadPage(args,args2)
@@ -393,7 +397,7 @@
           //launching page
           switch (props.launcher) {
             case "main page":
-              customerNameWrapper.style.display = "block";
+              customerNameWrapper.style.display = "flex";
               pageLauncher = "main";
               loadContactsPage(true)
               return
@@ -584,7 +588,7 @@
           // }
           //alert(argCount)
           if (argCount == 0) {
-            customerNameWrapper.style.display = "block";
+            customerNameWrapper.style.display = "flex";
           }
           loadContactsPage(false);
         
@@ -601,9 +605,9 @@
 
     function factoryReset(){
       companyHeader.style.display = "none";
-      customerNameWrapper.style.display = "block";
+      customerNameWrapper.style.visibility = "visible";
       contactContent.style.display = "none";
-      document.getElementById("txtCustomerName").value="";
+      document.getElementById("Customer-choice").innerHTML="";
       clearMessageCenters()
     }
 
@@ -617,21 +621,28 @@
       CNEI.focus()
     }
     function cancelCustomerNameEdit(){
+      customerNameWrapper.style.display = 'flex';
       companyHeader.style.display = "block";
       ecnWrapper.style.display="none";
+      CNEI.value = ''
     }
 
     function editCustomerName(){
       let c =CNEI.value.toUpperCase();
-      console.log(c)
+      
+      console.log(c,companyID)
       ipc.send('edit-customer-name',c,Number(companyID))
+      //clear out name field and reset 
+      cancelCustomerNameEdit()
     }
 
     ipc.on('customer-name-updated', (event,args1,args2)=>{
       console.log(args2)
+      document.getElementById(args2).innerHTML = args1
       ipc.send('update-main-page')
-      document.getElementById(String(args2).padStart(5,'0')).innerHTML = args1
-      pullContacts(args2)
+      
+      //document.getElementById(String(args2).padStart(5,'0')).innerHTML = args1
+      //pullContacts(args2)
       companyHeader.style.display = "block";
       ecnWrapper.style.display="none";
       
@@ -641,10 +652,11 @@
 
       function loadHeader(arg, id) {
         //gaurdian clause to exit function if arg is undefined
-        if(props.launcher == 'main page'){
+        if(props?.launcher == 'main page'){
           props.customer_ID = id
+          companyID = id
         }
-        console.log(`companyName is ${arg} and companyID is ${props.customer_ID}`)
+        console.log(`companyName is ${arg} and companyID is ${props?.customer_ID}`)
         console.log(props)
         
         if(arg == undefined || arg == null ) return console.log(`arg was undefined line 414 in loadHeader()`)
@@ -659,7 +671,9 @@
 
         let editCompanyNameLink = document.createElement('span')
         let linkText = document.createTextNode('edit')
-        editCompanyNameLink.appendChild(linkText)
+        let icon = document.createElement('i')
+        icon.setAttribute('class', 'fa-regular fa-pen-to-square')
+        editCompanyNameLink.appendChild(icon)
         editCompanyNameLink.setAttribute('class','actionLink')
         editCompanyNameLink.addEventListener("click", (e) => {
           showCompanyNameEditInput(arg.toUpperCase())
@@ -690,30 +704,35 @@
         //*****create action buttons******
         //create cancel button
         let btnCancel = document.createElement("div");
-        let btnCancelText = document.createTextNode("BACK");
-        btnCancel.appendChild(btnCancelText);
+        let backIcon = document.createElement('i')
+        backIcon.setAttribute('class','fa-solid fa-arrow-left-long')
+        let btnCancelText = document.createTextNode(`<= BACK`);
+        btnCancel.appendChild(backIcon);
 
         btnCancel.addEventListener("click", () => {
           
             togglePageView("cancel");
           
           
-          let selectedCompany = document.getElementById("txtCustomerName");            
+          let selectedCompany = document.getElementById("Customer-choice");            
           toggleActionLinkVisibility('on')       
           
         });
         btnCancel.setAttribute('class','mainContactButton buttonUnselected')
         btnCancel.setAttribute('id','btnMainCancel')
         bc.appendChild(btnCancel);
-        bc.style.display = "block";
+        bc.style.display = "flex";
         companyHeader.appendChild(bc);
       
         
 
         //create add button          
         let btnAddCompanyContact = document.createElement("div");
-        let btnAddText = document.createTextNode("ADD CONTACT");
+        let btnAddText = document.createTextNode("ADD ");
+        let addIcon = document.createElement('i')
+        addIcon.setAttribute('class','fa-solid fa-plus')
         btnAddCompanyContact.appendChild(btnAddText);
+        btnAddCompanyContact.appendChild(addIcon);
 
         btnAddCompanyContact.addEventListener("click", () => {
           //clear fields
@@ -724,7 +743,7 @@
           inpEmail.value=""
 
           state = "add"
-          let selectedCompany = document.getElementById("txtCustomerName"); 
+          let selectedCompany = document.getElementById("Customer-choice"); 
           togglePageView("add");
           inpFirstname.focus();
 
@@ -737,9 +756,11 @@
         
         //create edit button
         let btnEditCompanyContact = document.createElement("div");
-        let btnEditText = document.createTextNode("EDIT CONTACTS");
+        let btnEditText = document.createTextNode("EDIT ");
         btnEditCompanyContact.appendChild(btnEditText);
-        
+        let editIcon = document.createElement('i')
+        editIcon.setAttribute('class','fa-regular fa-pen-to-square')
+        btnEditCompanyContact.appendChild(editIcon);
         btnEditCompanyContact.addEventListener("click", () => {
           state = "edit"
           toggleActionLinkVisibility("off");
@@ -749,6 +770,7 @@
         btnEditCompanyContact.setAttribute("class", "mainContactButton buttonUnselected");
         btnEditCompanyContact.setAttribute('id','btnMainEdit')
         bc.appendChild(btnEditCompanyContact);
+        
       }
 
       //control function to set up page
@@ -764,7 +786,7 @@
         }
         var val;
         
-        $("#txtCustomerName").on({
+        $("#Customer-choice").on({
           click: function () {
             
           },
@@ -895,7 +917,7 @@
       }
       //function for adding contact
       function newAdd() {
-        
+        console.log(props.contacts)
         
         let cn = companyHeader.firstChild.innerText        
         let data = new Object();
@@ -934,6 +956,7 @@
         //console.log(`customer ID is ${data.customer_ID}`)
         itemID = ipc.sendSync("db-contact-add", data);
       //}
+      console.log(pageLauncher)
         switch (pageLauncher) {
           case "main":           
             
@@ -945,12 +968,12 @@
             togglePageView("cancel");
             break;
           case "add job":
-          
+            console.log('before refresh-add-apge sent')
             setTimeout(() => {              
               ipc.send("refresh-add-page", "go", data.customer_ID,itemID); 
               window.close()             
             }, 200);
-            
+            console.log('after refresh-add-apge sent')
             break;
           case "edit":
             let objC;
@@ -1000,6 +1023,7 @@
       ipc.on('set-contacts', (event, args) => { 
         console.log('set-contacts triggered')       
         globalObjectContact = args[0]
+        props.contacts = args
         console.log(args)
         fillContacts(args);
         
@@ -1041,7 +1065,8 @@
           let lnID = event.target.parentNode.firstChild.nextSibling.id;
           let fnValue = document.getElementById(fnID).value;
           let lnValue = document.getElementById(lnID).value;
-          let cid = parseInt(Number(event.target.parentNode.firstChild.id.substr(5)));
+          let cid = parseInt(contactID);
+          //let cid = parseInt(Number(event.target.parentNode.firstChild.id.substr(5)));
           console.log(`first name input ID = ${fnID}
         last name input ID = ${lnID}
         first name value = ${fnValue}
@@ -1107,8 +1132,8 @@
 
                            
         }
-        jobs.onCurrentJob = (count>0)?true:false;
-        jobs.jobCount = count
+        //jobs.onCurrentJob = (count>0)?true:false;
+        //jobs.jobCount = count
         
         return jobs
       }
@@ -1130,15 +1155,16 @@
         const at = actionType;
 
         let editDataFieldList = document.createElement("li");
+        let wrapper = document.createElement('div')
+        wrapper.setAttribute('class','wrapper')
         let inpA = document.createElement("input");
+        inpA.setAttribute('type','text')
         let saveButton = document.createElement("div");
         let sb = document.createTextNode("save");
 
         saveButton.appendChild(sb);
         saveButton.setAttribute("class", "contactButton");
         saveButton.addEventListener("click", () => {
-          //create object to send to edit function
-          // let objData = new Object();
           
           
           //determine whether an item is being added or edited
@@ -1185,8 +1211,8 @@
         cancelButton.appendChild(cb);
         cancelButton.setAttribute("class", "contactButton");
         cancelButton.addEventListener("click", () => {
-          let listSpotHolder = cancelButton.parentNode.parentNode;
-          let thingToRemove = cancelButton.parentNode;
+          let listSpotHolder = cancelButton.parentNode.parentNode.parentNode;
+          let thingToRemove = cancelButton.parentNode.parentNode;
           if (at == "edit") {
             listSpotHolder.replaceChild(
               objListItemTray.listItem,
@@ -1199,10 +1225,12 @@
         });
         inpA.setAttribute("id", "inp" + id);
         inpA.setAttribute("value", t);
-        editDataFieldList.appendChild(inpA);
-        editDataFieldList.appendChild(saveButton);
-        editDataFieldList.appendChild(cancelButton);
-        editDataFieldList.setAttribute("id", at + "CreatedListItem");
+        
+        wrapper.appendChild(inpA);
+        wrapper.appendChild(saveButton);
+        wrapper.appendChild(cancelButton);
+        wrapper.setAttribute("id", at + "CreatedListItem");
+        editDataFieldList.appendChild(wrapper)
 
         if (cm == "phone") {
           formatPN(inpA);
@@ -1231,8 +1259,8 @@
           case 'primary':
             pullContacts(cont)
             
-            toggleActionLinkVisibility('off')
-            togglePageView()
+            toggleActionLinkVisibility('on')
+            togglePageView('cancel')
           break;
           default: 
           break;
@@ -1242,6 +1270,7 @@
       //function to create contact elements and load contacts
       function fillContacts(cont) {
         console.log('fill contacts started')
+        console.table(cont)
         console.time('fill')
         //cont.sort((a, b) => (a.primary_contact > b.primary_contact) ? -1 : 1)
         let first = cont.primary_contact
@@ -1305,13 +1334,16 @@
             if(cont.primary_contact == cont[member].contact_ID){
               currentPrimary = cont[member].contact_ID
               cbPrimary.setAttribute('checked', true)
-              let indicatorText = document.createTextNode('P')
-              spanPrimaryIndicator.appendChild(indicatorText)
+              let indicatorText = document.createTextNode('Primary')
+              let primaryIcon = document.createElement('i')
+              primaryIcon.setAttribute('class','fa-solid fa-asterisk')
+              spanPrimaryIndicator.appendChild(primaryIcon)
             }
             divPrimaryIndicator.appendChild(spanPrimaryIndicator)
             divPrimaryCheckbox.appendChild(cbPrimary)
             divPrimaryCheckbox.appendChild(cbLabel)
-            
+            let contactNameRow = document.createElement('div')
+            contactNameRow.setAttribute('class','contactNameRow')
 
             let spanFirstName = document.createElement("span");
             spanFirstName.setAttribute("class", "contactName");
@@ -1328,15 +1360,28 @@
             spanLastName.appendChild(spanLastNameText);
             let linkEl1 = document.createElement("span");
             let linkEl2 = document.createElement("span");
-            //linkEl1.setAttribute('id', `${cont[member].contacts[member].contactID}editLink`)
+            linkEl1.setAttribute('data-id', `${cont[member].customer_ID}`)
+            linkEl1.setAttribute('data-contact-id', `${cont[member].contact_ID}`)
             linkEl1.setAttribute("class", "actionLink");
             //linkEl2.setAttribute('id', `${cont[member].contacts[member].contactID}deleteLink`)
             linkEl2.setAttribute("class", "actionLink");
+            linkEl2.setAttribute('data-id', `${cont[member].customer_ID}`)
+            linkEl2.setAttribute('data-contact-id', `${cont[member].contact_ID}`)
             let link = document.createTextNode(`  edit  `);
             let deleteLink = document.createTextNode(`  delete  `);
-            linkEl1.appendChild(link);
-            linkEl2.appendChild(deleteLink);
-            linkEl1.addEventListener("click", () => {
+            let trash = document.createElement('i')
+            trash.setAttribute('data-id', `${cont[member].customer_ID}`)
+            trash.setAttribute('data-contact-id', `${cont[member].contact_ID}`)
+            let editIcon = document.createElement('i')
+            editIcon.setAttribute('class', 'fa-regular fa-pen-to-square')
+            // <i class="fa-regular fa-pen-to-square"></i>
+            trash.setAttribute('class','fa-regular fa-trash-can')
+            // trash.setAttribute('src','../images/trashCanIcon.svg');
+            // trash.setAttribute('width','20')
+            // trash.setAttribute('height','20')
+            linkEl1.appendChild(editIcon);
+            linkEl2.appendChild(trash);
+            linkEl1.addEventListener("click", (event) => {
               toggleActionLinkVisibility("on");
               //remove open created input for add
               if (document.getElementById("addCreatedListItem") != null) {
@@ -1349,29 +1394,36 @@
                   .childNodes[2].click();
               }
 
-              let pnList = event.target.parentNode;
-              let pnListItem = event.target.nextSibling;
-              let fnText = event.target.parentNode.childNodes[2].textContent;
-              let lnText = event.target.parentNode.childNodes[3].textContent;
-              let p = event.target.parentNode.id;
-              let cust_ID = event.target.parentNode.parentNode.id.substr(4);
+              let pnList = event.target.parentNode.parentNode.parentNode;
+              let pnListItem = pnList.childNodes[3];
+              let fnText = event.target.parentNode.parentNode.childNodes[0].textContent;
+              
+              let lnText = event.target.parentNode.parentNode.childNodes[1].textContent;
+              let p = event.target.parentNode.parentNode.id;
+              let cust_ID = event.target.parentNode.getAttribute('data-id');
+              let cid = event.target.parentNode.getAttribute('data-contact-id');
+              //let cust_ID = event.target.parentNode.parentNode.parentNode.id.substr(4);
+              console.log(event.target)
+              console.log(pnList, cust_ID, cid)
               objListItemTray.listItem = pnListItem;
               let newListItem = createDoubleInputs(
-                p.substr(1),
+                cid,
                 fnText,
                 lnText,
                 cust_ID
               );
+              //pnList.appendChild(newListItem)
               pnList.insertBefore(newListItem, pnListItem);
               
               newListItem.firstChild.focus();
             });
 
             
-            linkEl2.addEventListener("click", () => {
-              
+            linkEl2.addEventListener("click", (event) => {
+              console.log(event.target)
               toggleActionLinkVisibility("on");
-              let p = event.target.parentNode.id;
+              let cust_ID = event.target.parentNode.getAttribute('data-id');
+              let p = event.target.parentNode.getAttribute('data-id');
               let gp = event.target.parentNode.parentNode.id;
               let gggp =
                 event.target.parentNode.parentNode.parentNode.parentNode.id;
@@ -1380,30 +1432,32 @@
               let eJobs
               let aJobs =[]
               let count = 0
-              let method = p.substr(0, 1);
-              let contact_ID = p.substr(1);
-              
+              let method = 'c';
+              let contact_ID = event.target.getAttribute('data-contact-id');
+              console.log(`p = ${p}, gp = ${gp}, gggp = ${gggp}`)
               for(i=0;i<cont.length;i++){
                 
-                if(cont[i].contact_ID == p.substring(1)){
+                if(cont[i].contact_ID == contact_ID){
                   
                   //compare list of numbers with numbers in jobs  
                   //console.log('phonenumbers length is'+cont[i].phonenumbers.length)
                 
                   for(member in cont[i].phonenumbers){//for(j=0;j<cont[i].phonenumbers.length;j++){
                     let objD = new Object()
-                    pJobs = new Array()
-                      
-                    console.log(cont[i].phonenumbers[member].phone_ID)
+                    pJobs = new Array()                    
                     objD.method = method
                     objD.contact_ID = contact_ID
                     objD.methodID = cont[i].phonenumbers[member].phone_ID 
-                    objD.searchGroup = 'p'
-                    console.log(objD)                 
+                    objD.searchGroup = 'p'                                    
                     pJobs = checkJobsForItem(objD)
-                    console.log(pJobs)
-                    aJobs.push(pJobs)
-                    count+= Number(pJobs.jobCount)
+                    if(pJobs.length){
+                      aJobs.push(pJobs)
+                      
+                    }
+                    //count+= Number(pJobs.jobCount)
+                    count+= pJobs.length
+                    
+                    
                     
                   }
                   console.log()
@@ -1417,8 +1471,12 @@
                     objD.methodID = cont[i].emails[member].email_ID   
                     objD.searchGroup = 'e'               
                     eJobs = checkJobsForItem(objD)
-                    aJobs.push(eJobs)
-                    count+= Number(eJobs.jobCount)
+                    if(eJobs.length){
+                      aJobs.push(eJobs)
+                    }
+                    
+                    //count+= Number(eJobs.jobCount)
+                    count+= eJobs.length
                   }
                   
                   
@@ -1434,15 +1492,20 @@
               
               
               setTimeout(() => {
-                pullContacts(gp.substr(4));
+                pullContacts(event.target.getAttribute('data-id'));
               }, 100);
             });
             wholeCompanyList.appendChild(li);
             li.appendChild(divPrimaryIndicator)
-            li.appendChild(spanFirstName);
-            li.appendChild(spanLastName);
-            li.appendChild(linkEl1);
-            li.appendChild(linkEl2);
+            contactNameRow.appendChild(spanFirstName)
+            contactNameRow.appendChild(spanLastName)
+            contactNameRow.appendChild(linkEl1)
+            contactNameRow.appendChild(linkEl2)
+            //li.appendChild(spanFirstName);
+            //li.appendChild(spanLastName);
+            //li.appendChild(linkEl1);
+            //li.appendChild(linkEl2);
+            li.appendChild(contactNameRow)
             var nUl = document.createElement("ul");
             nUl.setAttribute(
               "id",
@@ -1456,14 +1519,16 @@
             //Phone Numbers
             let pnHeaderLinkBox = document.createElement("span");
             let pnHeaderLinkText = document.createTextNode("add");
-            pnHeaderLinkBox.appendChild(pnHeaderLinkText);
+            let pnAddIcon = document.createElement('i')
+            pnAddIcon.setAttribute('class', 'fa-solid fa-plus')
+            pnHeaderLinkBox.appendChild(pnAddIcon);
             pnHeaderLinkBox.setAttribute("class", "actionLink");
 
             pnHeaderLinkBox.setAttribute(
               "id",
               `${cont[member].contact_ID}pnHeaderEditLink`
             );
-            pnHeaderLinkBox.addEventListener("click", () => {
+            pnHeaderLinkBox.addEventListener("click", (event) => {
               
               toggleActionLinkVisibility("on");
               //remove open created input for add
@@ -1477,15 +1542,15 @@
                   .childNodes[2].click();
               }
 
-              let p = event.target.parentNode.id.substr(6);
+              let p = event.target.parentNode.parentNode.id.substr(6);
               let newListItem = createInput("phone", p, "", "add");
 
-              event.target.parentNode.insertBefore(
+              event.target.parentNode.parentNode.insertBefore(
                 newListItem,
                 event.target.nextSibling
               );
-              
-              event.target.nextSibling.firstChild.focus();
+              newListItem.firstChild.firstChild.focus()
+              //event.target.nextSibling.firstChild.focus();
             });
             nUl.appendChild(pnHeaderLinkBox);
 
@@ -1515,7 +1580,9 @@
               //create edit link for each number
               let pnEditLinkBox = document.createElement("span");
               let pnEditLinkText = document.createTextNode(" edit");
-              pnEditLinkBox.appendChild(pnEditLinkText);
+              let pEditIcon = document.createElement('i');
+              pEditIcon.setAttribute('class','fa-regular fa-pen-to-square')
+              pnEditLinkBox.appendChild(pEditIcon);
               pnEditLinkBox.setAttribute("class", "actionLink");
               pnEditLinkBox.addEventListener("click", (event) => {
                 toggleActionLinkVisibility("on");
@@ -1536,18 +1603,21 @@
                     .childNodes[2].click();
                 }
 
-                let pnList = event.target.parentNode.parentNode;
-                let pnListItem = event.target.parentNode;
+                let pnList = event.target.parentNode;
+                let pnListItem = pnList.parentNode;
+                let pContainer = pnListItem.parentNode
                 let pnText = pnListItem.firstChild.textContent;
+                
+                let pID = pnListItem.id.substring(3)
                 let p = event.target.parentNode.id;
                 objListItemTray.listItem = pnListItem;
                 let newListItem = createInput(
                   "phone",
-                  p.substr(1),
+                  pID,
                   pnText,
                   "edit"
                 );
-                pnList.replaceChild(newListItem, pnListItem);
+                pContainer.replaceChild(newListItem, pnListItem);
                 newListItem.firstChild.focus();
               });
               nLi.appendChild(pnEditLinkBox);
@@ -1555,7 +1625,12 @@
               //create delete link for each phone number
               let pnDeleteLinkBox = document.createElement("span");
               let pnDeleteLinkText = document.createTextNode(" delete");
-              pnDeleteLinkBox.appendChild(pnDeleteLinkText);
+              let pTrashIcon = document.createElement('i');
+              pTrashIcon.setAttribute('class','fa-regular fa-trash-can')
+              pTrashIcon.setAttribute('data-customer-id',cont[member].customer_ID)
+              pTrashIcon.setAttribute('data-contact-id',cont[member].contact_ID)
+              pTrashIcon.setAttribute('data-number-id',cont[member].phonenumbers[n].phone_ID)
+              pnDeleteLinkBox.appendChild(pTrashIcon);
               pnDeleteLinkBox.setAttribute("class", "actionLink");
               
               pnDeleteLinkBox.addEventListener("click", (event) => {
@@ -1564,19 +1639,27 @@
                 let gp = event.target.parentNode.parentNode.id;
                 let gggp = event.target.parentNode.parentNode.parentNode.parentNode.id;
                 let objDel = new Object();
-                objDel.companyID = gggp.substr(4);
-                objDel.contactID = gp.substr(6);
-                objDel.method = p.substr(0, 1);
-                objDel.methodID = p.substr(1);
+                objDel.companyID = event.target.getAttribute('data-customer-id');
+                objDel.contactID = event.target.getAttribute('data-contact-id');
+                objDel.method = 'p';
+                objDel.methodID = event.target.getAttribute('data-number-id');
+                // objDel.companyID = gggp.substr(4);
+                // objDel.contactID = gp.substr(6);
+                // objDel.method = p.substr(0, 1);
+                // objDel.methodID = p.substr(1);
                 objDel.searchGroup = 'p'
                 let jobs = checkJobsForItem(objDel)
                 console.log(jobs)
                 console.log(objDel)
+                if(jobs.length){
+                  jobs.onCurrentJob = true
+                }
+                jobs.jobCount = jobs.length
                 processDeleteDecision(jobs, 'Phone Number', objDel)
                 
                 
                 setTimeout(() => {
-                  pullContacts(gggp.substr(4));
+                  pullContacts(event.target.getAttribute('data-customer-id'));
                 }, 30);
               });
               nLi.appendChild(pnDeleteLinkBox);
@@ -1604,14 +1687,16 @@
 
             let eHeaderLinkBox = document.createElement("span");
             let eHeaderLinkText = document.createTextNode("add");
-            eHeaderLinkBox.appendChild(eHeaderLinkText);
+            let eAddIcon = document.createElement('i')
+            eAddIcon.setAttribute('class', 'fa-solid fa-plus')
+            eHeaderLinkBox.appendChild(eAddIcon);
             eHeaderLinkBox.setAttribute("class", "actionLink");
 
             eHeaderLinkBox.setAttribute(
               "id",
               `${cont[member].contact_ID}eHeaderEditLink`
             );
-            eHeaderLinkBox.addEventListener("click", () => {
+            eHeaderLinkBox.addEventListener("click", (event) => {
               
               toggleActionLinkVisibility("on");
 
@@ -1625,15 +1710,16 @@
                   .getElementById("editCreatedListItem")
                   .childNodes[2].click();
               }
-              let p = event.target.parentNode.id.substr(6);
+              let p = event.target.parentNode.parentNode.id.substr(6);
 
               let newListItem = createInput("email", p, "", "add");
 
-              event.target.parentNode.insertBefore(
+              event.target.parentNode.parentNode.insertBefore(
                 newListItem,
                 event.target.nextSibling
               );
-              event.target.nextSibling.firstChild.focus();
+              newListItem.firstChild.firstChild.focus()
+              //event.target.nextSibling.firstChild.focus();
             });
             eUl.appendChild(eHeaderLinkBox);
 
@@ -1649,7 +1735,10 @@
               //create edit link for each email
               let eEditLinkBox = document.createElement("span");
               let eEditLinkText = document.createTextNode(" edit");
-              eEditLinkBox.appendChild(eEditLinkText);
+              let eEditIcon = document.createElement('i')
+              eEditIcon.setAttribute('class','fa-regular fa-pen-to-square')
+             
+              eEditLinkBox.appendChild(eEditIcon);
               eEditLinkBox.setAttribute("class", "actionLink");
               eEditLinkBox.addEventListener("click", (event) => {
                 toggleActionLinkVisibility("on");
@@ -1664,10 +1753,13 @@
                     .getElementById("addCreatedListItem")
                     .childNodes[2].click();
                 }
-                let eList = event.target.parentNode.parentNode;
-                let eListItem = event.target.parentNode;
+               
+                let eList = event.target.parentNode;
+                let eListItem = eList.parentNode;
+                let eContainer = eListItem.parentNode
                 let eText = eListItem.firstChild.textContent;
-                let p = event.target.parentNode.parentNode.id;
+                let eID = eListItem.id.substring(3)
+                let p = event.target.parentNode.id;
                 objListItemTray.listItem = eListItem;
                 //alert(cont[member].id)
                 console.log(
@@ -1677,11 +1769,11 @@
                 );
                 let newListItem = createInput(
                   "email",
-                  event.target.parentNode.id.substr(1),
+                  eID,
                   eText,
                   "edit"
                 );
-                eList.replaceChild(newListItem, eListItem);
+                eContainer.replaceChild(newListItem, eListItem);
                 newListItem.firstChild.focus();
               });
               nLi.appendChild(eEditLinkBox);
@@ -1690,7 +1782,12 @@
               //create delete link for each email
               let eDeleteLinkBox = document.createElement("span");
               let eDeleteLinkText = document.createTextNode(" delete");
-              eDeleteLinkBox.appendChild(eDeleteLinkText);
+              let eTrashIcon = document.createElement('i')
+              eTrashIcon.setAttribute('class','fa-regular fa-trash-can')
+              eTrashIcon.setAttribute('data-customer-id',cont[member].customer_ID)
+              eTrashIcon.setAttribute('data-contact-id',cont[member].contact_ID)
+              eTrashIcon.setAttribute('data-email-id',cont[member].emails[n].email_ID)
+              eDeleteLinkBox.appendChild(eTrashIcon);
               eDeleteLinkBox.setAttribute("class", "actionLink");
             
               eDeleteLinkBox.addEventListener("click", (event) => {
@@ -1700,19 +1797,26 @@
                 let gggp =
                   event.target.parentNode.parentNode.parentNode.parentNode.id;
                 let objDel = new Object();
-                objDel.companyID = gggp.substr(4);
-                objDel.contactID = gp.substr(6);
-                objDel.method = p.substr(0, 1);
-                objDel.methodID = p.substr(1);
+                objDel.companyID = event.target.getAttribute('data-customer-id');
+                objDel.contactID = event.target.getAttribute('data-contact-id');
+                objDel.method = 'e';
+                objDel.methodID = event.target.getAttribute('data-email-id');
+                // objDel.companyID = gggp.substr(4);
+                // objDel.contactID = gp.substr(6);
+                // objDel.method = p.substr(0, 1);
+                // objDel.methodID = p.substr(1);
                 objDel.searchGroup = 'e'
                 
                 let jobs = checkJobsForItem(objDel)
-                
+                if(jobs.length){
+                  jobs.onCurrentJob = true
+                }
+                jobs.jobCount = jobs.length
                 
                 processDeleteDecision(jobs, 'Email', objDel)
               
                 setTimeout(() => {
-                  pullContacts(gggp.substr(4));
+                  pullContacts(event.target.getAttribute('data-customer-id'));
                 }, 30);
               });
               nLi.appendChild(eDeleteLinkBox);
@@ -1741,12 +1845,62 @@
       function onlyUnique(value, index, self) {
         return self.indexOf(value) === index;
       }
+      let  goingToEdit = (jobs,level)=>{
+            //window.confirm() popup to determine if user wants to edit jobs associated
+            //or cancel the delete
+            if(jobs.jobCount>1){
+                return confirm(`${level} is currently connected to active jobs. Click 'OK' to change the job contacts`);
+            }
+            return confirm(`${level} is currently connected to an active job. Click 'OK' to change the job contact`);
+       
+      }
+
+      let buildEdit = (jobs)=>{
+        switch(true){
+          case (jobs.jobCOunt == 1):
+            break;
+          case (jobs.jobCOunt >1):
+            break;
+        }
+
+      }
 
      function processDeleteDecision(jobs, level, objContact){
         //array of jobs for opening edit windows
         console.log(jobs)
         console.log(objContact)
         let arrEditWindowJobs = new Array()
+
+
+        //determine which type of item is being deleted
+        // switch(level){
+        //   case 'Contact':
+            
+        //     //determine if current jobs are connected to the deleted item
+        //     if(!jobs?.onCurrentJob) break;            
+        //     ipc.send('reset-edit-window-count')
+        //     //determine if going to edit or cancel                        
+        //     if(!goingToEdit(jobs,level)) break;
+        //     console.log('going to edit')
+        //     break;
+        //   case 'Phone Number':
+        //     //determine if current jobs are connected to the deleted item
+        //     if(!jobs?.onCurrentJob) break;            
+        //     ipc.send('reset-edit-window-count')                         
+        //     if(!goingToEdit(jobs,level)) break;
+        //     console.log('going to edit')
+        //     break;
+        //   case 'Email':
+        //     //determine if current jobs are connected to the deleted item
+        //     if(!jobs?.onCurrentJob) break;            
+        //     ipc.send('reset-edit-window-count')                         
+        //     if(!goingToEdit(jobs,level)) return;
+        //     buildEdit(jobs)
+        //     console.log('going to edit')
+        //     break;
+        //   default:
+        //     break;
+        // }
 
         //if item to be deleted is listed on one or more current jobs
         if(jobs?.onCurrentJob){
@@ -1767,8 +1921,12 @@
                     //if there is only one current job associated with the contact
                     //open the edit window for the item and reset contact window to default state
                     if(jobs.jobCount==1){   
-                               
-                      ipc.send('open-edit',jobs[0], 'contacts page')
+                      if(level == 'Contact'){ 
+                        console.log(jobs)      
+                        ipc.send('open-edit',jobs[0], 'contacts page')
+                      }else{
+                        ipc.send('open-edit',jobs[0], 'contacts page')
+                      }
                       togglePageView('cancel')
                       return
 
@@ -1841,6 +1999,7 @@
         //no jobs were associated with contact. process deletion
         }else{          
           console.log("jobs in processDeleteDecision is "+JSON.stringify(objContact))
+          console.log(jobs)
           if(level=="Contact"){
             ipc.send("delete-item", jobs);
           }else{
@@ -1860,6 +2019,408 @@
 
       }
      
+let createCompanyDropDown = ()=>{
+  let container = document.getElementById('customerNameWrapper')
+  
+  let wrapper = document.createElement('div')
+  wrapper.setAttribute('class','inputAndLabelWrapper')
+  
+
+  // let label = document.createElement('label')
+  // let txtLabel = document.createTextNode(`${listType}`)
+  // label.setAttribute('class','label')
+  // label.appendChild(txtLabel)
+
+  
+  let input = document.createElement('div')
+  input.setAttribute('id', 'componentWhole')
+  input.setAttribute('class', 'comboBox fullRound');
+  
+
+  let txtSection = document.createElement('div')
+  txtSection.setAttribute('id','Customer-choice')
+  
+  txtSection.setAttribute('class','choice leftHalfRound')
+
+  
+  txtSection.setAttribute('contenteditable', true)
+  
+  //let filteredList
+  $(txtSection).on({
+      focus: (event=>{
+          event.stopPropagation()
+                         
+          //setting focused to true to stop closeDropDowns() from firing twice when called
+          //on the click
+          focused = true 
+          
+          
+          
+          
+          
+         
+
+      }),
+      
+      mousedown: (event)=>{  
+
+          toggleDD(null,listBox,arrow) 
+
+      },
+      dblclick: (event)=>{
+          event.target.innerHTML = ''
+          $(txtSection).focus()
+         
+      },
+      
+      mouseup: (event)=>{
+          event.preventDefault()
+          event.stopPropagation()
+          event.stopImmediatePropagation()
+      },
+      keydown: (event)=>{
+          if(event.target.getAttribute('data-state') == 'closed'){
+            toggleDD('closed',document.getElementById('Customer-listBox'),document.querySelector('.arrow'))
+          }
+          // if event.preventDefault() is uncommented
+          // then remove the +1 and -1 in the navigateTabs() call
+          // in the tab event handler
+
+          //event.preventDefault()
+          let focusedIndex 
+          let pastIndex 
+          let nextIndex 
+          
+
+          let ti = Number(event.target.getAttribute('tabindex'))
+          let e = $('#Customer-listBox .listItem:visible')
+          switch(event.key){
+              case 'Tab':
+                  
+                 
+                   break;
+              case 'ArrowDown':
+                  event.preventDefault()
+             
+                  focusedIndex =0
+                  pastIndex = e.length -1
+                  nextIndex = 1 
+                  for(i=0;i<e.length;i++){
+                      if(e[i].classList.contains('focusedListItem')){
+                          e[i].classList.remove('focusedListItem')
+                          if(i == e.length-1){
+                              focusedIndex = 0
+                              pastIndex = e.length - 1
+                              nextIndex = 1
+                              itemIndex = 0
+                          }else{
+                              focusedIndex = i+1
+                              pastIndex = i
+                              nextIndex = i+2
+                              itemIndex = i+1
+                          }
+                          
+                          
+                      }
+                  }
+                  usingListBox = true;
+                  
+                  
+                  
+                  e[focusedIndex].focus()
+                  e[focusedIndex].classList.add('focusedListItem')
+                  
+                  
+                  
+                  pastFocusedItem = e[pastIndex]
+                  currentFocusedItem = e[focusedIndex]
+                  nextFocusedItem = e[nextIndex]
+                  
+                  break;
+              case 'ArrowUp':
+                  usingListBox = true
+                  focusedIndex = e.length - 1
+                  pastIndex = 0
+                  nextIndex = e.length - 2 
+                  for(i=0;i<e.length;i++){
+                      if(e[i].classList.contains('focusedListItem')){
+                          if(i !== 0){
+                              focusedIndex = i - 1
+                              pastIndex = i
+                              nextIndex = i - 2
+                              itemIndex = i - 1
+                           }
+                          
+                          
+                          e[i].classList.remove('focusedListItem')
+                      }
+                  }
+                  e[focusedIndex].focus()
+                  e[focusedIndex].classList.add('focusedListItem')
+                  currentFocusedItem = e[focusedIndex]
+                  pastFocusedItem = e[pastIndex]
+                  nextFocusedItem = e[nextIndex] 
+                  break;
+              default:
+                  
+                  break;
+          }
+          
+         
+          
+          
+      },
+      keyup: (event) =>{
+          
+          
+          
+          
+         
+              
+              filterListBox(txtSection, Array.from($('#Customer-listBox div')))
+              let fl =$('#Customer-listBox div:visible')
+              
+              //if there are no matches then its a new company
+              
+              
+              if(txtSection.innerHTML == ''){
+                 
+                 
+                  resetListBox('Customer')
+                
+              }
+             
+
+          filteredList = Array.from($('#Customer-listBox div:visible'))
+          
+      },
+      input: (event)=>{
+          event.target.innerText = event.target.innerText.toLocaleUpperCase()
+          if(event.target.hasChildNodes()){
+          let inputRange = document.createRange();
+          let windowSelection = window.getSelection();
+          //remove any previously created ranges
+          windowSelection.removeAllRanges();
+          let theNodes = event.target.childNodes;
+          
+          let firstNode = theNodes[0];
+          let lastNode = theNodes[theNodes.length - 1];
+          let start = theNodes[0];
+          let end = theNodes[theNodes.length - 1];
+          //console.log('Start is ' + start.nodeName + ' end is ' + end.nodeName + " node count " + theNodes.length);
+          inputRange.setStartBefore(firstNode);
+          inputRange.setEndAfter(lastNode);
+          inputRange.collapse(false);
+      //add the range to a window selection object.
+          windowSelection.addRange(inputRange);
+          windowSelection.collapseToEnd();
+          }
+      }
+  })
+
+
+ 
+ 
+  let button = document.createElement('div')
+ 
+  let arrow = document.createElement('div')
+  arrow.setAttribute('class','arrow down')
+  $(arrow).on({
+      click: (event)=>{
+          event.stopImmediatePropagation()
+          toggleDD(null,listBox,arrow)
+      }
+  })
+  button.setAttribute('id','Customer-button')
+  button.setAttribute('class','arrowBox')
+  button.setAttribute('data-part','button')
+  $(button).on({
+      click: (event)=>{
+          state = listBox.getAttribute('data-state')
+          console.log('combo box clicked -> click state'+state)
+         
+          if(state == 'closed'){
+             
+              
+              listBox.style.animationDuration = '300ms'
+              listBox.style.transform = 'scaleY(1)'
+              arrow.classList.remove('down');
+              arrow.classList.add('up');
+             
+              listBox.setAttribute('data-state','open')
+              txtSection.focus()
+              usingListBox = true
+             
+          }else if(state == 'open'){
+             
+              listBox.style.animationDuration = '300ms'
+              listBox.style.transform = 'scaleY(0)'
+              
+              arrow.classList.remove('up')
+              arrow.classList.add('down')
+             
+              listBox.setAttribute('data-state','closed')
+          }
+          
+  }
+  })
+
+  let listBox = document.createElement('div')
+  
+  listBox.setAttribute('id','Customer-listBox')
+  
+  listBox.setAttribute('class','listBox lbContacts')
+  
+  
+  listBox.setAttribute('data-state','closed')
+ 
+  
+
+  //append components
+  
+  input.appendChild(txtSection)        
+  button.appendChild(arrow)
+  input.appendChild(button)
+ 
+  container.appendChild(input)
+  container.appendChild(listBox)
+
+  //populate dropdown
+  fillListBoxCP(listBox)
+  
+}    
+let fillListBoxCP = (box)=>{
+  let list = ipc.sendSync('get-customer-names')
+  let input = document.getElementById('Customer-choice')
+  let txtSection = document.getElementById('Customer-choice')
+  let button = document.getElementById('Customer-button')
+  let listBox = document.getElementById('Customer-listBox')    
+
+  box.innerHTML =''
+  for(var member in list){
+      let listItem = document.createElement('div')
+      listItem.setAttribute('class','listItem')
+      listItem.setAttribute('data-selected',false)
+      listItem.tabIndex = -1
+      let text
+      
+      
+              list.sort((a, b) => (a.customer_name > b.customer_name) ? 1 : -1)
+              listItem.setAttribute('id', `listItem${list[member].customer_ID}`)
+              text = document.createTextNode(list[member].customer_name)
+              
+              $(listItem).on({
+                  keydown: (event)=>{
+                    let id = event.target.id.substring(8)
+                    let name = removeSpecialCharacters(event.target.innerText)
+                      event.preventDefault()
+                      let index = Number(listItem.parentNode.previousElementSibling.lastChild.firstChild.getAttribute('tabindex'))
+                      let filteredList = $('#Customer-listBox .listItem:visible')
+                      switch(event.key){
+                          
+                          case 'ArrowDown':
+                              
+                              navigateListBox(event,box, filteredList, itemIndex)
+                          break;
+                          case 'ArrowUp':
+                              navigateListBox(event,box,filteredList,itemIndex)
+                          break;
+                          case 'Enter':
+                          case 'Tab':
+                            itemSelected(name,id)
+                              
+                              break;
+                      }
+                      
+                     
+                  },
+                  mousedown: (event)=>{
+                      //let index = Number(document.getElementById(`${listType}-choice`).getAttribute('tabindex'))
+                      event.stopPropagation()
+                      let id = event.target.id.substring(8)
+                      let name = removeSpecialCharacters(event.target.innerText)
+                      button.firstChild.classList.remove('up')
+                      button.firstChild.classList.add('down')
+                      
+                      
+                      document.getElementById('Customer-choice').innerText = name
+                      currentFocusedItem = event.target
+                     itemSelected(name,id)
+                     
+                      
+                  }
+                 
+                  
+              })
+         
+              
+      
+      
+      
+      listItem.appendChild(text)
+      
      
-     
-    
+      box.appendChild(listItem)
+  }
+}  
+let itemSelected = (name,id)=>{
+  contactContent.style.display = "block";
+  toggleDD(null,document.getElementById('Customer-listBox'),document.querySelector('.arrow'))                      
+  pullContacts(id)
+  loadHeader(name,id);
+  document.getElementById('customerNameWrapper').style.visibility = 'hidden'
+}
+
+let toggleDD = (state,dropDown,arrow)=>{
+            
+   
+  state = dropDown.getAttribute('data-state')
+  console.log(state , dropDown, arrow)
+  if(state == 'closed' || state == null){
+      //closeDropDowns()
+      dropDown.style.animationDuration = '300ms'
+      dropDown.style.transform = 'scaleY(1)'
+      dropDown.setAttribute('data-state','open')
+      arrow.classList.remove('down');
+      arrow.classList.add('up');
+      //usingListBox = true
+      dropDown.setAttribute('state','open')
+  }
+  if(state == 'open'){
+      dropDown.style.animationDuration = '300ms'
+      dropDown.style.transform = 'scaleY(0)'
+      dropDown.setAttribute('data-state','closed')
+      arrow.classList.remove('up');
+      arrow.classList.add('down');
+      //usingListBox = false
+      dropDown.setAttribute('state','closed')
+  }
+}  
+
+// let removeSpecialCharacters = (item)=>{
+//   let elem = document.createElement('textarea');
+// elem.innerHTML = item.trim().toUpperCase();
+// return  elem.value;
+  
+// }
+
+// let filterListBox = (el, arrElements)=>{
+//   let val =el.innerText                
+//   let arrNames = arrElements
+//   let fl
+//   arrNames.forEach((element) =>{
+      
+//       if(element.innerText.toUpperCase().includes(val.toUpperCase().replace(/\u00a0/g,' '))){
+//           element.style.display = 'flex'
+//       }else{
+          
+//           element.style.display = 'none'
+//       }
+//   })
+//   fl = arrNames
+//   //console.log('arrNames length ='+arrNames.length)
+
+//   return fl
+// }
+
+

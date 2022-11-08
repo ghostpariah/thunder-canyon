@@ -89,8 +89,9 @@ function createComponent(container, componentType, list, listType, callingPage){
         $(txtSection).on({
             focus: (event=>{
                 event.stopPropagation()
-                //event.preventDefault()                
-               
+                               
+                //setting focused to true to stop closeDropDowns() from firing twice when called
+                //on the click
                 focused = true 
                 
                 //close all open dropdowns               
@@ -142,7 +143,7 @@ function createComponent(container, componentType, list, listType, callingPage){
                         }
                     }
                     
-                    if(customer_text != '' && matched == 0){
+                    if(customer_text != '' && matched == 0 && callingPage != 'contacts'){
                         fillContactsNew(null)
                     }else{
                        if(page != 'edit'){
@@ -365,7 +366,7 @@ function createComponent(container, componentType, list, listType, callingPage){
                     let fl =$('#Customer-listBox div:visible')
                     
                     //if there are no matches then its a new company
-                    if(fl.length == 0){
+                    if(fl.length == 0 && callingPage != 'contacts'){
                         
                         
                         fillContactsNew(null)
@@ -657,7 +658,10 @@ function createComponent(container, componentType, list, listType, callingPage){
                                         props.customer_ID = listItem.id.substring(8)
                                         props.customer_name = listItem.innerText
                                         props.launcher = page
-                                        fillContactsNew(props)
+                                        if(callingPage != 'contacts'){
+                                            fillContactsNew(props)
+                                        }
+                                        
                                         if(props.contacts.primary_contact){
                                             let txtField = document.querySelector('#Contacts-choice')
                                             let nameBox = document.querySelector('#Contacts-info')
@@ -675,7 +679,9 @@ function createComponent(container, componentType, list, listType, callingPage){
                                             
                                         }
                                         
-                                        navigateTabs('down',index)
+                                        if(callingPage != 'contacts'){
+                                            navigateTabs('down',index)
+                                        }
                                     }   
                                     
                                     chooseListItem(event,input,txtSection,event.target,box)
@@ -699,10 +705,13 @@ function createComponent(container, componentType, list, listType, callingPage){
                             props.customer_name = listItem.innerText
                             props.launcher = page
                             console.log(props)
-                            fillContactsNew(props)
+                            if(callingPage != 'contacts'){
+                                fillContactsNew(props)
+                            }
+                            
                             
                             currentFocusedItem = event.target
-                            if(props.contacts.primary_contact){
+                            if(props.contacts.primary_contact && callingPage != 'contacts'){
                                 let txtField = document.querySelector('#Contacts-choice')
                                 let nameBox = document.querySelector('#Contacts-info')
                                 let primaryItem = $(`#${props.contacts.primary_contact}`).parent().next()
@@ -721,7 +730,10 @@ function createComponent(container, componentType, list, listType, callingPage){
                             
                             chooseListItem(event,input,txtSection,event.target,box)
                             setTimeout(() => {
-                                navigateTabs('down',index)
+                                if(callingPage != 'contacts'){
+                                    navigateTabs('down',index)
+                                }
+                                
                             }, 75);
                             
                         }
@@ -1002,12 +1014,12 @@ function createComponent(container, componentType, list, listType, callingPage){
         
         
         
-        selectBox.addEventListener('mousedown',(event)=>{
-            //event.preventDefault()
-            console.log('toggling in split select selectBox focus event')
-            toggleDropDowns('Customer txtSection mousedown',listBox,arrow)
+        // selectBox.addEventListener('mousedown',(event)=>{
+        //     //event.preventDefault()
+        //     console.log('toggling in split select selectBox focus event')
+        //     toggleDropDowns('Customer txtSection mousedown',listBox,arrow)
             
-        })
+        // })
 
          //left side info section within select input
         let info = document.createElement('div')
@@ -1022,12 +1034,17 @@ function createComponent(container, componentType, list, listType, callingPage){
         choice.tabIndex = getTabIndex(listType, page)
         $(choice).on({
             focus: (event)=>{
-                event.preventDefault()
+                event.stopPropagation()
+                //event.preventDefault()                
+               
+                focused = true 
+                
+                //close all open dropdowns               
                 closeDropDowns()
-                if(state == 'closed'){
-                    
-                    toggleDropDowns('Customer txtSection mousedown',listBox,arrow)
-                }
+
+                //toggle between open and closed styling on focused element
+                toggleDropDowns('Customer txtSection focus',listBox,arrow)
+               
                
             },
             keydown: (event)=>{
@@ -1107,66 +1124,17 @@ function createComponent(container, componentType, list, listType, callingPage){
                     default:
                         break;
                 }
-                // if(event.key == 'ArrowDown'){                 
-                        
-
-                //         let focusedIndex =0
-                //         let pastIndex = e.length -1
-                //         let nextIndex = 1 
-                //         for(i=0;i<e.length;i++){
-                //             if(e[i].classList.contains('focusedListItem')){
-                //                 if(i == e.length-1){
-                //                     focusedIndex = 0
-                //                     pastIndex = e.length - 1
-                //                     nextIndex = 1
-                //                     itemIndex = 0
-                //                 }else{
-                //                     focusedIndex = i+1
-                //                     pastIndex = i
-                //                     nextIndex = i+2
-                //                     itemIndex = i+1
-                //                 }
-                                
-                //                 e[i].classList.remove('focusedListItem')
-                //             }
-                //         }
-                //         usingListBox = true; 
-                //         e[focusedIndex].focus()
-                //         e[focusedIndex].classList.add('focusedListItem')
-                //         pastFocusedItem = e[pastIndex]
-                //         currentFocusedItem = e[focusedIndex]
-                //         nextFocusedItem = e[nextIndex]
-                       
-                       
-                // }         
-                
-            
-            // if(event.key == 'ArrowUp'){
-            //     usingListBox = true
-            //     let focusedIndex = e.length - 1
-            //     itemIndex = focusedIndex
-            //     let pastIndex = 0
-            //     let nextIndex = e.length - 2 
-            //     for(i=0;i<e.length;i++){
-            //         if(e[i].classList.contains('focusedListItem')){
-            //             if(i !== 0){
-            //                 focusedIndex = i - 1
-            //                 pastIndex = i
-            //                 nextIndex = i - 2
-            //                 itemIndex = i - 1
-            //              }
-                        
-                        
-            //             e[i].classList.remove('focusedListItem')
-            //         }
-            //     }
-            //     e[focusedIndex].focus()
-            //     e[focusedIndex].classList.add('focusedListItem')
-            //     currentFocusedItem = e[focusedIndex]//listBox.childNodes[1]
-            //     pastFocusedItem = e[pastIndex]//listBox.firstChild
-            //     nextFocusedItem = e[nextIndex]//listBox.childNodes[1] 
-            // }
-        }
+               
+            },
+            mousedown: (event)=>{
+                if(focused){
+                    toggleDropDowns('Customer txtSection mousedown',listBox,arrow)
+                }
+            },
+            blur: (event)=>{
+                focused = false
+            }
+           
 
 
         })
@@ -1175,9 +1143,21 @@ function createComponent(container, componentType, list, listType, callingPage){
         let button = document.createElement('div')
         button.setAttribute('class','arrowBox')
         button.setAttribute('id',`${listType}-button`)
+        $(button).on({
+            click: (event)=>{
+                event.stopImmediatePropagation()
+                toggleDropDowns(null,listBox,arrow)
+            }
+        })
 
         let arrow = document.createElement('div')
         arrow.setAttribute('class','arrow down')
+        $(arrow).on({
+            click: (event)=>{
+                event.stopImmediatePropagation()
+                toggleDropDowns(null,listBox,arrow)
+            }
+        })
         //box that holds options...simulated datalist
         let listBox = document.createElement('div')
         listBox.setAttribute('class','listBox')
@@ -2010,7 +1990,7 @@ let navigateTabs = (direction, ind)=>{
         }
         
         rect = document.querySelectorAll(`[tabindex="${dex}"]`)[0].getBoundingClientRect()
-        if(glPage != 'popup'){
+        if(glPage != 'popup' && glPage){
             while(rect.top == 0){
                 
                 dex+=1
@@ -2082,15 +2062,15 @@ let chooseListItem = (event, input, txtSection, chosen,listBox)=>{
             let cid = chosen.getAttribute('id').substring(8)
             
             txtSection.setAttribute('data-cid',cid)	
-            
+            if(glPage == 'contacts'){
+                break;
+            }
             if(checkForNoShows(cid)){
                 if($('#Customer-MessageContainer')){
                     $('#Customer-MessageContainer').remove()
-                }
+                }            
                 
-                
-                txtSection.parentNode.parentNode.appendChild(createMessageBox(type[0],'no_show'))
-                
+                txtSection.parentNode.parentNode.appendChild(createMessageBox(type[0],'no_show'))                
             }
 			
             break;

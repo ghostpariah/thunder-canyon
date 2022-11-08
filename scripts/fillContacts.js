@@ -116,7 +116,9 @@ function fillContactsNew(props){//contacts,cust_ID,cusName,launcher
 					ipc.send('pass-new-customer-to-main-window', objContactProps.customer_ID)
 					document.getElementById('Customer-choice').setAttribute('data-cid',objContactProps.customer_ID)
 				}else{
-					objContactProps.customer_ID = cust_ID
+					//changed from cust_ID to pulling from data-cid attribute to protect against errors when there is an issue
+					//with adding the contact that caused company to be added twice
+					objContactProps.customer_ID = addNewContactOption.getAttribute('data-cid')
 				}
 				
 				console.log('there are not contacts')
