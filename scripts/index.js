@@ -1809,7 +1809,7 @@ function makeJobDiv2(args){
 		<span class='unitNumber' id = 'unitNumber'>${u}</span>
 		<span class='notes'>${(args.notes!=null)?args.notes:""}</span>
 		</span>
-		<span class='jobCat jobCat${str}' 
+		<span class="jobCat jobCat${(sd =='')?str:str+'Scheduled'}" 
 		id='${args.job_ID}Cat'></span>
 		</div>`;
 		

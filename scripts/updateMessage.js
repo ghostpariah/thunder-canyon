@@ -3,7 +3,7 @@
 const mb = document.querySelector('#message')
 
 //updater doesnt work in dev environment so starting app by default just for dev.
-//ipc.send('start-app')
+ipc.send('start-app')
 
 
 ipc.on('updater', (event , args, args2)=>{

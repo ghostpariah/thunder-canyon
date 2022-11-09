@@ -57,11 +57,14 @@
 
       $(inpFirstname).on({
         keydown: function(event){
+          if($('#fName-MessageContainer')){
+            $('#fName-MessageContainer').remove()
+        }
           let visibility = document.getElementById('firstname_message_container').style.display
-          if(visibility == 'block'){
-            document.getElementById('firstname_message_container').style.display = 'none' ;
-            document.getElementById('firstname_message').innerHTML = ''
-          }
+          // if(visibility == 'block'){
+          //   document.getElementById('firstname_message_container').style.display = 'none' ;
+          //   document.getElementById('firstname_message').innerHTML = ''
+          // }
           
         },
         blur:function(){
@@ -83,7 +86,7 @@
             },
             keyup: function(event){
               if(emailValid){
-                document.getElementById('email_message').innerHTML = "";
+                //document.getElementById('email_message').innerHTML = "";
                 document.getElementById('email_message_container').style.display = 'none';
               }
               emailValid = false
@@ -102,10 +105,19 @@
                   let afterPeriod = rest.substring(rest.lastIndexOf(".") + 1)
                   if(afterPeriod.length>=2){
                     emailValid = true;
-                    document.getElementById('email_message').innerHTML = "";
+                    if($('#email-invalid-MessageContainer')){
+                      $('#email-invalid-MessageContainer').remove()
+                    }
+                    if($('#email-MessageContainer')){
+                      $('#email-MessageContainer').remove()
+                    }
+                    if($('#phone-MessageContainer')){
+                      $('#phone-MessageContainer').remove()
+                    }
+                    //document.getElementById('email_message').innerHTML = "";
                     document.getElementById('email_message_container').style.display = 'none';
-                    document.getElementById('message').innerHTML = "";
-                    document.getElementById('message_container').style.display = 'none';
+                    //document.getElementById('message').innerHTML = "";
+                    //document.getElementById('message_container').style.display = 'none';
                   }
                 
                 }
@@ -114,7 +126,7 @@
                 
                 emailValid = (this.value=="")? true:false;
                 if(emailValid){
-                  document.getElementById('email_message').innerHTML = "";
+                  //document.getElementById('email_message').innerHTML = "";
                   document.getElementById('email_message_container').style.display = 'none';
                   
                 }
@@ -126,8 +138,12 @@
               console.log(' email blur -- contactInfoValid : '+contactInfoValid)
               if(emailValid === false){
                 console.log('condition triggered');
-                
-                document.getElementById("email_message").innerText = "Invalid email";
+                if($('#email-invalid-MessageContainer')){
+                  $('#email-invalid-MessageContainer').remove()
+                }
+
+                document.getElementById('email_message_container').appendChild(createMessageBox('email','invalid'))
+                //document.getElementById("email_message").innerText = "Invalid email";
                 document.getElementById('email_message_container').style.display = 'block';             
                 inpEmail.focus();
                 contactInfoValid = false
@@ -215,7 +231,17 @@
            */
           keyup: function (event) {
             if(valid){
-                document.getElementById('phone_message').innerHTML = "";
+              if($('#phone-MessageContainer')){
+                $('#phone-MessageContainer').remove()
+              }
+              if($('#phone-digits-MessageContainer')){
+                $('#phone-digits-MessageContainer').remove()
+              }
+              if($('#email-MessageContainer')){
+                $('#email-MessageContainer').remove()
+              }
+              
+                //document.getElementById('phone_message').innerHTML = "";
                 document.getElementById('phone_message_container').style.display = 'none';
               }
             valid = (inpPhoneNumber.value !="")? false: true;
@@ -223,10 +249,19 @@
             val = this.value;
             num = val.replace(/\D/g, "");
             if (num.length >= 10) {
+              if($('#phone-MessageContainer')){
+                $('#phone-MessageContainer').remove()
+              }
+              if($('#phone-digits-MessageContainer')){
+                $('#phone-digits-MessageContainer').remove()
+              }
+              if($('#email-MessageContainer')){
+                $('#email-MessageContainer').remove()
+              }
               valid=true;
-              document.getElementById('phone_message').innerHTML = ""
+              //document.getElementById('phone_message').innerHTML = ""
               document.getElementById('phone_message_container').style.display = 'none';
-              document.getElementById('message').innerHTML = "";
+              //document.getElementById('message').innerHTML = "";
               document.getElementById('message_container').style.display = 'none';
               areaCode = `(${num.substr(0, 3)}) `;
 
@@ -245,7 +280,16 @@
               if(this.value == ""){
                 valid=true
                 if(valid){
-                document.getElementById('phone_message').innerHTML = "";
+                  if($('#phone-MessageContainer')){
+                    $('#phone-MessageContainer').remove()
+                  }
+                  if($('#phone-digits-MessageContainer')){
+                    $('#phone-digits-MessageContainer').remove()
+                  }
+                  if($('#email-MessageContainer')){
+                    $('#email-MessageContainer').remove()
+                  }
+                //document.getElementById('phone_message').innerHTML = "";
                 document.getElementById('phone_message_container').style.display = 'none';
                 
               }
@@ -260,8 +304,12 @@
             console.log(' phone blur -- contactInfoValid : '+contactInfoValid)
             if(!valid){
               inpPhoneNumber.focus()
-              document.getElementById('phone_message').innerHTML = "Phone number must be at least 10 digits"
+              if($('#phone-MessageContainer')){
+                $('#phone-MessageContainer').remove()
+              }
+              //document.getElementById('phone_message').innerHTML = "Phone number must be at least 10 digits"
               document.getElementById('phone_message_container').style.display = 'block';
+              document.getElementById('phone_message_container').appendChild(createMessageBox('phone','digits'))
               contactInfoValid = false
             }else{
               //TODO: insert search for no shows here
@@ -282,6 +330,7 @@
 
      
       function togglePageView(action) {
+        console.log('togglePageView triggered -', action)
         try{
           let buttonList = document.getElementsByClassName('mainContactButton')
           let allIndicators = document.getElementsByClassName('indicator')
@@ -896,21 +945,36 @@
       
       function validateForm(){
         console.log(`${contactInfoValid} ${inpFirstname.value} ${inpPhoneNumber.value} ${inpEmail.value}`)
-        contactInfoValid = (inpPhoneNumber.value != "")? true : (inpEmail.value !="")?true : false;
+        console.log(inpPhoneNumber.value.length)
+        contactInfoValid = (inpPhoneNumber.value != "" && inpPhoneNumber.value.length>=14)? true : (inpEmail.value !="")?true : false;
         
         if(contactInfoValid && inpFirstname.value != "") {
           newAdd()
           return
         }
         if(inpFirstname.value ==""){
+          if($('#fName-MessageContainer')){
+            $('#fName-MessageContainer').remove()
+        }
+          document.getElementById('firstname_message_container').appendChild(createMessageBox('fName'))
           document.getElementById('firstname_message_container').style.display = 'block'
-          document.getElementById('firstname_message').innerHTML = 'First name is required'
+          //document.getElementById('firstname_message').innerHTML = 'First name is required'
           
           
         }
         if(!contactInfoValid || (inpPhoneNumber.value=="" && inpEmail.value =="")) {
-          document.getElementById('message').innerHTML = "A valid phone number or email is required"
-          document.getElementById('message_container').style.display = 'block';
+          console.log('mail and phone empty')
+          if($('#phone-MessageContainer')){
+            $('#phone-MessageContainer').remove()
+          }
+          if($('#email-MessageContainer')){
+            $('#email-MessageContainer').remove()
+          }
+        document.getElementById('phone_message_container').appendChild(createMessageBox('phone'))
+        document.getElementById('email_message_container').appendChild(createMessageBox('email'))
+          //document.getElementById('message').innerHTML = "A valid phone number or email is required"
+          document.getElementById('phone_message_container').style.display = 'block';
+          document.getElementById('email_message_container').style.display = 'block';
           
        }
       
@@ -986,18 +1050,34 @@
 
             break;
           default:
+            
             break;
         }
       }
       function clearMessageCenters(){
-        document.getElementById('email_message').innerHTML = "";
-        document.getElementById('email_message_container').style.display = 'none';
-        document.getElementById('message').innerHTML = "";
-        document.getElementById('message_container').style.display = 'none';
-        document.getElementById('phone_message').innerHTML = "";
-        document.getElementById('phone_message_container').style.display = 'none';
-        document.getElementById('firstname_message').innerHTML = "";
-        document.getElementById('firstname_message_container').style.display = 'none';
+        if($('#fName-MessageContainer')){
+          $('#fName-MessageContainer').remove()
+        }
+        if($('#email-MessageContainer')){
+          $('#email-MessageContainer').remove()
+        }
+        if($('#phone-MessageContainer')){
+          $('#phone-MessageContainer').remove()
+        }
+        if($('#email-invalid-MessageContainer')){
+          $('#email-invalid-MessageContainer').remove()
+        }  
+        if($('#phone-digits-MessageContainer')){
+          $('#phone-digits-MessageContainer').remove()
+        }
+        // document.getElementById('email_message').innerHTML = "";
+        // document.getElementById('email_message_container').style.display = 'none';
+        // document.getElementById('message').innerHTML = "";
+        // document.getElementById('message_container').style.display = 'none';
+        // document.getElementById('phone_message').innerHTML = "";
+        // document.getElementById('phone_message_container').style.display = 'none';
+        // document.getElementById('firstname_message').innerHTML = "";
+        // document.getElementById('firstname_message_container').style.display = 'none';
         contactInfoValid = false
       }
       function cancelAdd() {

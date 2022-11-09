@@ -914,18 +914,64 @@ div.lineItem:first-child{
 }
 .jobCatSpring{
 	background-color: var(--clr-spring);
+	
+}
+.jobCatSpringScheduled{
+	background: repeating-linear-gradient(
+		45deg,
+		hsl(213, 33%, 52%),
+		hsl(213, 33%, 52%) 5px,
+		hsl(213, 33%, 40%) 5px,
+		hsl(213, 33%, 40%) 10px
+	  );
 }
 .jobCatAlignment{
 	background-color: var(--clr-alignment);
 }
+.jobCatAlignmentScheduled{
+	background: repeating-linear-gradient(
+		45deg,
+		hsl(304, 33%, 52%),
+		hsl(304, 33%, 52%) 5px,
+		hsl(304, 33%, 40%) 5px,
+		hsl(304, 33%, 40%) 10px
+	  );
+}
 .jobCatFrame{
 	background-color: var(--clr-frame);
+}
+.jobCatFrameScheduled{
+	background: repeating-linear-gradient(
+		45deg,
+		hsl(11, 100%, 50%),
+		hsl(11, 100%, 50%) 5px,
+		hsl(11, 100%, 38%) 5px,
+		hsl(11, 100%, 38%) 10px
+	  );	
 }
 .jobCatKingPin{
 	background-color: var(--clr-kingpin);
 }
+.jobCatKingPinScheduled{
+	background: repeating-linear-gradient(
+		45deg,
+		hsl(124, 33%, 52%),
+		hsl(124, 33%, 52%) 5px,
+		hsl(124, 33%, 40%) 5px,
+		hsl(124, 33%, 40%) 10px
+	  );
+}
 .jobCatCheckAll{
 	background-color: var(--clr-checkall);
+}
+.jobCatCheckAllScheduled{
+	background: repeating-linear-gradient(
+		45deg,
+		hsl(36, 100%, 52%),
+		hsl(36, 100%, 52%) 5px,
+		hsl(36, 100%, 42%) 5px,
+		hsl(36, 100%, 42%) 10px
+	  );
 }
 .overflow{
 	background-color: var(--clr-pending);

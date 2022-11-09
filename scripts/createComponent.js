@@ -2256,7 +2256,48 @@ let createMessageBox = (lt, messageType)=>{
             messageContainer.appendChild(message)
             messageContainer.setAttribute('class','messageContainer invalid')
             break;
-        
+        case 'phone':
+        case 'email':
+            if(messageType == 'digits'){
+                messageContainer.setAttribute('id',`${lt}-digits-MessageContainer`)
+                messageText = document.createTextNode(`Number must be at least 10 digits`)
+                message.appendChild(messageText)
+                messageContainer.appendChild(message)
+                messageContainer.setAttribute('class','messageContainer invalid')
+                break;
+            }
+            if(messageType == 'invalid'){
+                messageContainer.setAttribute('id',`${lt}-invalid-MessageContainer`)
+                messageText = document.createTextNode(`Invalid email address`)
+                message.appendChild(messageText)
+                messageContainer.appendChild(message)
+                messageContainer.setAttribute('class','messageContainer invalid')
+                break;
+            }
+                   
+                
+            messageText = document.createTextNode(`Phone Number or Email REQUIRED`)
+            message.appendChild(messageText)
+            messageContainer.appendChild(message)
+            messageContainer.setAttribute('class','messageContainer invalid')
+            break;
+            
+            
+           
+            
+            break;
+        // case 'email':
+        //     break;
+        // case 'phone':
+        //     break;
+        case 'fName':
+            messageText = document.createTextNode(`FIRST NAME REQUIRED`)
+            message.appendChild(messageText)
+            messageContainer.appendChild(message)
+            messageContainer.setAttribute('class','messageContainer invalid')
+            break;
+        // case 'last name':
+        //     break;
         default:
             
             messageText = document.createTextNode(`${lt} REQUIRED`)
