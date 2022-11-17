@@ -2,7 +2,7 @@
       //node.js variables
       //const conElectron = require("electron");
       //const ipc = conElectron.ipcRenderer;
-      
+      //const dialog = require("electron").dialog
 
       //DOM element variables
       const customerNameWrapper = document.getElementById("customerNameWrapper");
@@ -1500,6 +1500,20 @@
 
             
             linkEl2.addEventListener("click", (event) => {
+              const options = {
+                type: 'question',
+                buttons: ['Cancel', 'Yes, please', 'No, thanks'],
+                defaultId: 2,
+                title: 'Are you sure?',
+                message: 'Are you sure you want to delete this?',
+                detail: 'Deleting cannot be undone',
+                
+              };
+              //returns 1 for yes, 2 for no, and 0 for cancel
+              let answer = ipc.sendSync('open-dialog',options)
+              if(answer !== 1) return
+
+              //if(!confirm(`Are you sure you want to delete this item?`)) return;
               console.log(event.target)
               toggleActionLinkVisibility("on");
               let cust_ID = event.target.parentNode.getAttribute('data-id');
@@ -1714,6 +1728,19 @@
               pnDeleteLinkBox.setAttribute("class", "actionLink");
               
               pnDeleteLinkBox.addEventListener("click", (event) => {
+                const options = {
+                  type: 'question',
+                  buttons: ['Cancel', 'Yes, please', 'No, thanks'],
+                  defaultId: 2,
+                  title: 'Are you sure?',
+                  message: 'Are you sure you want to delete this?',
+                  detail: 'Deleting cannot be undone',
+                  
+                };
+                //returns 1 for yes, 2 for no, and 0 for cancel
+                let answer = ipc.sendSync('open-dialog',options)
+                if(answer !== 1) return
+                //if(!confirm(`Are you sure you want to delete this item?`)) return;
                 toggleActionLinkVisibility("on");
                 let p = event.target.parentNode.id;
                 let gp = event.target.parentNode.parentNode.id;
@@ -1871,6 +1898,19 @@
               eDeleteLinkBox.setAttribute("class", "actionLink");
             
               eDeleteLinkBox.addEventListener("click", (event) => {
+                const options = {
+                  type: 'question',
+                  buttons: ['Cancel', 'Yes, please', 'No, thanks'],
+                  defaultId: 2,
+                  title: 'Are you sure?',
+                  message: 'Are you sure you want to delete this?',
+                  detail: 'Deleting cannot be undone',
+                  
+                };
+                //returns 1 for yes, 2 for no, and 0 for cancel
+                let answer = ipc.sendSync('open-dialog',options)
+                if(answer !== 1) return                
+                //if(!confirm(`Are you sure you want to delete this item?`)) return;
                 toggleActionLinkVisibility("on");
                 let p = event.target.parentNode.id;
                 let gp = event.target.parentNode.parentNode.id;
@@ -2445,6 +2485,7 @@ let fillListBoxCP = (box)=>{
 }  
 let itemSelected = (name,id)=>{
   contactContent.style.display = "block";
+  contactContent.innerHTML = ''
   toggleDD(null,document.getElementById('Customer-listBox'),document.querySelector('.arrow'))                      
   pullContacts(id)
   loadHeader(name,id);

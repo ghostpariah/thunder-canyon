@@ -82,14 +82,7 @@ function setToday(){
         document.getElementById("dayNumber"+t).style.color="white";
     }
 }
-function todayIs() {
-	const objDate = new Date();
-	const day = objDate.getDate();
-	const month = objDate.getMonth() + 1;
-	const year = objDate.getFullYear();
-	const today = month + "/" + day + "/" + year;
-	return today;
-}
+
 function setFirstDay(y){
     var year = y;
    firstDay= new Date(year, monthIndex).getDay();

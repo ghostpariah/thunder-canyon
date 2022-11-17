@@ -59,7 +59,7 @@ window.onload = ()=>{
 }
 setTimeout(()=>{		
     $("#DateIn-choice").datepicker({
-		dateFormat : "mm/dd/yy",
+		dateFormat : "mm/dd/yy",		
 		beforeShowDay: $.datepicker.noWeekends,
 		constrainInput: false
 
@@ -103,6 +103,7 @@ setTimeout(()=>{
 	})
 	$("#DateSched-choice").datepicker({
 		dateFormat : "mm/dd/yy",
+		minDate: todayIs(),
 		beforeShowDay: $.datepicker.noWeekends,
 		constrainInput: false
 	}); 
@@ -146,6 +147,7 @@ setTimeout(()=>{
 	$("#datepickerOTL").datepicker({
 		dateFormat : "mm/dd/yy",
 		beforeShowDay: $.datepicker.noWeekends,
+		minDate: todayIs(),
 		constrainInput: false
 	});
 	$('#datepickerOTL').on({
@@ -188,6 +190,7 @@ setTimeout(()=>{
 	$("#DateOTL-choice").datepicker({
 		dateFormat : "mm/dd/yy",
 		beforeShowDay: $.datepicker.noWeekends,
+		minDate: todayIs(),
 		constrainInput: false
 	});
 	$('#DateOTL-choice').on({
@@ -414,6 +417,7 @@ function loadData(objJobToEdit){
 				$("#DateOTL-choice").datepicker({
 					dateFormat : "mm/dd/yy",
 					beforeShowDay: $.datepicker.noWeekends,
+					minDate: todayIs(),
 					constrainInput: false
 				});
 				document.getElementById('DateOTL-choice').value = d.date_scheduled;
@@ -660,7 +664,7 @@ function updateJob (){
 	if(editData.time_of_day != null && editData.time_of_day != ''){
 		
 			(editData.time_of_day.localeCompare($('input[name=ampmSched]:checked').val())!=0)
-				? objNewJob.time_of_day = $('input[name=ampmSched]:checked').val()
+				? objNewJob.time_of_day = ($('input[name=ampmSched]:checked').val() != undefined)? $('input[name=ampmSched]:checked').val(): 'z'
 				:'no change to time_of_day';		
     }else{
 		if(designation.innerText == 'Scheduled'){
@@ -801,15 +805,15 @@ function updateJob (){
 	if(Boolean(cbOTL.checked)!=Boolean(editData.comeback_customer)){
 		if(cbOTL.checked){			
 			
-			if(datepickerOTL.value == '' || datepickerOTL.value == undefined || datepickerOTL.value == null || $('input[name=ampmOTL]:checked').val() == undefined){
+			if(datepickerOTL.value == '' || datepickerOTL.value == undefined || datepickerOTL.value == null){
 				
 				document.getElementById('wrapperOTL').style.display = 'block'
-				document.getElementById('OTL_message').innerHTML = 'scheduled date and time of day required'
+				document.getElementById('OTL_message').innerHTML = 'scheduled date required'
 				return
 			}
 			objNewJob.comeback_customer = 1
 			objNewJob.date_scheduled = datepickerOTL.value
-			objNewJob.time_of_day = $('input[name=ampmOTL]:checked').val()
+			objNewJob.time_of_day = ($('input[type=radio]:checked').size() > 0)?$('input[name=ampmOTL]:checked').val(): 'z';
 			objNewJob.julian_date = jDate(document.getElementById('DateOTL-choice').value)
 		}else{
 			objNewJob.comeback_customer = 0
@@ -871,6 +875,7 @@ function openOTLandScheduled(event,cb,OTL_container){
 		$("#DateOTL-choice").datepicker({
 			dateFormat : "mm/dd/yy",
 			beforeShowDay: $.datepicker.noWeekends,
+			minDate: todayIs(),
 			constrainInput: false
 		});
 

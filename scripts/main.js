@@ -1,6 +1,6 @@
 
 const electron = require('electron')
-const {app, BrowserWindow, ipcMain, Menu, MenuItem, globalShortcut,session} = require('electron')
+const {app, BrowserWindow, ipcMain, Menu, MenuItem, globalShortcut,session,dialog} = require('electron')
 const path = require('path')
 const url = require('url')
 const fs = require('fs')
@@ -13,7 +13,7 @@ const defaultErrLog = log.create('anotherInstance')
 const Store = require('electron-store')
 const process = require('process')
 
-
+let instance
 
 const { serialize } = require('v8')
 const { SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS } = require('constants')
@@ -71,7 +71,7 @@ let uncaughtCount = 0
 /**
  * myAction     is variable to tell app to not refresh whole page on your drag and drop
  *              will not refresh if set true. It is set to true on drag and drop in ipc message
- *              of 'edit-location-drop'
+ *              of 'edit-location-drop' and on whiteboard content entry
  * 
  * 
  * fswatchCount is a count of how many times fswatch is fired (fires twice per action)
@@ -335,11 +335,27 @@ async function readyApp(){
                           if (fsWait) return;    
                           fsWait = setTimeout(() => {
                             fsWait = false;      
-                          }, 200);      
-                          
-                          setTimeout(function() {
-                              win.webContents.send('whiteboard-updated')
-                          }, 50);      
+                          }, 200);  
+                        console.log(win.id,instance) 
+                           
+                          if(myAction){
+                            fswatchCount++ 
+                            myAction = false
+                            if(fswatchCount % 2 == 0){
+                                // myAction = false
+                                console.log('fswatchCount='+fswatchCount, myAction)
+                                fswatchCount = 0
+                                //win.webContents.send('update-single')
+                            }
+                                
+                            //myAction = false
+                            //fswatchCount = 0
+
+                            }else{
+                                setTimeout(function() {
+                                    win.webContents.send('whiteboard-updated')
+                                }, 50);
+                            }    
                         }else{
                             errLog.error(`whiteboard file doesn't exist or connection to v: lost`)
                         }
@@ -506,7 +522,10 @@ app.on('ready', ()=>{
     // setTimeout(() => {
     //     readyApp()
     // }, 1000);
-    
+
+    // ipcMain.handle('dialog', (event, method, params) => {       
+    //     dialog[method](params);
+    //   });
       
        
 })
@@ -791,6 +810,33 @@ const renameDB = async (oldName,newName)=>{
     
     return await fsp.rename(oldName, newName)
 }
+ipcMain.on('open-dialog',(event,args)=>{
+    console.log(event.sender.getTitle())
+    let bw
+    switch(event.sender.getTitle()){
+        case 'Add New Job':
+            bw = addJobWin
+            break;
+        case 'Contacts':
+            bw = contactWin
+            break;
+        default:
+            break;
+    }
+    const options = {
+        type: 'question',
+        buttons: ['Cancel', 'Yes, please', 'No, thanks'],
+        defaultId: 2,
+        title: 'Are you sure?',
+        message: 'Are you sure you want to delete this?',
+        detail: 'Deleting cannot be undone',
+        
+      };
+    dialog.showMessageBox(bw,args).then((data)=>{
+       
+        event.returnValue = data.response
+    })
+})
 ipcMain.on('restore-database',(event,restorePoint)=>{
     let arrBackups
     let newDB = path.join(backupFolder, restorePoint)
@@ -876,10 +922,28 @@ ipcMain.on('no-updates', (event)=>{
     
     
 })
-
+let meTyping = false
+ipcMain.on('typing',(event,args)=>{
+    if(args == 'yes'){
+        meTyping = true
+        win.webContents.send('typing')
+    }else{
+        win.webContents.send('not-typing')
+        // if(meTyping == true){
+        //     win.webContents.send('not-typing')
+            
+        // }else{
+        //     meTyping = false
+        //     win.webContents.send('typing')
+        // }
+        
+    }
+})
  ipcMain.on('get-whiteboard', (event, args1, args2)=>{
     let d
+    console.log('myAction in get-whiteboard = '+myAction)
     
+    instance = event.sender.id
     if(args1 == 'read'){
         d= fs.readFileSync(white_board, 'UTF-8',function (err, data) {
             if (err) console.log(err);
@@ -889,6 +953,7 @@ ipcMain.on('no-updates', (event)=>{
         
     }
     if(args1 == 'write'){
+        myAction = true
         fs.writeFile(white_board, args2, function (err) { 
             if (err)
                 console.log(err);
@@ -898,7 +963,7 @@ ipcMain.on('no-updates', (event)=>{
                 
         });
         if(win){
-            win.webContents.send('whiteboard-updated')
+            //win.webContents.send('whiteboard-updated')
         }
     }
       // fs.close()
@@ -1914,7 +1979,7 @@ ipcMain.on('db-get-phone',(event, args)=>{
     
 })
 ipcMain.on('db-get-contact-name',(event, args1, args2)=>{
-    console.log(args1,args2)
+    //console.log(args1,args2)
     let dboContactID = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
             console.error(err.message)
@@ -2380,7 +2445,8 @@ function createContactsWindow(args1, args2, args3, args4, args5,args6,args7,args
             webPreferences: {
                 nodeIntegration: true,
                 webSecurity: false,
-                contextIsolation: false
+                contextIsolation: false,
+                //preload: path.join(__dirname, 'preload.js')
     
             }
             

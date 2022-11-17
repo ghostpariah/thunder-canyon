@@ -183,13 +183,13 @@
    
     outline: 0px;
     margin-right:0;
-    
+    display:inline-block;
    
   }
   /* add a display:none for the <br> that gets inserted by the browser when 
   contenteditable is emptied programmatically*/
   [contenteditable] br{
-    display:none;
+    /* display:none; */
   }
   
   .blue{

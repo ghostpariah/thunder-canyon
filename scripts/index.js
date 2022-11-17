@@ -51,8 +51,7 @@ var kingpinCount = 0;
 var largestBucket = 0;
 
 
-
-
+let saveTimer 
 
  
 /*************
@@ -215,7 +214,8 @@ ipc.on('show-admin-elements', (event, args)=>{
 	console.time('show-admin')
 	loadJobs(allJobs)
 	
-	document.getElementById('whiteBoardContent').innerHTML = ipc.sendSync('get-whiteboard','read')	
+	document.getElementById('whiteBoardContent').innerHTML = ipc.sendSync('get-whiteboard','read')
+	
 	console.timeEnd('show-admin')
 
 	
@@ -235,11 +235,13 @@ ipc.on('show-user-elements', (event, args)=>{
 	toggleAdminElements(admin)
 	loadJobs(allJobs)
 	document.getElementById('whiteBoardContent').innerHTML = ipc.sendSync('get-whiteboard','read')
+	
 })
 
 ipc.on('whiteboard-updated', (event,args)=>{
-	
+	console.log('white-board-updated')
 	document.getElementById('whiteBoardContent').innerText = ipc.sendSync('get-whiteboard','read')
+	setCaretToEnd(document.getElementById('whiteBoardContent'))	
 })
 
 /******************
@@ -321,12 +323,13 @@ function jDate(ds){
 
 function saveWhiteBoard(wb){
 	ipc.send('get-whiteboard', 'write',document.getElementById('whiteBoardContent').innerText)
-	
-	setTimeout(() => {
-		if(window){
-			document.getElementById('whiteBoardContent').innerHTML = ipc.sendSync('get-whiteboard', 'read')
-		}
-	}, 50);
+	console.log('saving whiteboard')
+	// setTimeout(() => {
+	// 	if(window){
+	// 		document.getElementById('whiteBoardContent').innerHTML = ipc.sendSync('get-whiteboard', 'read')
+	// 		setCaretToEnd(wb)
+	// 	}
+	// }, 50);
 	 
 }
 function deselectExpiredOTL_Scheduled(jobs){
@@ -384,12 +387,72 @@ function deselectExpiredOTL_Scheduled(jobs){
 		placeElement(arrScheduled[member])
 	}
 	console.timeEnd('placeSchJobs')
-	document.querySelector('#whiteBoardContent').addEventListener('keyup',(event)=>{
-		console.log(event.key)
-		if(event.key == 'Tab' || event.key == 'Enter'){
-			saveWhiteBoard(this);
+	$('#whiteBoardContent').on({
+		blur: (event)=>{
+			//console.log('blur fired')
+			//saveWhiteBoard(document.getElementById('whiteBoardContent'));
+		},
+		keydown: (event)=>{
+			if(event.key == 'Tab'){
+				event.preventDefault()
+			}
+			
+		 },
+		keyup: (event)=>{
+			//console.log(event.key)
+			useTimer('stop',document.getElementById('whiteBoardContent'))
+			useTimer('start',document.getElementById('whiteBoardContent'))
+			//console.log('timer on')
+			// console.log(document.querySelector('#bottom > .header').classList.contains('typing'))
+			// if(document.querySelector('#bottom > .header').classList.contains('typing')){
+				
+			// }else{
+			// 	console.log('doesnt contain typing')
+			// 	ipc.send('typing','yes')
+			// }
+			
+			
 		}
 	})
+	
+ }
+ function setCaretToEnd(target){
+	const range = document.createRange();
+	const sel = window.getSelection();
+	range.selectNodeContents(target);
+	range.collapse(false);
+	sel.removeAllRanges();
+	sel.addRange(range);
+	target.focus();
+	range.detach(); // optimization
+  
+	// set scroll to the end if multiline
+	target.scrollTop = target.scrollHeight; 
+  }
+ ipc.on('typing',(event)=>{
+	console.log('typing called')
+	document.querySelector('#bottom > .header').classList.add('typing')
+ })
+ ipc.on('not-typing',(event)=>{
+	console.log('not-typing called')
+	document.querySelector('#bottom > .header').classList.remove('typing')
+ })
+
+function useTimer(action,wb){
+	
+	if(action == 'start'){
+		saveTimer = setTimeout(() => {
+			saveWhiteBoard(wb)
+			//ipc.send('typing','no')
+			
+            
+		}, 500);
+		
+	}
+	if(action == 'stop'){
+		clearTimeout(saveTimer)
+		
+	}
 	
  }
 
@@ -628,7 +691,7 @@ function fillScheduleGlimpse(args){
 				}
 			})
 			let tt = document.createElement('div')
-			tt.setAttribute('class','glimpseToolTip')
+			tt.setAttribute('class','tooltip glimpseToolTip')
 			tt.setAttribute('id',`gtt${v[j][i].job_ID}`)
 			tt.setAttribute('data-job',v[j][i])
 			// $(tt).on({
@@ -672,6 +735,7 @@ function fillScheduleGlimpse(args){
 					textColor = "pm";
 					break;
 					default:
+						textColor = "dropOff"
 						break;
 			}
 			// jobType.setAttribute('style','color:'+textColor);
@@ -679,9 +743,17 @@ function fillScheduleGlimpse(args){
 			jobType.setAttribute('style',`background-color:${color}`)
 			let n 
 			let name = document.createElement('div')
+			let morning = document.createElement('i')
+			morning.setAttribute('class','fa-regular fa-a')
+			let afternoon = document.createElement('i')
+			afternoon.setAttribute('class','fa-regular fa-p')
+			let m = document.createElement('i')
+			m.setAttribute('class','fa-regular fa-m')
+			let none = document.createElement('i')
+			none.setAttribute('class','fa-solid fa-truck-moving')
 			name.setAttribute('class','glimpseCustomer')
-			//let tJT = (v[j][i].time_of_day == 'am')? `<img src="../images/afternoon2.png">`: `<i class="fa-solid fa-moon"></i>`;
-			let tJT = document.createTextNode(v[j][i].time_of_day.toUpperCase());
+			let tJT = (v[j][i].time_of_day == 'am')? morning: (v[j][i].time_of_day == 'pm')?afternoon: none;//<img src="../images/afternoon2.png">
+			//let tJT = document.createTextNode(v[j][i].time_of_day.toUpperCase());
 			for(member in objCustomerNames){
 				if(objCustomerNames[member].customer_ID == v[j][i].customer_ID){
 					n=objCustomerNames[member].customer_name
@@ -690,7 +762,11 @@ function fillScheduleGlimpse(args){
 			}
 			let tName = document.createTextNode(n.toUpperCase())
 			//jobType.innerHTML = tJT
-			jobType.appendChild(tJT)			
+			jobType.appendChild(tJT)
+			if(tJT != none){
+				jobType.appendChild(m)
+			}	
+					
 			schedItem.appendChild(jobType)
 			name.appendChild(tName)
 			schedItem.appendChild(name)
@@ -756,7 +832,7 @@ let createGlimpseToolTip = (e)=>{
 		contactName = 'No Contact'
 	} 
 
-	let cuN = '<b>'+cn.toUpperCase()+'</b><br/>'
+	let cuN = "<span class='ttCustomerName'><b>"+cn.toUpperCase()+"</b><br/></span>"
 	let dIn =(objJob.date_in == null) ? '': '<b>Date In:</b>'+ objJob.date_in+'<br/>'
 	let jt = (objJob.job_type == null) ? '': '<b>Job Type:</b>'+ objJob.job_type+'<br/>'
 	//let ec = (objJob.estimated_cost == undefined || objJob.estimated_cost =='') ? '': '<b>Est Cost:</b> $'+objJob.estimated_cost+'</br>'
@@ -775,15 +851,18 @@ let createGlimpseToolTip = (e)=>{
 		
 	ttBox.innerHTML=` <div>
 		${cuN}
+		<hr>
 		${dIn}
 		${jt}		
 		${u}
-		${ut}
-		${sd}
-		${dc}
-		${n}
+		${ut}		
 		${con}
 		${it}
+		${n}
+		<hr>
+		${sd}
+		${dc}
+		
 	</div>`
 	
 	ttBox.style.display ='block'
@@ -1741,14 +1820,14 @@ function makeJobDiv2(args){
 		
 		customerName = (args.customer_ID != null) ? getCustomerNames(args.customer_ID): 'no name'
 		//console.log(customerName)
-		let cuN = "<span style=font-size:20px><b>"+customerName.toUpperCase()+"</b></span><br/>"
+		let cuN = "<span class='ttCustomerName'><b>"+customerName.toUpperCase()+"</b></span><br/>"
 		let dIn =(args.date_in == null) ? '': '<b>Date In:</b>'+ args.date_in+'<br/>'
 		let ec = (args.estimated_cost == undefined || args.estimated_cost =='') ? '': '<b>Est Cost:</b> $'+args.estimated_cost+'</br>'
 		let u = (args.unit == null || args.unit == '')?'': '<b>Unit #: </b>'+args.unit+'</br>'
 		let ut = (args.unit_type == null || args.unit_type == '')?'': '<b>Unit Type: </b>'+args.unit_type+'</br>'
 		let sd = (args.date_scheduled != null) ? '<b>Sched. Date: </b>' +args.date_scheduled+' '+args.time_of_day+'<br/>': ''
 		let dc = (args.date_called != null) ? `<b>Date Called: </b>` + args.date_called+'<br/>':''
-		let toolTipClass = (arrBottomHalf.includes(args.shop_location))?'tooltipLast': (arrShopLocations.includes(args.shop_location))?'tooltipRight':'tooltip'
+		let toolTipClass = (arrBottomHalf.includes(args.shop_location))?'tooltipLast': (arrShopLocations.includes(args.shop_location))?'tooltipRight':'toolTipDefault'
 		
 		let n = (args.notes != null) ? '<b>Notes: </b>'+args.notes+'</br>' : '' 
 		let it = (typeof objContact != "undefined") 
@@ -1775,42 +1854,50 @@ function makeJobDiv2(args){
 		ondragover='allowDrop(event)'		
 		ondrop='drop(event)'>
 		
-		<span class=${toolTipClass} 
+		<div class='tooltip ${toolTipClass}' 
 		id='tt${args.job_ID}'>
 		${cuN}
-		<b>Job Type:</b> ${args.job_type}<br/>
-		${dIn}
-		${sd}
-		${dc}
+		<hr>
+		
+		<b>Job Type:</b> ${args.job_type}<br/>		
+		
+		${n}
+		<hr>
 		${u}
-		${ut}	
+		${ut}
+		<hr>	
 		<b>Contact:</b> ${contactName}</br>
 		${it}
 		${ec}
-		${n}
-		</span>
+		
+		<hr>
+		${dIn}
+		${sd}
+		${dc}
+		
+		</div>
 		<div id='context-Menu-${args.job_ID}' class='${context}'>
 		
 		</div>
 		<div id = 'submenu-${args.job_ID}' class = 'context-submenu'>
 		</div>
-		<span class='info' 
+		<div class='info' 
 		id='${args.job_ID}info'>
-		<span class='mainJobCustomerName'>${customerName}</span><br/>
-		<span class='unitNumber' id = 'jobIndicatorContainer${args.job_ID}'>
+		<div class='mainJobCustomerName'>${customerName}</div>
+		<div class='indicatorBox' id = 'jobIndicatorContainer${args.job_ID}'>
 		
-		<span id = 'jica${args.job_ID}' class='jobIndicator jobIndicatorCash'></span>
-		<span id = 'jiw${args.job_ID}' class='jobIndicator jobIndicatorWaiting'></span>
-		<span id = 'jip${args.job_ID}' class='jobIndicator jobIndicatorParts'></span>
-		<span id = 'jia${args.job_ID}' class='jobIndicator jobIndicatorApproval'></span>
-		<span id = 'jico${args.job_ID}' class='jobIndicator jobIndicatorComeback'></span>
-		<span id = 'jich${args.job_ID}' class='jobIndicator jobIndicatorChecked'></span>
-		</span></br>
-		<span class='unitNumber' id = 'unitNumber'>${u}</span>
-		<span class='notes'>${(args.notes!=null)?args.notes:""}</span>
-		</span>
-		<span class="jobCat jobCat${(sd =='')?str:str+'Scheduled'}" 
-		id='${args.job_ID}Cat'></span>
+		<div id = 'jica${args.job_ID}' class='jobIndicator jobIndicatorCash'></div>
+		<div id = 'jiw${args.job_ID}' class='jobIndicator jobIndicatorWaiting'></div>
+		<div id = 'jip${args.job_ID}' class='jobIndicator jobIndicatorParts'></div>
+		<div id = 'jia${args.job_ID}' class='jobIndicator jobIndicatorApproval'></div>
+		<div id = 'jico${args.job_ID}' class='jobIndicator jobIndicatorComeback'></div>
+		<div id = 'jich${args.job_ID}' class='jobIndicator jobIndicatorChecked'></div>
+		</div>
+		<div class='unitNumber' id = 'unitNumber'>${u}</div>
+		<div class='notes'>${(args.notes!=null)?args.notes:""}</div>
+		</div>
+		<div class="jobCat jobCat${(sd =='')?str:str+'Scheduled'}" 
+		id='${args.job_ID}Cat'></div>
 		</div>`;
 		
 		return smallJobContainer
@@ -1904,14 +1991,7 @@ function toggleAdminElements(admin){
 
 
 
-function todayIs() {
-	const objDate = new Date();
-	const day = objDate.getDate();
-	const month = objDate.getMonth() + 1;
-	const year = objDate.getFullYear();
-	const today = month + "/" + day + "/" + year;
-	return today;
-}
+
 
 //pull object with all individual job data from database by using job ID
 function pullJob(id){
@@ -2108,7 +2188,7 @@ function createContextMenu(e,objJobData,g,customerName) {
 					</div>
 					<div class="popuprow">
 						<div class="buttonrow">
-							<input type="button" class="mediumButton" tabindex="7" value="MOVE" onclick= 'moveToScheduled(this, ${false})' ></input>
+							<input type="button" class="mediumButton" tabindex="7" value="SCHED." onclick= 'moveToScheduled(this, ${false})' ></input>
 							<input type="button" class="mediumButton" tabindex="8" value="CANCEL" onclick='cancelScheduleAdd(this)'></input>
 						</div>
 					</div>	

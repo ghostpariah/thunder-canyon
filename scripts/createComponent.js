@@ -4,10 +4,11 @@ let pastFocusedItem
 let nextFocusedItem
 let gListType
 let contactChosen = false
+let customerChosen = false
 let glComponentType
 let currentTabIndex
 let glPage 
-
+let fl
 $('.cb').on({
     keydown: (event)=>{
         event.stopPropagation
@@ -43,7 +44,7 @@ function createComponent(container, componentType, list, listType, callingPage){
     let part = 'text'
     let state = 'closed'
     let focused = false
-    
+    let keyPressed
     const focusedElement = document.activeElement;
     let previousFocusedElement
     let usingListBox = true
@@ -87,7 +88,7 @@ function createComponent(container, componentType, list, listType, callingPage){
         txtSection.tabIndex = getTabIndex(listType, page)
         let filteredList
         $(txtSection).on({
-            focus: (event=>{
+            focus: (event)=>{
                 event.stopPropagation()
                                
                 //setting focused to true to stop closeDropDowns() from firing twice when called
@@ -101,17 +102,23 @@ function createComponent(container, componentType, list, listType, callingPage){
                 toggleDropDowns('Customer txtSection focus',listBox,arrow)
                
                 
+                fl = ''
                 
-                
-               
+                keyPressed = ''
+                if(listType == 'Customer' && callingPage == 'edit'){
+                    filterListBox(txtSection, Array.from($('#Customer-listBox div')))
+                }
 
-            }),
+            },
             
-            mousedown: (event)=>{                
+            mousedown: (event)=>{  
+                console.log(callingPage)              
                 
                 if(focused){
                     toggleDropDowns('Customer txtSection mousedown',listBox,arrow)
                 }
+                
+                
                 
                 
             },
@@ -119,11 +126,13 @@ function createComponent(container, componentType, list, listType, callingPage){
                 event.target.innerHTML = ''
                 $(txtSection).focus()
                 resetListBox(listType)
+                customerChosen = false
                 resetContacts()
                 event.target.removeAttribute('data-cid')
             },
             blur: (event)=>{
                 focused = false
+                
                 if(!usingListBox){
                     closeDropDowns()
                 }
@@ -132,9 +141,49 @@ function createComponent(container, componentType, list, listType, callingPage){
                     // the field without selecting the item that matches what you typed
                     // if NO MATCH - it fills contacts with default
                     // if MATCH - it simulates clicking the matching item in the list
-                    let matched = 0
-                    let id
+
                     
+                    fl =$('#Customer-listBox div:visible')
+                    let matched = 0
+                    let exactMatch = isExactMatch(txtSection.innerHTML, Array.from(fl))
+                    console.log(exactMatch, fl.length, customerChosen)
+                    let id
+                    if(fl?.length > 0 && !customerChosen && keyPressed !== 'ArrowDown' && keyPressed !== 'ArrowUp' && keyPressed != 'Meta' && !exactMatch){
+                        
+                        
+                        let names = Array.from(fl)
+                        let arrNames = names.map(a => a.innerText)
+                        
+                        let arrButtons = ['Cancel',event.target.innerText,...arrNames]
+                        
+                        const options = {
+                            type: 'question',
+                            buttons: arrButtons,//['Cancel', 'Yes, please', 'No, thanks'],
+                            defaultId: 1,
+                            title: 'Choose customer name',
+                            message: 'Choose Customer',
+                            detail: 'There are partial matches. Choose customer name from list.',
+                            
+                          };
+                        let answer = ipc.sendSync('open-dialog',options)
+                        let company = arrButtons[answer]
+                        if(company == 'Cancel'){
+                            $('#Customer-choice').text('')
+                            resetListBox(listType)
+                            //setTimeout(() => {
+                            //    $('#Customer-choice').dblclick()
+                            //}, 300);
+                            
+                            
+                            return
+                            
+                        }else{
+
+                        event.target.innerText = company
+                        }
+                    }
+                    
+
                     let customer_text = removeSpecialCharacters(txtSection.innerText)
                     for(let name in list){
                         if(list[name].customer_name == customer_text){
@@ -162,6 +211,9 @@ function createComponent(container, componentType, list, listType, callingPage){
                 event.stopImmediatePropagation()
             },
             keydown: (event)=>{
+                //set key to stop blur from opening popup to choose between matching companies
+                //when hitting the arrow down to enter the listbox
+                keyPressed = event.key
                
                 // if event.preventDefault() is uncommented
                 // then remove the +1 and -1 in the navigateTabs() call
@@ -259,6 +311,7 @@ function createComponent(container, componentType, list, listType, callingPage){
                 
                 
             },
+           
             keyup: (event) =>{
                 
                 let ti = Number(event.target.getAttribute('tabindex'))
@@ -356,6 +409,9 @@ function createComponent(container, componentType, list, listType, callingPage){
                 }
                 
                 if(listType == 'Customer'){
+                    console.log('keyup')
+                    console.log(txtSection.innerText)
+                    customerChosen = false
                     if(document.querySelector('#Customer-listBox').getAttribute('data-state') == 'closed'){
                         toggleDropDowns('Customer txtSection focus',listBox,arrow)
                     }
@@ -363,12 +419,15 @@ function createComponent(container, componentType, list, listType, callingPage){
                         $('#Customer-MessageContainer').remove()
                     }
                     filterListBox(txtSection, Array.from($('#Customer-listBox div')))
-                    let fl =$('#Customer-listBox div:visible')
                     
+                    fl =$('#Customer-listBox div:visible')
+                    
+                    
+                    console.log('fl length = '+fl.length)
                     //if there are no matches then its a new company
                     if(fl.length == 0 && callingPage != 'contacts'){
                         
-                        
+                        console.log('new comp')
                         fillContactsNew(null)
                     }
                     if(fl.length == 1 && event.key == "Tab"){
@@ -385,16 +444,19 @@ function createComponent(container, componentType, list, listType, callingPage){
 
                     //Array.from(document.querySelectorAll('#Customer-listBox .listItem'))
                     }
+                   
+                    // if a customer was previously chosen a data-cid attr is assigned
+                    // and if the typed name is also not an exact match to an existing company
                     if(txtSection.getAttribute('data-cid') && !isExactMatch(txtSection.innerHTML, Array.from(fl))){
                         if($('#Customer-MessageContainer')){
                             $('#Customer-MessageContainer').remove()
                         }
                         txtSection.removeAttribute('data-cid')
                         document.getElementById('Contacts-listBox').innerHTML = ''
-                        resetListBox(listType)
-                        resetContacts()
+                        //resetListBox(listType)
+                        //resetContacts()
                     }else{
-                        
+                       
                     }
                     
                    
@@ -1716,7 +1778,7 @@ function createComponent(container, componentType, list, listType, callingPage){
             radAM.setAttribute('type','radio')
             
             radAM.setAttribute('value','am')
-            radAM.setAttribute('checked',true)
+            //radAM.setAttribute('checked',true)
             
             $(radAM).on({
                 focus: (event)=>{
@@ -2028,6 +2090,7 @@ let clearSelected = (type)=>{
 let chooseListItem = (event, input, txtSection, chosen,listBox)=>{
     usingListBox = false
     contactChosen = true
+    
    
     let type = input.getAttribute('id').split('-')
 
@@ -2060,7 +2123,7 @@ let chooseListItem = (event, input, txtSection, chosen,listBox)=>{
             break;
         case 'Customer':
             let cid = chosen.getAttribute('id').substring(8)
-            
+            customerChosen = true
             txtSection.setAttribute('data-cid',cid)	
             if(glPage == 'contacts'){
                 break;
@@ -2188,18 +2251,20 @@ let filterListBox = (el, arrElements)=>{
         }
     })
     fl = arrNames
+    //fl =$('#Customer-listBox div:visible')
     //console.log('arrNames length ='+arrNames.length)
 
     return fl
 }
 
 let isExactMatch = (text, list)=>{
-    
+    let val = removeSpecialCharacters(text)
     let is = false
     //loop through list items
+    console.log(val)
     for (let option of list) {
        
-            if(option.innerText.toUpperCase()===text.toUpperCase()){
+            if(option.innerText.toUpperCase()===val.toUpperCase()){
                is = true
                break; 
             }else{

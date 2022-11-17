@@ -85,15 +85,7 @@ function getYesterday(){
     console.log('yesterday is '+yesterday)
 	return yesterday; 
 }
-function todayIs() {
 
-	const objDate = new Date();
-	const day = objDate.getDate();
-	const month = objDate.getMonth() + 1;
-	const year = objDate.getFullYear();
-	const today = month + "/" + day + "/" + year;
-	return today;
-}
 
 const formatToCurrency = amount => {
     console.log(amount.replace(/[^0-9.\-]/g, ''))

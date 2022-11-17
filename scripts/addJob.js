@@ -100,6 +100,7 @@ setTimeout(()=>{
 			$("#DateSched-choice").datepicker({
 				dateFormat : "mm/dd/yy",
 				beforeShowDay: $.datepicker.noWeekends,
+				minDate: todayIs(),
 				onSelect: function(dateText, inst) {
 					if($(`#Date-MessageContainer`)){
 						$(`#Date-MessageContainer`).remove()
@@ -530,15 +531,7 @@ function showLabel() {
  	return self.indexOf(value) === index;
  	
  }
-function todayIs() {
-	const objDate = new Date();
-	let day = objDate.getDate().toString().padStart(2,'0');
-	let month = objDate.getMonth() + 1;
-	month = month.toString().padStart(2,'0')
-	let year = objDate.getFullYear().toString();
-	let today = month + "/" + day + "/" + year;
-	return today;
-}
+
 function addJob2(){
 	console.log('addjob2')
 }
@@ -621,7 +614,7 @@ function addJob (){
 		
 	}else if (objNewJob.designation == "Scheduled"){
 		objNewJob.date_scheduled = document.getElementById('DateSched-choice').value;
-		objNewJob.time_of_day = ($('input[type=radio]:checked').size() > 0)?$('input[name=ampmSched]:checked').val(): 'am';
+		objNewJob.time_of_day = ($('input[type=radio]:checked').size() > 0)?$('input[name=ampmSched]:checked').val(): 'z';
 		objNewJob.status = "sch"
 		objNewJob.julian_date = jDate(document.getElementById('DateSched-choice').value)
 		objNewJob.date_called = todayIs()

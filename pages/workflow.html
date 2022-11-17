@@ -10,12 +10,13 @@
 	
 	<link rel="stylesheet" type="text/css" href="../css/splash.css"/>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600&family=Quicksand:wght@500&family=Caveat&display=swap" rel="stylesheet">
+	<link type="text/css" href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&family=Quicksand:wght@500&family=Caveat&display=swap" rel="stylesheet">
 	<link rel="stylesheet" type="text/css" media="all" href="../css/components.css">
     <link rel="stylesheet" type="text/css" media="all" href="../css/formComponents.css">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<script src="https://kit.fontawesome.com/ea20293ee7.js" crossorigin="anonymous"></script>
 	<script src='../scripts/dbCon.js'></script>
+	<script src='../scripts/today.js'></script>
 	<script src="../scripts/splash.js"></script>
 	<script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
 	<script src="../scripts/currency.js"></script>
@@ -66,7 +67,7 @@
 							<div class='topCount' id='completedCount'>
                                 
                             </div>
-                            <div id="wpuBox" class="waitingForParts">
+                            <div id="wpuBox" class="completedJobs">
                                     <div id="wpuBoxHeader" class="header">
                                         <div id='t' ondrop="deleteDrop(event)" ondragover="allowDrop(event)"><img onclick='deleteCompletedJobs()' src="../images/trashCanIcon.svg" width="25" height="25"> </img></div>
                                         Completed Jobs
@@ -359,11 +360,11 @@
 				</div>
 				<div id="footer">
 				<div id="legend-statuses">					
-					<img src="../images/cash2.svg" width="15" height="15"/> = Cash Customer &nbsp;<b>|</b>&nbsp;
-					<img src="../images/waiting.svg" width="15" height="15"/> = Customer Waiting &nbsp;<b>|</b>&nbsp; 
+					<span class="legend-status"><img src="../images/cash2.svg" width="15" height="15"/> = Cash Customer</span> 
+					<span class="legend-status"><img src="../images/waiting.svg" width="15" height="15"/> = Customer Waiting</span> 
 					
-					<img src="../images/schedule4.svg" width="15" height="15"/> = On the Lot & Scheduled &nbsp;<b>|</b>&nbsp;					
-					<img src="../images/checkmark.svg" width="15" height="15"/> = Checked 
+					<span class="legend-status"><img src="../images/schedule4.svg" width="15" height="15"/> = On the Lot & Scheduled</span> 					
+					<span class="legend-status"><img src="../images/checkmark.svg" width="15" height="15"/> = Checked </span>
 					
 				</div>
 			</div>
