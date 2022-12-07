@@ -592,8 +592,9 @@ function fillScheduleGlimpse(args){
 	}
 	wrapper.innerHTML=''
 	console.time('filterSched')
+	
 	arrScheduledStatus = args.filter((job)=>{
-		return job.status == 'sch' || job.comeback_customer == 1 || args.status == 'noa'
+		return (job.status == 'sch' || job.comeback_customer == 1 || job.status == 'noa')
 	})
 	
 	// for(member in args){
