@@ -90,7 +90,7 @@ function createComponent(container, componentType, list, listType, callingPage){
         $(txtSection).on({
             focus: (event)=>{
                 event.stopPropagation()
-                               
+                 console.log('focused')              
                 //setting focused to true to stop closeDropDowns() from firing twice when called
                 //on the click
                 focused = true 
@@ -315,14 +315,18 @@ function createComponent(container, componentType, list, listType, callingPage){
             keyup: (event) =>{
                 
                 let ti = Number(event.target.getAttribute('tabindex'))
-                
+                let radios
                 if(listType == 'Designation'){
                     switch(event.key){
                         case 's':
                         case 'S':
                             txtSection.innerHTML = 'Scheduled'
                             usingListBox = false
-                            event.preventDefault()                        
+                            event.preventDefault()  
+                            radios = document.getElementsByName('ampmSched');
+                            for (var i = 0, r=radios, l=r.length; i < l;  i++){
+                                r[i].disabled = false;
+                            }                                                  
                             document.getElementById('dateSchWrapper').classList.remove('hiddenInput')
                             document.getElementById('dateSchWrapper').classList.add('visibleInput')                        
                             $("#radAM").focus()                            
@@ -338,10 +342,27 @@ function createComponent(container, componentType, list, listType, callingPage){
                             document.getElementById('dateSchWrapper').classList.add('hiddenInput')
                             document.getElementById('dateSchWrapper').classList.remove('visibleInput')
                             break;
+                        case 'c':
+                        case 'C':
+                            console.log('c typed')
+                            txtSection.innerHTML = 'Coming - No Appt'
+                            usingListBox = false
+                            event.preventDefault() 
+                            radios = document.getElementsByName('ampmSched');
+                            for (var i = 0, r=radios, l=r.length; i < l;  i++){
+                                r[i].disabled = true;
+                            }                       
+                            document.getElementById('dateSchWrapper').classList.remove('hiddenInput')
+                            document.getElementById('dateSchWrapper').classList.add('visibleInput')                        
+                            $("#DateSched-choice").focus() 
+                            document.querySelector('#DateSched-wrapper > label').innerHTML = 'Drop Off Date'                           
+                            navigateTabs('down',ti)
+                            chooseListItem(event,input,txtSection,document.getElementById('Designation2'),listBox)                            
+                            break;
                         default: 
                             //only allow s and o  
                             let t = txtSection.innerText
-                            if(t!= 'Scheduled' && t!= 'On the Lot'){
+                            if(t!= 'Scheduled' && t!= 'On the Lot' && t!= 'Coming - No Appt'){
                             
                                 r = /[^sSoO]/gi,
                                 v = txtSection.innerText;
@@ -825,24 +846,61 @@ function createComponent(container, componentType, list, listType, callingPage){
                                     navigateListBox(event,box,filteredList)
                                 break;
                                 case 'Enter':
+                                    //listItem.click()
                                     
-                                    listItem.click()
-                                    switch(listType){
-                                        case 'Designation' :
-                                            if(event.target.innerHTML == 'Scheduled'){
-                                       
-                                                document.getElementById('dateSchWrapper').classList.remove('hiddenInput')
-                                                document.getElementById('dateSchWrapper').classList.add('visibleInput')
-                                            }else{
-                                                document.getElementById('dateSchWrapper').classList.remove('visibleInput')
-                                                document.getElementById('dateSchWrapper').classList.add('hiddenInput')
-                                            }
-                                            break;
-                                        default:
-                                            break;
+                                    if(event.target.innerHTML == 'Scheduled'){
+                                        let radios = document.getElementsByName('ampmSched');
+                                        for (var i = 0, r=radios, l=r.length; i < l;  i++){
+                                            r[i].disabled = false;
+                                        }
+                                        document.getElementById('radAM').checked = true
+                                        document.querySelector('#DateSched-wrapper > label').innerHTML = 'Date Scheduled'                                 
+                                        document.getElementById('dateSchWrapper').classList.remove('hiddenInput')
+                                        document.getElementById('dateSchWrapper').classList.add('visibleInput')
+                                        if(document.getElementById('cbOTL_scheduled')?.checked){
+                                            document.getElementById('cbOTL_scheduled').click()
+                                        }
+                                        navigateTabs('down',index)
+                                        chooseListItem(event,input,txtSection,event.target,box)
+                                        break;
                                     }
-                                    navigateTabs('down',index)
-                                    chooseListItem(event,input,txtSection,event.target,box)
+                                    if(event.target.innerHTML == 'Coming - No Appt'){
+                                        let radios = document.getElementsByName('ampmSched');
+                                        for (var i = 0, r=radios, l=r.length; i < l;  i++){
+                                            r[i].disabled = true;
+                                        }
+                                        document.getElementById('radAM').checked = false                                        
+                                        document.querySelector('#DateSched-wrapper > label').innerHTML = 'Drop Off Date'
+                                        document.getElementById('dateSchWrapper').classList.remove('hiddenInput')
+                                        document.getElementById('dateSchWrapper').classList.add('visibleInput')
+                                        if(document.getElementById('cbOTL_scheduled')?.checked){
+                                            document.getElementById('cbOTL_scheduled').click()
+                                        }
+
+                                        navigateTabs('down',index)
+                                        chooseListItem(event,input,txtSection,event.target,box)
+                                        break;
+                                    }
+                                    
+                                        document.getElementById('dateSchWrapper').classList.remove('visibleInput')
+                                        document.getElementById('dateSchWrapper').classList.add('hiddenInput')                                    
+                                     //listItem.click()
+                                    // switch(listType){
+                                    //     case 'Designation' :
+                                    //         if(event.target.innerHTML == 'Scheduled' || event.target.innerHTML == 'Coming - No Appt'){
+                                       
+                                    //             document.getElementById('dateSchWrapper').classList.remove('hiddenInput')
+                                    //             document.getElementById('dateSchWrapper').classList.add('visibleInput')
+                                    //         }else{
+                                    //             document.getElementById('dateSchWrapper').classList.remove('visibleInput')
+                                    //             document.getElementById('dateSchWrapper').classList.add('hiddenInput')
+                                    //         }
+                                    //         break;
+                                    //     default:
+                                    //         break;
+                                    // }
+                                    //  navigateTabs('down',index)
+                                    // chooseListItem(event,input,txtSection,event.target,box)
                                 break;
                                 default:
                                     break;
@@ -860,16 +918,37 @@ function createComponent(container, componentType, list, listType, callingPage){
                             switch(listType){
                                 case 'Designation' :
                                     if(event.target.innerHTML == 'Scheduled'){
-                               
+                                        let radios = document.getElementsByName('ampmSched');
+                                        for (var i = 0, r=radios, l=r.length; i < l;  i++){
+                                            r[i].disabled = false;
+                                        }
+                                        document.getElementById('radAM').checked = true
+                                        document.querySelector('#DateSched-wrapper > label').innerHTML = 'Date Scheduled'                                 
                                         document.getElementById('dateSchWrapper').classList.remove('hiddenInput')
                                         document.getElementById('dateSchWrapper').classList.add('visibleInput')
                                         if(document.getElementById('cbOTL_scheduled')?.checked){
                                             document.getElementById('cbOTL_scheduled').click()
                                         }
-                                    }else{
+                                        break;
+                                    }
+                                    if(event.target.innerHTML == 'Coming - No Appt'){
+                                        let radios = document.getElementsByName('ampmSched');
+                                        for (var i = 0, r=radios, l=r.length; i < l;  i++){
+                                            r[i].disabled = true;
+                                        }
+                                        document.getElementById('radAM').checked = false                                        
+                                        document.querySelector('#DateSched-wrapper > label').innerHTML = 'Drop Off Date'
+                                        document.getElementById('dateSchWrapper').classList.remove('hiddenInput')
+                                        document.getElementById('dateSchWrapper').classList.add('visibleInput')
+                                        if(document.getElementById('cbOTL_scheduled')?.checked){
+                                            document.getElementById('cbOTL_scheduled').click()
+                                        }
+                                        break;
+                                    }
+                                    
                                         document.getElementById('dateSchWrapper').classList.remove('visibleInput')
                                         document.getElementById('dateSchWrapper').classList.add('hiddenInput')
-                                    }
+                                    
                                     break;
                                 default:
                                     break;
@@ -1364,13 +1443,13 @@ function createComponent(container, componentType, list, listType, callingPage){
                                 document.getElementById('dateWrapper').classList.remove('hiddenInput')
                                 document.getElementById('dateWrapper').classList.add('visibleInput')
                                 //document.getElementById('dateWrapper').style.display = 'block'
-                                // $("#radAM").focus()
+                                //$("#radAM").focus()
                                 
                             }else{
                                 document.getElementById('dateWrapper').classList.add('hiddenInput')
                                 document.getElementById('dateWrapper').classList.remove('visibleInput')
                                 //document.getElementById('dateWrapper').style.display = 'none'
-                                // $('#Customer-choice').focus()
+                                //$('#Customer-choice').focus()
                             }
                             
                         }else{
@@ -1435,6 +1514,25 @@ function createComponent(container, componentType, list, listType, callingPage){
                         }
                         navigateTabs('down',ti)
                     }
+                    if(event.key ==='c' || event.key ==='C'){
+                        choice.innerHTML = 'Coming - No Appt'
+                        usingListBox = false
+                        event.preventDefault()
+                        if(listType == 'Designation'){
+                            if(choice.innerHTML == 'Coming - No Appt'){
+                                document.getElementById('dateWrapper').classList.remove('hiddenInput')
+                                document.getElementById('dateWrapper').classList.add('visibleInput')
+                                //document.getElementById('dateWrapper').style.display = 'block'
+                                $("#radAM").focus()
+                            }else{
+                                document.getElementById('dateWrapper').classList.add('hiddenInput')
+                                document.getElementById('dateWrapper').classList.remove('visibleInput')
+                                //document.getElementById('dateWrapper').style.display = 'none'
+                                $('#Customer-choice').focus()
+                            }
+                        }
+                        navigateTabs('down',ti)
+                    }                    
                     if(event.key ==='o' || event.key ==='O'){
                         choice.innerHTML = 'On the Lot'
                         navigateTabs('down',ti)
@@ -1778,7 +1876,7 @@ function createComponent(container, componentType, list, listType, callingPage){
             radAM.setAttribute('type','radio')
             
             radAM.setAttribute('value','am')
-            //radAM.setAttribute('checked',true)
+            radAM.setAttribute('checked',true)
             
             $(radAM).on({
                 focus: (event)=>{

@@ -659,7 +659,7 @@ function readyFolders(){
                         if (fsWait) return;    
                         fsWait = setTimeout(() => {
                             fsWait = false;
-                            win.webContents.send('update')      
+                            //win.webContents.send('update')      
                         }, 200);      
                         
                         setTimeout(function() {
@@ -1017,6 +1017,31 @@ ipcMain.on('pull_jobs', (event,args)=>{
     
     
 })
+//reset completed jobs to active for dev testing
+ipcMain.on('dev-activate-completed',(event,total)=>{
+    let dboDev = new sqlite3.Database(workflowDB, (err)=>{
+        if(err){
+            console.error(err.message)
+        }
+        
+    })
+    
+    let sqlPull = "SELECT * FROM jobs WHERE active = 0 AND status = 'wpu'"
+
+    dboDev.serialize(()=>{
+        let j 
+        dboDev.all(sqlPull, function(err,row){
+            if (err) {
+                return console.error(err.message);
+            }
+            j=row
+            event.returnValue = j
+
+        })//end all
+        console.table(j)
+    })//end serialize
+    
+})
 ipcMain.on('update-main-page', (event)=>{
     win.webContents.send('update')
 })
@@ -1160,6 +1185,7 @@ ipcMain.on('edit-location-drop',(event,args,args2,args3)=>{
 
 //handler to edit job loaction when placing a newly created job
 ipcMain.on('edit-location',(event,args)=>{
+    myAction = true
     console.log(args.shop_location)
     let dboLocation = new sqlite3.Database(workflowDB, (err)=>{
         if(err){
@@ -1178,7 +1204,7 @@ ipcMain.on('edit-location',(event,args)=>{
         }
         
         console.log(`Row(s) updated: ${this.changes}`);
-
+        win.webContents.send('location-cleared',args)
         dboLocation.close()
         });  
         
@@ -2747,7 +2773,7 @@ ipcMain.on('deactivate', (event,args, args2)=>{
 
     
         let sql = `UPDATE jobs SET active = 0 WHERE job_ID = ?`
-        let sql2 = `SELECT * FROM jobs WHERE active = 1`
+        let sql2 = `SELECT * FROM jobs WHERE active = 1 AND status = 'wpu'`
 
         dboDeactivate.run(sql,[args], function (err, row){
             if(err){

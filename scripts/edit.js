@@ -25,12 +25,15 @@ const cbChecked = document.getElementById('cbChecked')
 const cbWaiting = document.getElementById('cbWaiting')
 const cbNoShow = document.getElementById('cbNoShow')
 const txtNotes = document.getElementById('txtNotes')
+
+let OTLstateChanged = false
 let alreadyScheduled = false
+let currentDesignationState
 let editData;
 let launcher
 let currentUser
 
-let originList = ['On the Lot','Scheduled']
+let originList = ['On the Lot','Scheduled','Coming - No Appt']
 window.onload = ()=>{
 	createComponent(document.getElementById('dateInWrapper'),'date in',null,'DateIn','edit')
 	createComponent(document.getElementById('originWrapper'),'comboBox',originList,'Designation','edit')
@@ -358,6 +361,11 @@ function loadData(objJobToEdit){
 	}else{
 		d = objJobToEdit
 	}
+	
+	currentDesignationState = d
+		
+
+	
 	let customerNamesList = Array.from(document.querySelectorAll('#Customer-listBox .listItem'))
 	
     inpDateIn.value = d?.date_in
@@ -382,17 +390,52 @@ function loadData(objJobToEdit){
     (d?.unit) ? inpUnit.value = d.unit : inpUnit.value = "";
 	(d?.unit_type) ? inpUnitType.value = d.unit_type : inpUnitType.value = "";
 	selDesignation.innerHTML = d.designation
-    if(d.designation == "On the Lot" || d.desgnation == 'on the lot'){
-		
-		document.getElementById('dateSchWrapper').className = 'hiddenInput'
-	}else{
-		alreadyScheduled = true
-		document.getElementById('dateSchWrapper').className = 'visibleInput'
+
+	switch(d.designation){
+		case 'On the Lot':
+			document.getElementById('dateSchWrapper').className = 'hiddenInput'
+			break;
+		case 'Scheduled':
+			alreadyScheduled = true
+			document.getElementById('dateSchWrapper').className = 'visibleInput'
+			break;
+		case 'Coming - No Appt':
+			document.getElementById('dateSchWrapper').className = 'visibleInput'
+			break;
+		default:
+			break;
 	}
+    
 	
     (d.date_scheduled != null) ? inpScheduledDate.value = d.date_scheduled : inpScheduledDate.value = "";
-    (d.time_of_day == 'am')? radAM.checked = true : radAM.checked = false;
-    (d.time_of_day == 'pm')? radPM.checked = true : radPM.checked = false;
+    //(d.time_of_day == 'am')? radAM.checked = true : radAM.checked = false;
+    //(d.time_of_day == 'pm')? radPM.checked = true : radPM.checked = false;
+	let radios = document.getElementsByName('ampmSched');
+	switch(d.time_of_day){
+		case 'am':
+			for (var i = 0, r=radios, l=r.length; i < l;  i++){
+				r[i].disabled = false;
+			} 
+			radAM.checked = true
+			radAM.checked = false
+			break;
+		case 'pm':
+			for (var i = 0, r=radios, l=r.length; i < l;  i++){
+				r[i].disabled = false;
+			} 
+			radPM.checked = true
+			radPM.checked = false
+			break;
+		case 'z':
+			radAM.checked = false
+			radPM.checked = false
+			for (var i = 0, r=radios, l=r.length; i < l;  i++){
+				r[i].disabled = true;
+			} 
+			break;
+		default:
+			break;
+	}
     
     
     
@@ -858,13 +901,14 @@ function openOTLandScheduled(event,cb,OTL_container){
 	 * and change the designation to 'On the Lot'.
 	 * 
 	 */
-
+	OTLstateChanged = (OTLstateChanged == false)? true : false
+	
 	
 
 	
 	if (cb.checked == true) {
 		//$('#Designation0').mousedown()
-		if(alreadyScheduled || selDesignation.innerText == 'Scheduled'){
+		if(alreadyScheduled || selDesignation.innerText == 'Scheduled' || selDesignation.innerText == 'Coming - No Appt'){
 			$('#Designation0').mousedown()
 			$(cb).focus()
 			// document.getElementById('dateSchWrapper').className = 'hiddenInput'
@@ -917,10 +961,30 @@ function openOTLandScheduled(event,cb,OTL_container){
 			}
 		})
 	} else {
-		if(alreadyScheduled){
-			$('#Designation1').mousedown()
-			$(cb).focus()
-			document.getElementById('dateSchWrapper').className = 'visibleInput'
+		if(OTLstateChanged == true){
+		// if(alreadyScheduled){
+			console.log(selDesignation.innerText)
+			if(selDesignation.innerText == 'Scheduled'){
+				$('#Designation1').mousedown()
+				$(cb).focus()
+				document.getElementById('dateSchWrapper').className = 'visibleInput'
+			}else if(selDesignation.innerText == 'Coming - No Appt'){
+				$('#Designation2').mousedown()
+			}
+		}else{
+			selDesignation.innerText = currentDesignationState.designation
+			switch(currentDesignationState.designation){
+				case 'Scheduled':
+					document.getElementById('dateSchWrapper').className = 'visibleInput'
+					break;
+				case 'On the Lot':
+					break;
+				case 'Coming - No Appt':
+					document.getElementById('dateSchWrapper').className = 'visibleInput'
+					break;
+				default:
+					break;
+			}
 		}
 		
 		//createComponent(document.getElementById('dateWrapper'),'date',null,'Date')

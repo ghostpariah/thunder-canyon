@@ -1406,7 +1406,19 @@ async function pullNoShows(){
         //console.log(objContact.first_name)
         let fn = (objContact.first_name) ? objContact.first_name : ''
         let ln = (objContact.last_name) ? objContact.last_name : ''
-        let strData = `${name} was a no show for a ${objNoshows[member].job_type} job ID:${objNoshows[member].job_ID} scheduled for ${objNoshows[member].date_scheduled} ${(objContact.first_name || objContact.last_name) ? 'set up by' : ''} ${fn} ${ln} on ${objNoshows[member].date_called} from phone number [${phoneNumber.number}]`
+        let n =`${name} was a no show for `
+        let jt = `${(objNoshows[member].job_type == 'Alignment')? 'an':'a'} ${objNoshows[member].job_type} job `
+        let jID = `with a jobID of ${objNoshows[member].job_ID} `
+        let un = `UNIT# [${(objNoshows[member].unit)? objNoshows[member].unit : 'not entered'}] `
+        let ut = `${(objNoshows[member].unit_type) ? 'UNIT TYPE- ['+objNoshows[member].unit_type+']':''} `
+        let ds = `on ${objNoshows[member].date_scheduled}. `
+        let caller = `${(objContact.first_name || objContact.last_name) ? 'set up by ' : ''} ${fn} ${ln} `
+        let dc = `on ${objNoshows[member].date_called} `
+        let fromNumber = `from number [${phoneNumber.number}]`
+        let notes = `${(objNoshows[member].notes) ? objNoshows[member].notes:''}`
+        let strData = `${n}${jt}${ds}${caller}${dc}${fromNumber} VEHICLE INFO==> ${un}${ut} NOTES==> ${notes}`
+
+        //let strData = `${name} was a no show for a ${objNoshows[member].job_type} job ID:${objNoshows[member].job_ID} scheduled for ${objNoshows[member].date_scheduled} ${(objContact.first_name || objContact.last_name) ? 'set up by' : ''} ${fn} ${ln} on ${objNoshows[member].date_called} from phone number [${phoneNumber.number}]`
         arrData.push(strData)
         lineItems = `${strData}\n` + lineItems
         //strForDisplay += `${strData}<br/><br/>`

@@ -57,6 +57,10 @@ label{
     cursor: pointer;
     border-radius: 5px 5px 0 0;
 }
+.itemTitle{
+    font-weight: bold;
+    color:darkblue;
+}
 /* #ribbon4 input{    
     border-radius: 5px; 
     

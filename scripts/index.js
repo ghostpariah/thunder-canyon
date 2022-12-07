@@ -23,7 +23,8 @@ const arrBottomHalf = ['wfw7','wfw8','wfw9','wfw10','wfw11',
 						'wfw19','wfw20','wfw21','wfw22','wfw23',
 						'wfw31','wfw32','wfw33','wfw34','wfw35',
 						'wfw43','wfw44','wfw45','wfw46','wfw47',
-						'wfw55','wfw56','wfw57','wfw58','wfw59']
+						'wfw55','wfw56','wfw57','wfw58','wfw59',
+						'pen7','pen8','pen9','pen10','pen11']
 
 const arrShopLocations = ['wip0','wip1','wip2','wip3','wip4','wip5','wip6','wip7','wip8','wip9','wip10','wip11']
 let objPopUp = {}
@@ -34,6 +35,7 @@ let totalCount = 0
 let lotCount = 0
 let scheduledCount = 0
 let completedCount = 0
+let completedJobs = []
 
 let openContent = createOpenContent();
 let accessGrantedContent
@@ -357,7 +359,7 @@ function deselectExpiredOTL_Scheduled(jobs){
 	const [arrScheduled, arrOnLot] =                             
   args
     .reduce((result, element) => {
-      result[element.status == 'sch' ? 0 : 1].push(element); 
+      result[(element.status == 'sch' || element.status == 'noa')? 0 : 1].push(element); 
       return result;
     },
     [[], []]); 
@@ -446,7 +448,7 @@ function useTimer(action,wb){
 			//ipc.send('typing','no')
 			
             
-		}, 500);
+		}, 10);
 		
 	}
 	if(action == 'stop'){
@@ -589,11 +591,16 @@ function fillScheduleGlimpse(args){
 		arrScheduledStatus=[]
 	}
 	wrapper.innerHTML=''
-	for(member in args){
-		//comeback_customer field is now used to display "on the lot & scheduled"
-		(args[member].status == 'sch' || args[member].comeback_customer == 1)? arrScheduledStatus.push(args[member]):'';
-	}
-
+	console.time('filterSched')
+	arrScheduledStatus = args.filter((job)=>{
+		return job.status == 'sch' || job.comeback_customer == 1 || args.status == 'noa'
+	})
+	
+	// for(member in args){
+	// 	//comeback_customer field is now used to display "on the lot & scheduled"
+	// 	(args[member].status == 'sch' || args[member].comeback_customer == 1 || args[member].status == 'noa')? arrScheduledStatus.push(args[member]):'';
+	// }
+	console.timeEnd('filterSched')
 	/**
 	 * create job containers for view all
 	 */
@@ -694,15 +701,7 @@ function fillScheduleGlimpse(args){
 			tt.setAttribute('class','tooltip glimpseToolTip')
 			tt.setAttribute('id',`gtt${v[j][i].job_ID}`)
 			tt.setAttribute('data-job',v[j][i])
-			// $(tt).on({
-			// 	mouseenter: (event)=>{
-			// 		hovered = true
-			// 	},
-			// 	mouseleave: (event)=>{
-			// 		hovered = false
-			// 	}
-			// })
-			//tt.innerHTML = createGlimpseToolTip(args[0])
+			
 			let jobType = document.createElement('div')
 			let color
 			
@@ -725,45 +724,67 @@ function fillScheduleGlimpse(args){
 				default:
 					break;
 			}
-			let textColor
-			//console.log(v[j][i].time_of_day)
-			switch(v[j][i].time_of_day){
-				case 'am':
-					textColor = "am";
-					break;
-				case 'pm':
-					textColor = "pm";
-					break;
-					default:
-						textColor = "dropOff"
-						break;
-			}
-			// jobType.setAttribute('style','color:'+textColor);
-			jobType.setAttribute('class', `colorBlock ${textColor}`)
-			jobType.setAttribute('style',`background-color:${color}`)
-			let n 
-			let name = document.createElement('div')
+			let textColor //color of the am pm text
+			
+			
+			let n // variable to hold customer name text from db
+			let name = document.createElement('div') // container for customer name
+
 			let morning = document.createElement('i')
 			morning.setAttribute('class','fa-regular fa-a')
 			let afternoon = document.createElement('i')
 			afternoon.setAttribute('class','fa-regular fa-p')
 			let m = document.createElement('i')
 			m.setAttribute('class','fa-regular fa-m')
-			let none = document.createElement('i')
-			none.setAttribute('class','fa-solid fa-truck-moving')
+			let coming = document.createElement('i')
+			coming.setAttribute('class','fa-solid fa-truck-moving')
 			name.setAttribute('class','glimpseCustomer')
-			let tJT = (v[j][i].time_of_day == 'am')? morning: (v[j][i].time_of_day == 'pm')?afternoon: none;//<img src="../images/afternoon2.png">
-			//let tJT = document.createTextNode(v[j][i].time_of_day.toUpperCase());
+			let otl = document.createElement('i')
+			
+			let textotl = document.createTextNode('OTL')
+			otl.appendChild(textotl)
+			
+			let tJT = document.createElement('i')
+
+			switch(v[j][i].time_of_day){
+				case 'am':
+					textColor = "am";
+					if(v[j][i].comeback_customer == 1){
+						tJT = otl
+						break;
+					}
+					tJT = morning
+					break;
+				case 'pm':
+					textColor = "pm";
+					if(v[j][i].comeback_customer == 1){
+						tJT = otl
+						break;
+					}
+					tJT = afternoon
+					break;
+					default:
+						textColor = "dropOff"
+						if(v[j][i].comeback_customer == 1){
+							tJT = otl
+							break;
+						}
+						tJT = coming
+						break;
+			}
+			jobType.setAttribute('class', `colorBlock ${textColor}`)
+			jobType.setAttribute('style',`background-color:${color}`)
+			
 			for(member in objCustomerNames){
 				if(objCustomerNames[member].customer_ID == v[j][i].customer_ID){
 					n=objCustomerNames[member].customer_name
 					
 				}
 			}
-			let tName = document.createTextNode(n.toUpperCase())
-			//jobType.innerHTML = tJT
+			let tName = document.createTextNode(n.toUpperCase()) //customer name textNode
+			
 			jobType.appendChild(tJT)
-			if(tJT != none){
+			if(tJT != coming && v[j][i].comeback_customer != 1){
 				jobType.appendChild(m)
 			}	
 					
@@ -771,8 +792,6 @@ function fillScheduleGlimpse(args){
 			name.appendChild(tName)
 			schedItem.appendChild(name)
 			data.appendChild(schedItem)
-			// data.appendChild(glimpseContext)
-			// data.appendChild(tt)
 			
 			glimpse.appendChild(data)
 			glimpse.appendChild(glimpseContext)
@@ -787,28 +806,25 @@ function fillScheduleGlimpse(args){
 		wrapper.appendChild(glimpse)
 		
 	}
-	// $('.glimpseData').on('mouseenter',function() {
-	// 	createGlimpseToolTip()
-	// 	$(this).parent().find('.glimpseToolTip').fadeIn(50);
-
-	// });
+	
 }
 
 let createGlimpseToolTip = (e)=>{
 	
-	//let e = element.currentTarget
+	
 	let rect = e.getBoundingClientRect()
 	let jobID = e.id.substring(3)
 	let objJob
 	let objContact
-	//console.log(jobID)
+	
 	for(i=0;i<allJobs.length;i++){
 		if(jobID == allJobs[i].job_ID){
 			objJob = allJobs[i]
-			//console.log(allJobs[i])
+			
 			break;
 		}
 	}
+	
 	
 	let ttBox = document.getElementById(`gtt${jobID}`)
 	let cn 
@@ -816,9 +832,7 @@ let createGlimpseToolTip = (e)=>{
 		if(allCustomers[i].customer_ID == objJob.customer_ID){
 			cn = allCustomers[i].customer_name
 		}
-	}
-	//console.log(objJob)
-	
+	}	
 
 	
 
@@ -838,7 +852,17 @@ let createGlimpseToolTip = (e)=>{
 	//let ec = (objJob.estimated_cost == undefined || objJob.estimated_cost =='') ? '': '<b>Est Cost:</b> $'+objJob.estimated_cost+'</br>'
 	let u = (objJob.unit == null || objJob.unit == '')?'': '<b>Unit #: </b>'+objJob.unit+'</br>'
 	let ut = (objJob.unit_type == null || objJob.unit_type == '')?'': '<b>Unit Type: </b>'+objJob.unit_type+'</br>'
-	let sd = (objJob.date_scheduled != null) ? '<b>Sched. Date: </b>' +objJob.date_scheduled+' '+objJob.time_of_day+'<br/>': ''
+	//let sd = (objJob.date_scheduled != null) ? (objJob.designation == 'Scheduled')?'<b>Sched. Date: </b>':'<b> Drop Off Date:' +objJob.date_scheduled+' '+objJob.time_of_day+'<br/>': ''
+	let sd
+	if(objJob.date_scheduled != null){
+		if(objJob.designation == 'Scheduled'){
+			sd = '<b>Sched. Date: </b>' + objJob.date_scheduled + objJob.time_of_day + '<br/>'
+		}else if(objJob.designation == 'Coming - No Appt'){
+			sd = '<b>Drop Off Date - No Appt: </b>' + objJob.date_scheduled + '<br/>'
+		}else{
+			sd =''
+		}
+	}
 	let dc = (objJob.date_called != null) ? `<b>Date Called: </b>` + objJob.date_called+'<br/>':''
 	//let toolTipClass = (arrBottomHalf.includes(objJob.shop_location))?'tooltipLast': (arrShopLocations.includes(objJob.shop_location))?'tooltipRight':'tooltip'
 	let con = `<b>Contact: </b> ${contactName}<br/>`
@@ -852,14 +876,17 @@ let createGlimpseToolTip = (e)=>{
 	ttBox.innerHTML=` <div>
 		${cuN}
 		<hr>
-		${dIn}
+		${con}
+		${it}
+		<hr>
+		
 		${jt}		
 		${u}
 		${ut}		
-		${con}
-		${it}
+		
 		${n}
 		<hr>
+		${dIn}
 		${sd}
 		${dc}
 		
@@ -1480,10 +1507,17 @@ document.addEventListener("drop", async (event) => {
 	// prevent default action (open as link for some elements)
 	event.preventDefault();
 	event.stopPropagation();
+	console.log(event.target)
+	let notTrashCan = (event.target.id =='t' || event.target.id == 'imgTrashCan')? false:true;
+	//if(event.target.id =='t' || event.target.id == 'imgTrashCan') return
 	console.time('dropEvent')
-		let cellOccupied = (document.getElementById(event.target.id))?document.getElementById(event.target.id).hasChildNodes():true;
-		let isJobIndicator = (document.getElementById(event.target.id).classList.contains('jobIndicator'))? true : false;
-		let isJobCat = (document.getElementById(event.target.id).classList.contains('jobCat'))? true : false;
+		let cellOccupied = (notTrashCan)
+			?(document.getElementById(event.target.id))
+				?document.getElementById(event.target.id).hasChildNodes()
+				:true
+				:false
+		let isJobIndicator = (document.getElementById(event.target.id).classList?.contains('jobIndicator'))? true : false;
+		let isJobCat = (document.getElementById(event.target.id).classList?.contains('jobCat'))? true : false;
 		if(cellOccupied || isJobIndicator || isJobCat){
 			console.log('has kids')
 		}else{
@@ -1494,8 +1528,10 @@ document.addEventListener("drop", async (event) => {
 			dragged.parentNode.removeChild(dragged);
 			event.target.appendChild(dragged);
 			console.timeEnd('dropEvent')
+			if(notTrashCan){
+				changeLocation(targetID,cellOccupied,draggedID);
+			}
 			
-			changeLocation(targetID,cellOccupied,draggedID);
 			
 			
 		}
@@ -1507,24 +1543,14 @@ document.addEventListener("drop", async (event) => {
 
 function deleteCompletedJobs(){
 	try{
-		let arrCompletedJobIDs = []
-		allJobs.forEach( job =>{
-			if(job.status == 'wpu'){
-				arrCompletedJobIDs.push(job.job_ID)
-			}
+		
+		let arrCompletedJobIDs = allJobs.filter((job)=>{
+			return job.status == 'wpu'
+		}).map((job)=>{
+			return job.job_ID
 		})
 		console.log(arrCompletedJobIDs)
-		//let cc = document.getElementById('wpuJobContainer').childNodes.length
-		// for(i=0;i<cc;i++){
-		// 	if(document.getElementById('wpu'+i).hasChildNodes()){
-		// 		let id = document.getElementById('wpu'+i).childNodes[0].id.substr(4)			
-		// 		//ipc.send('deactivate', id, currentUser)			
-		// 	}
-			
-		// }
-		for(i=0;i<arrCompletedJobIDs.length;i++){
-			//ipc.send('deactivate', arrCompletedJobIDs[i], currentUser)
-		}
+		//console.table(ipc.sendSync('dev-activate-completed'))
 		ipc.send('deactivate-all', arrCompletedJobIDs, currentUser)
 	}catch(e){
 		logError(e)
@@ -1532,10 +1558,35 @@ function deleteCompletedJobs(){
 	
 }
 
+function delay(t) {
+    return new Promise(resolve => {
+        setTimeout(resolve, t);
+    });
+}
+async function shuffle(completedJobs){
+	for(let member in completedJobs){
+		await delay(10);
+		placeElement(completedJobs[member])
+		
+	}	
+}
 function deleteDrop(ev) {
 	let deactivate = ev.dataTransfer.getData("Text").substr(4)
-	let data = ev.dataTransfer.getData("Text");
-	ipc.send('deactivate', deactivate, currentUser)	
+	//let data = ev.dataTransfer.getData("Text");
+	completedJobs = ipc.sendSync('deactivate', deactivate, currentUser)	
+	
+	
+	createCompleted(completedJobs)
+	for(let cj in completedJobs){
+		document.getElementById(completedJobs[cj].shop_location).innerHTML = ''
+		completedJobs[cj].shop_location = ''		
+	}
+	
+	
+	shuffle(completedJobs).then(() => {
+		console.log("all done");
+	})			
+	
 }
 
 
@@ -1696,11 +1747,17 @@ function placeElement(args){
 
 //function to find the first open space in column for newly created jobs
 function findOpenSpace(args){
+	
 	try{
 		let usedLocation = []
-		for(member in allJobs){
+		let jobs
+		jobs = (args.status == 'wpu') ? completedJobs : allJobs;
 			
-			usedLocation.push(allJobs[member].shop_location)
+		
+		
+		for(member in jobs){
+			
+			usedLocation.push(jobs[member].shop_location)
 			
 		}
 		
@@ -1724,11 +1781,11 @@ function findOpenSpace(args){
 		for(i=0;i<wpuSpots;i++){
 			wpuBucket.push(`wpu${i}`)
 		}
-
-		if(js != "sch" && js!= "wpu" && js != 'SCH'){
+		
+		if(js != "sch" && js!= "wpu" && js != 'SCH' && js!= 'noa'){
 		newBucket = jt == "Spring" ? springBucket : (jt == "Alignment") ? alignmentBucket :(jt == "Frame") ? frameBucket : (jt=="King Pin") ? kingpinBucket : checkallBucket 
 		}else{
-			js == "sch" || js == "SCH" ? newBucket =schBucket : newBucket = wpuBucket
+			(js == "sch" || js == "SCH" || js == "noa") ? newBucket =schBucket : newBucket = wpuBucket
 		}
 
 		bucket = [...newBucket, ...overFlowBucket];
@@ -1742,12 +1799,14 @@ function findOpenSpace(args){
 			}		
 			
 		}
-		
+		console.time('os')                                        
 		ipc.send('edit-location',args)
+		console.timeEnd('os')
 		return makeJobDiv2(args)
 	}catch(e){
 		logError(e)
 	}
+	
 }
 function findSpot(args){
 	try{
@@ -1858,7 +1917,11 @@ function makeJobDiv2(args){
 		id='tt${args.job_ID}'>
 		${cuN}
 		<hr>
+		<b>Contact:</b> ${contactName}</br>
+		${it}
+		${ec}
 		
+		<hr>
 		<b>Job Type:</b> ${args.job_type}<br/>		
 		
 		${n}
@@ -1866,11 +1929,7 @@ function makeJobDiv2(args){
 		${u}
 		${ut}
 		<hr>	
-		<b>Contact:</b> ${contactName}</br>
-		${it}
-		${ec}
 		
-		<hr>
 		${dIn}
 		${sd}
 		${dc}
@@ -1896,7 +1955,15 @@ function makeJobDiv2(args){
 		<div class='unitNumber' id = 'unitNumber'>${u}</div>
 		<div class='notes'>${(args.notes!=null)?args.notes:""}</div>
 		</div>
-		<div class="jobCat jobCat${(sd =='')?str:str+'Scheduled'}" 
+		<div class="jobCat jobCat${
+			//determine if On the Lot, Scheduled, or notified drop off that shows in scheduled
+			//only scheduled gets the striped indicator
+			(sd =='')
+			? str:
+				(args.time_of_day == 'am' || args.time_of_day == 'pm')
+					?	str+'Scheduled':
+						str
+					}" 
 		id='${args.job_ID}Cat'></div>
 		</div>`;
 		

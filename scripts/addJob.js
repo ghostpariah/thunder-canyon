@@ -21,7 +21,7 @@ let currentUser
 let launcher
 let launcherData
 let txtCust
-let originList = ['On the Lot','Scheduled']
+let originList = ['On the Lot','Scheduled','Coming - No Appt']
 
 window.onload = ()=>{
 	// document.addEventListener('select', function() {console.log(document.activeElement)})
@@ -153,12 +153,10 @@ setTimeout(()=>{
 			
 	
 },200)
-// setTimeout(() => {
-// 	document.getElementById('Designation-input').click()
-// }, 700);
+
 ipc.on('user-data',(event,args, args2)=>{
 	console.log(currentUser)
-	//currentUser = args
+	
 	if(args2){
 		launcherData = args2
 		console.log(args2)
@@ -176,38 +174,18 @@ ipc.on('refresh',(event,args,args2,args3)=>{
 		let props = {}
 		props.contacts = pullContacts(args2)
 		props.customer_ID = args2
-		props.launcher = 'add job page'
-		//console.log(args2)
-		
-		
-		//console.log('after pullcontacts called')
-		//fillContactsNew(props)
+		props.launcher = 'add job page'		
 		setTimeout(() => {
 			document.querySelector(`[method-id = '${args3}']`).click()
-		}, 00);
-		
-		//document.getElementById("txtContacts").selectedIndex =document.getElementById("txtContacts").options.length
-		
-		//var values = Array.from(document.getElementById("txtContacts").options).map(e => e.id);
-		//document.getElementById("txtContacts").options.namedItem(args3).selected=true;
-		
-	
+		}, 00);	
 	}else{
 	
+		pullContacts(chosenCompany)	
 	
-	pullContacts(chosenCompany)
-	
-	
-	//document.getElementById("txtContacts").options[args.position].selected = true
 	}
+
 	$('#Contacts-choice').focus()
-	// showLabel()
-	// newContactID = args
 	
-	// window.focus()
-	
-	// $('#txtUnit').click()
-	// $("#txtUnit").focus()
 	
 })
 
@@ -225,19 +203,12 @@ function pullContacts(comp){
 	
     if(typeof comp != undefined){
 		let pcProps = {}
-    	pcProps.contacts = ipc.sendSync('get-contacts',comp)
-		
-		//createdropDown(cont)
-		//createComponent(document.getElementById('sbContacts'),'split select', cont, 'Contacts')
-		fillContactsNew(pcProps)
-		
-    }else{
-		//send with non object to trigger else in fillcontacts
-		
-		//fillContacts(comp)
-	}
+    	pcProps.contacts = ipc.sendSync('get-contacts',comp)		
+		fillContactsNew(pcProps)		
+    }
 
 }
+
 ipc.on('new-contact-for-new-company', (event, args)=>{
 	newCompanyContact = args
 	
@@ -608,17 +579,39 @@ function addJob (){
 	objNewJob.designation = designation.innerText;
 	// objNewJob.designation = designation.options[designation.selectedIndex].value;
 	
-	if(objNewJob.designation == "On the Lot"){
-		objNewJob.date_in = todayIs() 
-		objNewJob.status = "wfw" 
-		
-	}else if (objNewJob.designation == "Scheduled"){
-		objNewJob.date_scheduled = document.getElementById('DateSched-choice').value;
-		objNewJob.time_of_day = ($('input[type=radio]:checked').size() > 0)?$('input[name=ampmSched]:checked').val(): 'z';
-		objNewJob.status = "sch"
-		objNewJob.julian_date = jDate(document.getElementById('DateSched-choice').value)
-		objNewJob.date_called = todayIs()
+	switch(objNewJob.designation){
+		case 'On the Lot':
+			objNewJob.date_in = todayIs() 
+			objNewJob.status = "wfw" 
+			break;
+		case 'Scheduled':
+			objNewJob.date_scheduled = document.getElementById('DateSched-choice').value;
+			objNewJob.time_of_day = ($('input[type=radio]:checked').size() > 0)?$('input[name=ampmSched]:checked').val(): 'z';
+			objNewJob.status = "sch"
+			objNewJob.julian_date = jDate(document.getElementById('DateSched-choice').value)
+			objNewJob.date_called = todayIs()			
+			break;
+		case 'Coming - No Appt':
+			objNewJob.date_scheduled = document.getElementById('DateSched-choice').value;
+			objNewJob.status = 'noa'
+			objNewJob.time_of_day = ($('input[type=radio]:checked').size() > 0)?$('input[name=ampmSched]:checked').val(): 'z';
+			objNewJob.julian_date = jDate(document.getElementById('DateSched-choice').value)
+			objNewJob.date_called = todayIs()
+			break;
+		default:
+			break;
 	}
+	// if(objNewJob.designation == "On the Lot"){
+	// 	objNewJob.date_in = todayIs() 
+	// 	objNewJob.status = "wfw" 
+		
+	// }else if (objNewJob.designation == "Scheduled"){
+	// 	objNewJob.date_scheduled = document.getElementById('DateSched-choice').value;
+	// 	objNewJob.time_of_day = ($('input[type=radio]:checked').size() > 0)?$('input[name=ampmSched]:checked').val(): 'z';
+	// 	objNewJob.status = "sch"
+	// 	objNewJob.julian_date = jDate(document.getElementById('DateSched-choice').value)
+	// 	objNewJob.date_called = todayIs()
+	// }
 	
 	(txtUnit.value.trim().length) ? objNewJob.unit = txtUnit.value : '';
 	
