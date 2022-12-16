@@ -13,7 +13,7 @@
   "license": "ISC",
   "devDependencies": {
     "electron": "^22.0.0",
-    "electron-builder": "^22.14.13"
+    "electron-builder": "^23.6.0"
   },
   "dependencies": {
     "date-holidays": "^3.14.8",
