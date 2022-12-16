@@ -12,7 +12,7 @@
   "author": "Sean Davidson",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^17.4.0",
+    "electron": "^22.0.0",
     "electron-builder": "^22.14.13"
   },
   "dependencies": {

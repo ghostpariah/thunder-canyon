@@ -1373,8 +1373,8 @@ let getCustomerName = async (args)=>{
     
     
     async function logActivity(args1, args2, args3){
-        console.time('actlog')
-        //console.log(`args2 in logActivity = ${JSON.stringify(args3)}`)
+        //console.time('actlog')
+        console.log(`args2 in logActivity = ${JSON.stringify(args3)}`)
         let jobCustomer
         const actLog = fs.createWriteStream(activityLog, { flags: 'a' });      
         let date = new Date()
@@ -1463,7 +1463,7 @@ let getCustomerName = async (args)=>{
        
        actLog.write(logEvent)
        actLog.close()
-       console.timeEnd('actlog')
+       //console.timeEnd('actlog')
     
        
     }

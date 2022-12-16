@@ -132,31 +132,23 @@ $(function()
  ****************/
 
 
-
-// communication for setting page on window load
-// ipc.on('message', (event, args)=>{
-// 	logError('from index.js')		
-// 	accessGrantedContent = document.getElementById('contentArea').innerHTML
-// 	for (var member in args){ 
-// 		placeElement(args[member]);		
-// 	}	
-// 	document.getElementById('contentArea').innerHTML = openContent;   	
-	
-//  })
-
-//sent after editing an OTL scheduled jobs that have expired
 ipc.on('all-jobs',(event,args)=>{
 	allJobs=ipc.sendSync('pull_jobs')
 	loadJobs(allJobs)
 });
+
+//sent when app instance originated action
 ipc.on('update-single-job', (event, job)=>{
-	console.log('update-single-job called from adding job', job)
-	//allJobs = ipc.sendSync('pull_jobs')
+	console.log('update-single-job called from adding job', job)	
 	allJobs.push(job)
 	countStatuses()
-	//clearPage()
-	// loadJobs(args)	
-	placeElement(job)
+	if(job.status == 'sch' || job.status == 'noa'){
+		fillScheduledJobsOnAdd(allJobs)
+		
+	}else{
+		placeElement(job)
+	}
+	
 	fillScheduleGlimpse(allJobs)
 });
 
@@ -168,6 +160,8 @@ ipc.on('update-customer-array', (event, args)=>{
 	console.log('update customer array')
 	console.log(allCustomers)
 })
+
+
 ipc.on('update', (event, args)=>{
 	console.log('update called from adding job')
 	clearPage()
@@ -179,9 +173,9 @@ ipc.on('update', (event, args)=>{
 });
 
 
-ipc.on('count', (event,args)=>{
-	countStatuses()
-})
+// ipc.on('count', (event,args)=>{
+// 	countStatuses()
+// })
 
 
 
@@ -325,13 +319,7 @@ function jDate(ds){
 
 function saveWhiteBoard(wb){
 	ipc.send('get-whiteboard', 'write',document.getElementById('whiteBoardContent').innerText)
-	console.log('saving whiteboard')
-	// setTimeout(() => {
-	// 	if(window){
-	// 		document.getElementById('whiteBoardContent').innerHTML = ipc.sendSync('get-whiteboard', 'read')
-	// 		setCaretToEnd(wb)
-	// 	}
-	// }, 50);
+	
 	 
 }
 function deselectExpiredOTL_Scheduled(jobs){
@@ -357,23 +345,17 @@ function deselectExpiredOTL_Scheduled(jobs){
 	
 	//split args into scheduled and not scheduled
 	const [arrScheduled, arrOnLot] =                             
-  args
-    .reduce((result, element) => {
-      result[(element.status == 'sch' || element.status == 'noa')? 0 : 1].push(element); 
-      return result;
-    },
-    [[], []]); 
+  		args
+    		.reduce((result, element) => {
+      			result[(element.status == 'sch' || element.status == 'noa')? 0 : 1].push(element); 
+      			return result;
+    		},
+    		[[], []]); 
 	
-	//arrScheduled.sort((a, b) => a.date_scheduled.localeCompare(b.date_scheduled) || b.time_of_day - a.time_of_day);
-	arrScheduled.sort((a, b)=> {
-		if (a.date_scheduled === b.date_scheduled){
-		  return a.time_of_day < b.time_of_day ? -1 : 1
-		} else {
-		  return a.date_scheduled < b.date_scheduled ? -1 : 1
-		}
-	  })
-	  
-	//let arrSch = sortScheduled(arrScheduled)
+	
+	
+	sortScheduled(arrScheduled)  
+	
 	for(var member in arrScheduled){
 		arrScheduled[member].shop_location = `sch${member}`
 	}
@@ -391,8 +373,7 @@ function deselectExpiredOTL_Scheduled(jobs){
 	console.timeEnd('placeSchJobs')
 	$('#whiteBoardContent').on({
 		blur: (event)=>{
-			//console.log('blur fired')
-			//saveWhiteBoard(document.getElementById('whiteBoardContent'));
+			
 		},
 		keydown: (event)=>{
 			if(event.key == 'Tab'){
@@ -401,17 +382,10 @@ function deselectExpiredOTL_Scheduled(jobs){
 			
 		 },
 		keyup: (event)=>{
-			//console.log(event.key)
+			
 			useTimer('stop',document.getElementById('whiteBoardContent'))
 			useTimer('start',document.getElementById('whiteBoardContent'))
-			//console.log('timer on')
-			// console.log(document.querySelector('#bottom > .header').classList.contains('typing'))
-			// if(document.querySelector('#bottom > .header').classList.contains('typing')){
-				
-			// }else{
-			// 	console.log('doesnt contain typing')
-			// 	ipc.send('typing','yes')
-			// }
+			
 			
 			
 		}
@@ -457,7 +431,24 @@ function useTimer(action,wb){
 	}
 	
  }
-
+ function fillScheduledJobsOnAdd(args){
+	let arrSch = args.filter((job)=>{
+		return (job.status == 'sch' || job.status == 'noa')
+	})
+	//console.log(arrSch)
+	let sorted = sortScheduled(arrSch)
+	for(let i=0;i<sorted.length;i++){
+		sorted[i].shop_location = `sch${i}`
+		//console.log(sorted[i].shop_location)
+		
+	}
+	setTimeout(() => {
+		for(let member in sorted){
+			placeElement(sorted[member])
+		}
+	}, 100);
+	
+ }
  function createCompleted(args){
 	 let arrCompleted = new Array()
 	 let wpuJobContainer = document.getElementById('wpuJobContainer')
@@ -592,7 +583,7 @@ function fillScheduleGlimpse(args){
 	}
 	wrapper.innerHTML=''
 	console.time('filterSched')
-	
+
 	arrScheduledStatus = args.filter((job)=>{
 		return (job.status == 'sch' || job.comeback_customer == 1 || job.status == 'noa')
 	})
@@ -859,7 +850,7 @@ let createGlimpseToolTip = (e)=>{
 		if(objJob.designation == 'Scheduled'){
 			sd = '<b>Sched. Date: </b>' + objJob.date_scheduled + objJob.time_of_day + '<br/>'
 		}else if(objJob.designation == 'Coming - No Appt'){
-			sd = '<b>Drop Off Date - No Appt: </b>' + objJob.date_scheduled + '<br/>'
+			sd = '<b>Dropping Off - No Appt: </b>' + objJob.date_scheduled + '<br/>'
 		}else{
 			sd =''
 		}
@@ -1724,10 +1715,12 @@ function closeBox(ev, e) {
 
 //function to place jobs in correct page locations
 function placeElement(args){
+	
 	try{
-		//console.time('placeElement')
+		
 		let placement = (args.shop_location != null && args.shop_location != '') ? makeJobDiv2(args) : findOpenSpace(args) 
-		//console.timeEnd('placeElement')
+		
+		
 		if(placement !=null) {
 			try{
 			document.getElementById(args.shop_location).innerHTML = placement
@@ -1743,6 +1736,7 @@ function placeElement(args){
 		if(args.checked==1){document.getElementById('jich'+args.job_ID).style.display = 'inline-block'};
 	}catch(e){
 		logError(e)
+		console.log(e)
 	}
 }
 
@@ -1855,7 +1849,7 @@ function findSpot(args){
 }
 
 function makeJobDiv2(args){
-	//console.log(args)
+	
 	try{
 		let str = args.job_type.replace(/\s+/g, '');
 		let objContact
@@ -2566,13 +2560,7 @@ function createOpenContent(){
 	return content.getGreeting()
 
 }
-// function hideTT(event){
-// 	event.stopPropagation()
-// 	event.preventDefault()
-// 	console.log(event.target.id)
-// 	//event.target.firstChild.style.display ='none'
-	
-// }
+
 
 //function to log errors to file
 function logError(text){
