@@ -425,7 +425,7 @@ function countSchJobsForCalendar(){
                     break;
                     case "Spring":
                         if(ampm=="am"){
-                            
+                            console.log(jd,dayHolder.length)                            
                             document.getElementById("indicator"+ampm.toUpperCase()+jd+"_"+"2").style.visibility="visible";
                             dayHolder[jd].am.springCount++;
                             document.getElementById("indicator"+ampm.toUpperCase()+jd+"_"+"2").innerHTML=dayHolder[jd].am.springCount;
@@ -642,7 +642,7 @@ function isLeapYear(year) {
 
 function createDayHolders(){
     
-    for(i=0;i<days_of_a_year(selectedYear)-1;i++){
+    for(i=0;i<days_of_a_year(selectedYear);i++){
         var dh="day"+i;
         dayHolder.push({
                 "am":{

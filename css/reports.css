@@ -344,7 +344,7 @@ select {
 } */
 
 .EODprintItem{
-    font-size: 2em;
+    font-size: 1.25em;
     width: 100%;
     float:left;
     border-bottom: 1px solid black;

@@ -177,7 +177,7 @@ ul li ul li{
     display:none;
 }
 .actionLink:hover{
-    color: hsl(0, 0%, 35%);
+    color: hsl(0, 0%, 70%);
 
 }
 span.actionLink i{
