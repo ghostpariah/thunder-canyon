@@ -852,7 +852,8 @@ function updateJob() {
     if (editData.date_scheduled?.localeCompare(dateScheduled.value) != 0) {
         if (
             !document.getElementById("DateOTL-wrapper") &&
-            designation.innerText == "Scheduled"
+            (designation.innerText == "Scheduled" ||
+                designation.innerText == "Coming - No Appt")
         ) {
             objNewJob.date_scheduled = dateScheduled.value;
             objNewJob.julian_date = jDate(
@@ -913,15 +914,31 @@ function updateJob() {
     //-----build job object-----check for change in contact
     let method = txtCon.getAttribute("method");
     let method_ID = txtCon.getAttribute("method-id");
+    let db_number_ID = editData.number_ID;
+    let db_email_ID = editData.email_ID;
+    if (method_ID) {
+        console.log("method ID exists");
+        let same =
+            method == "phone"
+                ? method_ID.localeCompare(db_number_ID)
+                : method_ID.localeCompare(editData.email_ID);
+        console.log("same=", same);
+    } else {
+        console.log("method ID doesn't exists");
+    }
+    console.log("method is", method);
+    console.log("method id", method_ID);
+    console.log("db method id", editData.number_ID);
+
     if (
-        editData.number_ID != null &&
-        editData.number_ID != "null" &&
-        editData.number_ID != "" &&
-        editData.number_ID != undefined &&
-        editData.email_ID != null &&
-        editData.email_ID != "null" &&
-        editData.email_ID != "" &&
-        editData.email_ID != undefined
+        db_number_ID != null &&
+        db_number_ID != "null" &&
+        db_number_ID != "" &&
+        db_number_ID != undefined &&
+        db_email_ID != null &&
+        db_email_ID != "null" &&
+        db_email_ID != "" &&
+        db_email_ID != undefined
     ) {
         let itemToCompare = editData.number_ID
             ? editData.number_ID
@@ -1013,10 +1030,10 @@ function updateJob() {
     if (Object.keys(objNewJob).length > 1) {
         ipc.send("update-job", objNewJob, launcher, currentUser, txtCN.value);
         //ipc.send("close-window");
-        window.close();
+        //window.close();
     } else {
         ipc.send("close-window");
-        window.close();
+        //window.close();
     }
 }
 function jDate(ds) {

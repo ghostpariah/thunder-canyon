@@ -210,7 +210,7 @@
     max-width: 148px;
     /* overflow: hidden; */
     box-sizing: border-box;
-    line-height: .8em;
+    line-height: .8em; 
     /* background-color: bisque; */
     overflow-wrap: break-word;
   }
