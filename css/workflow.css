@@ -91,6 +91,7 @@ datalist{
 	box-sizing:border-box;
 	white-space: pre-line;
 }
+
 .typing{
 	animation: typing 500ms 100ms infinite;
 }

@@ -1573,6 +1573,7 @@ let dragged = null;
 document.addEventListener("dragstart", (event) => {
     // store a ref. on the dragged elem
     dragged = event.target;
+    console.log(dragged);
 });
 
 document.addEventListener("dragover", (event) => {
@@ -2614,8 +2615,8 @@ function createContextMenu(e, objJobData, g, customerName) {
 							
 						</div>
 					</div>
-					<div class="popuprow">
-						<div class="inputAndLabelWrapper" id="notesWrapper">
+					<div class="popuprow" draggable="false">
+						<div class="inputAndLabelWrapper" id="notesWrapper" draggable="false">
 							<label>Notes</label>
 							<textarea id="txtNotes" rows="7" cols="50" tabindex="6" type="text" style="vertical-align:middle;"></textarea>
 						</div>
@@ -2631,6 +2632,7 @@ function createContextMenu(e, objJobData, g, customerName) {
 
                 event.target.parentNode.nextElementSibling.innerHTML =
                     sub_content;
+
                 createComponent(
                     document.getElementById("jtWrapper"),
                     "comboBox",
@@ -2718,10 +2720,46 @@ function createContextMenu(e, objJobData, g, customerName) {
                 document.getElementById("JobType-listBox").style.top =
                     document.getElementById("jtWrapper").offsetTop + 55; //txtSection.getBoundingClientRect().bottom
 
+                $("#txtNotes").on({
+                    blur: (event) => {},
+                    focus: (event) => {
+                        closeDropDowns();
+                    },
+                    mousedown: (event) => {
+                        //get ID of draggable job container by getting number from submenu ID
+                        let numberID =
+                            event.target.parentNode.parentNode.parentNode.id.substring(
+                                8
+                            );
+                        //call function to turn off draggability of draggable job container to enable highlighting text for editing
+                        //pass in element and true or false for draggable attribute
+                        toggleDraggability(
+                            document.getElementById("drag" + numberID),
+                            false
+                        );
+                        // document
+                        //     .getElementById("drag" + numberID)
+                        //     .setAttribute("draggable", false);
+                    },
+                    mouseup: (event) => {
+                        //get ID of job draggable job container by getting number from submenu ID
+                        let numberID =
+                            event.target.parentNode.parentNode.parentNode.id.substring(
+                                8
+                            );
+                        //call function to turn off draggability of draggable job container to enable highlighting text for editing
+                        //pass in element and true or false for draggable attribute
+                        toggleDraggability(
+                            document.getElementById("drag" + numberID),
+                            true
+                        );
+                    },
+                });
+
                 for (member in allJobs) {
                     if (allJobs[member].job_ID == event.target.id.substr(8)) {
                         objPopUp = allJobs[member];
-                        document.querySelector("#txtNotes").value =
+                        document.querySelector("#txtNotes").innerText =
                             allJobs[member].notes;
 
                         popupDate = allJobs[member].date_scheduled
@@ -2775,11 +2813,13 @@ function createContextMenu(e, objJobData, g, customerName) {
                 $("#DateSched-choice")
                     .datepicker()
                     .datepicker("setDate", popupDate);
-                $("#txtNotes").on({
-                    focus: (event) => {
-                        closeDropDowns();
-                    },
-                });
+                // $("#txtNotes").on({
+                //     focus: (event) => {
+                //         closeDropDowns();
+                //     },
+                // });
+
+                //setCaretToEnd(document.getElementById("txtNotes"));
                 let tRect =
                     event.target.parentNode.nextElementSibling.getBoundingClientRect();
 
@@ -2866,8 +2906,8 @@ function createContextMenu(e, objJobData, g, customerName) {
 
         //hide if clicking outside of element
         document.onclick = function (ev) {
-            console.log("menuID " + thisMenu.id);
-            console.log(ev.target.id);
+            // console.log("menuID " + thisMenu.id);
+            // console.log(ev.target.id);
             if (
                 ev.target.id !== thisMenu.id &&
                 ev.target.parentNode.id !== thisMenu.id
@@ -2887,7 +2927,9 @@ function createContextMenu(e, objJobData, g, customerName) {
         logError(e);
     }
 }
-
+function toggleDraggability(element, setting) {
+    element.setAttribute("draggable", setting);
+}
 function cancelScheduleAdd(el) {
     let openPopUps = document.querySelectorAll(".context-submenu");
     let op = Array.from(openPopUps);
