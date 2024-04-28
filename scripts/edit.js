@@ -1029,7 +1029,7 @@ function updateJob() {
     console.log(objNewJob);
     if (Object.keys(objNewJob).length > 1) {
         ipc.send("update-job", objNewJob, launcher, currentUser, txtCN.value);
-        //ipc.send("close-window");
+        ipc.send("close-window");
         //window.close();
     } else {
         ipc.send("close-window");
