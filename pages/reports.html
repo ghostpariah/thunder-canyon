@@ -21,6 +21,18 @@
             media="all"
             href="../scripts/jquery-ui-1.11.4.custom/jquery-ui.css"
         />
+        <link
+            rel="stylesheet"
+            type="text/css"
+            media="all"
+            href="../css/components.css"
+        />
+        <link
+            rel="stylesheet"
+            type="text/css"
+            media="all"
+            href="../css/formComponents.css"
+        />
         <script>
             if (typeof module === "object") {
                 window.module = module;
@@ -32,7 +44,7 @@
         <script src="../scripts/jquery-1.11.3.min.js"></script>
         <script src="../scripts/jquery-ui-1.11.4.custom/jquery-ui.min.js"></script>
         <script src="../scripts/reports.js" defer></script>
-
+        <script src="../scripts/createComponent.js" defer></script>
         <script>
             if (window.module) module = window.module;
         </script>
@@ -203,7 +215,7 @@
         <div id="ribbon5" class="ribbon hidden historyRibbon">
             <div id="activitySearchHS" class="ribbonAsset">
                 <div class="visibleInput" id="customerNameWrapper">
-                    <input
+                    <!-- <input
                         id="txtCustomerName"
                         class="reportFormInput"
                         tabindex="1"
@@ -214,7 +226,7 @@
                         style="z-index: 20000"
                     />
 
-                    <datalist id="lstCustomer" class="classic"> </datalist>
+                    <datalist id="lstCustomer" class="classic"> </datalist> -->
                 </div>
                 <div id="searchContainer" class="searchContainer">
                     <input

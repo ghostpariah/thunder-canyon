@@ -1198,6 +1198,9 @@ function toggleAdminMenu() {
         {
             text: "Restore DB",
         },
+        {
+            text: "Merge Companies",
+        },
     ];
     let menuItem;
     let menuText;

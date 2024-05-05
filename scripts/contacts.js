@@ -21,6 +21,7 @@ const CNEI = document.getElementById("inpCompanyNameEdit");
 const contactContent = document.getElementById("currentContacts");
 
 //global variables
+let list = ipc.sendSync("get-customer-names");
 let companyIsNew = false;
 let contactExists = false;
 let conID;
@@ -150,19 +151,17 @@ $(inpEmail).on({
 });
 
 document.addEventListener("DOMContentLoaded", (event) => {
-    //createCompanyDropDown();
-    createCompanyDropDown()
-        .then((container) => {
-            let cDiv = document.getElementById("Customer-choice");
-
-            var clickEvent = new Event("mousedown");
-
-            cDiv.dispatchEvent(clickEvent);
-            cDiv.focus();
-        })
-        .catch((error) => {
-            console.error("Error creating dropdown:", error);
-        });
+    // createCompanyDropDown()
+    //     .then((container) => {
+    //         console.log(pageLauncher);
+    //         let cDiv = document.getElementById("Customer-choice");
+    //         var clickEvent = new Event("mousedown");
+    //         cDiv.dispatchEvent(clickEvent);
+    //         cDiv.focus();
+    //     })
+    //     .catch((error) => {
+    //         console.error("Error creating dropdown:", error);
+    //     });
 });
 
 /*******
@@ -448,6 +447,20 @@ ipc.on(
                 case "main page":
                     customerNameWrapper.style.display = "flex";
                     pageLauncher = "main";
+                    createCompanyDropDown()
+                        .then((container) => {
+                            console.log(pageLauncher);
+                            let cDiv =
+                                document.getElementById("Customer-choice");
+
+                            var clickEvent = new Event("mousedown");
+
+                            cDiv.dispatchEvent(clickEvent);
+                            cDiv.focus();
+                        })
+                        .catch((error) => {
+                            console.error("Error creating dropdown:", error);
+                        });
                     loadContactsPage(true);
                     return;
                     break;
@@ -480,6 +493,7 @@ ipc.on(
                     break;
                 case "edit page":
                     pageLauncher = "edit";
+                    console.log("edit page launched this contacts instnce");
                     if (props.action == "edit") {
                         loadHeader(addCN);
                         pullContacts(ipc.sendSync("get-customer-ID", addCN));
@@ -646,6 +660,23 @@ function factoryReset() {
     companyHeader.style.display = "none";
     customerNameWrapper.style.visibility = "visible";
     contactContent.style.display = "none";
+    if (document.getElementById("Customer-choice")) {
+        document.getElementById("Customer-choice").innerHTML = "";
+    } else {
+        createCompanyDropDown()
+            .then((container) => {
+                console.log(pageLauncher);
+                let cDiv = document.getElementById("Customer-choice");
+
+                var clickEvent = new Event("mousedown");
+
+                cDiv.dispatchEvent(clickEvent);
+                cDiv.focus();
+            })
+            .catch((error) => {
+                console.error("Error creating dropdown:", error);
+            });
+    }
     document.getElementById("Customer-choice").innerHTML = "";
     clearMessageCenters();
 }
@@ -2270,10 +2301,11 @@ let createCompanyDropDown = () => {
                 }
             },
             keyup: (event) => {
-                filterListBox(
-                    txtSection,
-                    Array.from($("#Customer-listBox div"))
-                );
+                console.log(list);
+                let m = filterListBox2(txtSection, list);
+                document.getElementById("Customer-listBox").innerHTML = "";
+                console.log("right before fillListBox2 in keyup fro customer");
+                fillListBoxCP(listBox, m);
                 let fl = $("#Customer-listBox div:visible");
 
                 //if there are no matches then its a new company
@@ -2371,25 +2403,32 @@ let createCompanyDropDown = () => {
         resolve(container);
     });
 };
-let fillListBoxCP = (box) => {
+let fillListBoxCP = (box, editL) => {
     //return new Promise(function (resolve, reject) {
-    let list = ipc.sendSync("get-customer-names");
+    let l;
+    if (!editL) {
+        l = list;
+        l.sort((a, b) => (a.customer_name > b.customer_name ? 1 : -1));
+    } else {
+        l = editL;
+    }
+
     let input = document.getElementById("Customer-choice");
     let txtSection = document.getElementById("Customer-choice");
     let button = document.getElementById("Customer-button");
     let listBox = document.getElementById("Customer-listBox");
 
     box.innerHTML = "";
-    for (var member in list) {
+    for (var member in l) {
         let listItem = document.createElement("div");
         listItem.setAttribute("class", "listItem");
         listItem.setAttribute("data-selected", false);
         listItem.tabIndex = -1;
         let text;
 
-        list.sort((a, b) => (a.customer_name > b.customer_name ? 1 : -1));
-        listItem.setAttribute("id", `listItem${list[member].customer_ID}`);
-        text = document.createTextNode(list[member].customer_name);
+        //list.sort((a, b) => (a.customer_name > b.customer_name ? 1 : -1));
+        listItem.setAttribute("id", `listItem${l[member].customer_ID}`);
+        text = document.createTextNode(l[member].customer_name);
 
         $(listItem).on({
             keydown: (event) => {

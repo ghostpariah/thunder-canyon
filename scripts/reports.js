@@ -22,6 +22,23 @@ let pulledCustomers;
 // create is the default and used when creating report.
 // edit is used when a report has already been created for the day. The saved info will populate the fields
 let state = "create";
+window.onload = () => {
+    createComponent(
+        document.getElementById("customerNameWrapper"),
+        "comboBox",
+        ipc.sendSync("get-customer-names"),
+        "Customer",
+        "reports"
+    );
+    // $("#option4").click();
+    // $("#searchCriteriaHS").on({
+    //     keyup: function (event) {
+    //         search("history");
+    //         console.log(this.value);
+    //     },
+    // });
+    loadModal();
+};
 
 document.addEventListener("keydown", function (event) {
     var code = event.keyCode || event.which;
@@ -160,7 +177,17 @@ async function loadModal() {
 
     console.timeEnd("pull no show");
 
-    $("#option4").click();
+    //$("#option4").click();
+
+    const clickEvent = new MouseEvent("click", {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+    });
+
+    // Dispatch the click event on the element
+    document.getElementById("option4").dispatchEvent(clickEvent);
+
     const achContainer = document.getElementById("achBox");
 
     const printPDFBtn = document.getElementById("btnReport");
@@ -261,7 +288,7 @@ async function loadModal() {
     $("#searchCriteriaHS").on({
         keyup: function (event) {
             search("history");
-            // console.log(this.value)
+            console.log(this.value);
         },
     });
     $("#reportStartDate").click();
@@ -527,7 +554,7 @@ function toggleVisibility(el) {
             ? ribbon.setAttribute("class", "ribbon hidden")
             : ribbon.setAttribute("class", "ribbon visible historyRibbon");
         $("#txtCustomerName").focus();
-        if (document.getElementById("txtCustomerName").value != "") {
+        if (document.getElementById("Customer-choice").innerText != "") {
             $("#txtCustomerName").change();
             search("history");
         }

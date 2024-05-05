@@ -236,7 +236,7 @@ ipc.on("refresh", (event, args, args2, args3) => {
         props.launcher = "add job page";
         setTimeout(() => {
             document.querySelector(`[method-id = '${args3}']`).click();
-        }, 00);
+        }, 0o0);
     } else {
         pullContacts(chosenCompany);
     }

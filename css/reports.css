@@ -29,7 +29,7 @@ label{
 }
 
 .historyRibbon{
-    height: 40px;
+    height: auto;
 }
 #mainMenu{
     display:flex;
@@ -101,6 +101,10 @@ input[type=text]:focus-within{
     justify-content: left;
     align-items: center;
     height: 50px;
+    text-align: left;
+}
+.listBox{
+    margin-top: 50px;
 }
 
 .chosen{

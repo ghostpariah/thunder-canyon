@@ -8,6 +8,7 @@ let glComponentType;
 let currentTabIndex;
 let glPage;
 let fl;
+
 $(".cb").on({
     keydown: (event) => {
         event.stopPropagation;
@@ -50,6 +51,7 @@ function createComponent(
     const componentContainer = document.getElementById(container);
 
     let createComboBox = () => {
+        let arrElementsCustomerNames;
         container.setAttribute("data-type", componentType);
         //create compnents
 
@@ -108,29 +110,44 @@ function createComponent(
                     ) {
                         fl = "";
                         list = ipc.sendSync("get-customer-names");
-                        fillListBox2(thisListBox);
-                        filterListBox(
-                            txtSection,
-                            Array.from($("#Customer-listBox div"))
+
+                        console.log(
+                            Array.from($("#Customer-listBox div")).map(
+                                (element) => element.innerText
+                            )
                         );
+
+                        //fillListBox2(thisListBox);
+                        // filterListBox(
+                        //     txtSection,
+                        //     Array.from($("#Customer-listBox div"))
+                        // );
                         if (
                             isExactMatch(txtSection.innerHTML, Array.from(fl))
                         ) {
                             //fl = "";
                         }
                     } else {
-                        list = ipc.sendSync("get-customer-names");
-                        fillListBox2(thisListBox);
-                        filterListBox(
-                            txtSection,
-                            Array.from($("#Customer-listBox div"))
+                        //list = ipc.sendSync("get-customer-names");
+
+                        //fillListBox2(thisListBox);
+                        console.time("customername");
+                        console.log(
+                            Array.from($("#Customer-listBox div")).map(
+                                (element) => element.innerText
+                            )
                         );
+                        // filterListBox(
+                        //     txtSection,
+                        //     Array.from($("#Customer-listBox div"))
+                        // );
+                        console.timeEnd("customername");
                         //fl = "";
                     }
                     if (callingPage == "edit") {
                         filterListBox(
                             txtSection,
-                            Array.from($("#Customer-listBox div"))
+                            Array.from($("#Customer-listBox div"), listBox)
                         );
                     }
                 }
@@ -229,11 +246,12 @@ function createComponent(
                     if (
                         customer_text != "" &&
                         matched == 0 &&
-                        callingPage != "contacts"
+                        callingPage != "contacts" &&
+                        callingPage != "reports"
                     ) {
                         fillContactsNew(null);
                     } else {
-                        if (page != "edit") {
+                        if (page != "edit" && callingPage != "reports") {
                             $(`#listItem${id}`).mousedown();
                         }
                         //$(`#listItem${id}`).mousedown()
@@ -303,7 +321,12 @@ function createComponent(
                         pastFocusedItem = e[pastIndex];
                         currentFocusedItem = e[focusedIndex];
                         nextFocusedItem = e[nextIndex];
-
+                        console.log(
+                            pastFocusedItem,
+                            currentFocusedItem,
+                            nextFocusedItem
+                        );
+                        console.log(pastIndex, focusedIndex, nextIndex);
                         break;
                     case "ArrowUp":
                         usingListBox = true;
@@ -343,6 +366,7 @@ function createComponent(
                     switch (event.key) {
                         case "s":
                         case "S":
+                            console.log("s typed");
                             txtSection.innerHTML = "Scheduled";
                             usingListBox = false;
                             event.preventDefault();
@@ -541,16 +565,21 @@ function createComponent(
                     if ($("#Customer-MessageContainer")) {
                         $("#Customer-MessageContainer").remove();
                     }
-                    filterListBox(
-                        txtSection,
-                        Array.from($("#Customer-listBox div"))
+                    let m = filterListBox2(txtSection, list);
+                    document.getElementById("Customer-listBox").innerHTML = "";
+                    console.log(
+                        "right before fillListBox2 in keyup fro customer"
                     );
-
+                    fillListBox2(listBox, m);
                     fl = $("#Customer-listBox div:visible");
 
                     console.log("fl length = " + fl.length);
                     //if there are no matches then its a new company
-                    if (fl.length == 0 && callingPage != "contacts") {
+                    if (
+                        fl.length == 0 &&
+                        callingPage != "contacts" &&
+                        callingPage != "reports"
+                    ) {
                         console.log("new comp");
                         fillContactsNew(null);
                     }
@@ -684,7 +713,13 @@ function createComponent(
         container.appendChild(listBox);
 
         //populate dropdown
-        fillListBox2(listBox);
+
+        if (listType == "Customer") {
+            fillListBox2(listBox, customSort("", list));
+            arrElementsCustomerNames = Array.from($("#Customer-listBox div"));
+        } else {
+            fillListBox2(listBox, list);
+        }
     };
     let getTabIndex = (type, page) => {
         let index;
@@ -789,15 +824,15 @@ function createComponent(
             return index;
         }
     };
-    let fillListBox2 = (box) => {
+    let fillListBox2 = (box, editL) => {
         let input = document.getElementById(listType + "-choice");
         let txtSection = document.getElementById(listType + "-choice");
         let button = document.getElementById(listType + "-button");
         let listBox = document.getElementById(listType + "-listBox");
-
+        console.log(editL);
         box.innerHTML = "";
         console.log(list);
-        for (var member in list) {
+        for (var member in editL) {
             let listItem = document.createElement("div");
             listItem.setAttribute("class", "listItem");
             listItem.setAttribute("data-selected", false);
@@ -807,14 +842,15 @@ function createComponent(
             switch (listType) {
                 case "Customer":
                     //list = ipc.sendSync("get-customer-names");
-                    list.sort((a, b) =>
-                        a.customer_name > b.customer_name ? 1 : -1
-                    );
+                    // editL.sort((a, b) =>
+                    //     a.customer_name > b.customer_name ? 1 : -1
+                    // );
+
                     listItem.setAttribute(
                         "id",
-                        `listItem${list[member].customer_ID}`
+                        `listItem${editL[member].customer_ID}`
                     );
-                    text = document.createTextNode(list[member].customer_name);
+                    text = document.createTextNode(editL[member].customer_name);
 
                     $(listItem).on({
                         keydown: (event) => {
@@ -834,6 +870,7 @@ function createComponent(
 
                                 // break;
                                 case "ArrowDown":
+                                    console.log("hello");
                                     navigateListBox(
                                         event,
                                         box,
@@ -862,11 +899,17 @@ function createComponent(
                                         props.customer_name =
                                             listItem.innerText;
                                         props.launcher = page;
-                                        if (callingPage != "contacts") {
+                                        if (
+                                            callingPage != "contacts" &&
+                                            callingPage != "reports"
+                                        ) {
                                             fillContactsNew(props);
                                         }
 
-                                        if (props.contacts.primary_contact) {
+                                        if (
+                                            props.contacts.primary_contact &&
+                                            callingPage != "reports"
+                                        ) {
                                             let txtField =
                                                 document.querySelector(
                                                     "#Contacts-choice"
@@ -907,7 +950,10 @@ function createComponent(
                                             );
                                         }
 
-                                        if (callingPage != "contacts") {
+                                        if (
+                                            callingPage != "contacts" &&
+                                            callingPage != "reports"
+                                        ) {
                                             navigateTabs("down", index);
                                         }
                                     }
@@ -942,14 +988,19 @@ function createComponent(
                             props.customer_name = listItem.innerText;
                             props.launcher = page;
                             console.log(props);
-                            if (callingPage != "contacts") {
+                            console.log(callingPage);
+                            if (
+                                callingPage != "contacts" &&
+                                callingPage != "reports"
+                            ) {
                                 fillContactsNew(props);
                             }
 
                             currentFocusedItem = event.target;
                             if (
                                 props.contacts.primary_contact &&
-                                callingPage != "contacts"
+                                callingPage != "contacts" &&
+                                callingPage != "reports"
                             ) {
                                 let txtField =
                                     document.querySelector("#Contacts-choice");
@@ -989,7 +1040,10 @@ function createComponent(
                                 box
                             );
                             setTimeout(() => {
-                                if (callingPage != "contacts") {
+                                if (
+                                    callingPage != "contacts" &&
+                                    callingPage != "reports"
+                                ) {
                                     navigateTabs("down", index);
                                 }
                             }, 75);
@@ -999,7 +1053,7 @@ function createComponent(
 
                 default:
                     listItem.setAttribute("id", listType + member);
-                    text = document.createTextNode(list[member]);
+                    text = document.createTextNode(editL[member]);
                     $(listItem).on({
                         keydown: (event) => {
                             let filteredList = $(
@@ -1023,6 +1077,7 @@ function createComponent(
                                     );
                                     break;
                                 case "ArrowDown":
+                                    console.log("yellow");
                                     navigateListBox(event, box, filteredList);
                                     break;
                                 case "ArrowUp":
@@ -2478,6 +2533,14 @@ let chooseListItem = (event, input, txtSection, chosen, listBox) => {
             if (glPage == "contacts") {
                 break;
             }
+            if (glPage == "reports") {
+                let jobs = ipc.sendSync("get-jobs", cid);
+
+                console.log("input triggered");
+                document.getElementById("reportResult").innerHTML = "";
+                displayHistory(jobs);
+                break;
+            }
             if (checkForNoShows(cid)) {
                 if ($("#Customer-MessageContainer")) {
                     $("#Customer-MessageContainer").remove();
@@ -2584,26 +2647,79 @@ let resetContacts = () => {
     document.querySelector("#Contacts-choice").removeAttribute("method");
     document.querySelector("#Contacts-choice").removeAttribute("method-id");
 };
+let filterListBox2 = (el, arrCu) => {
+    let val = el.innerText.toUpperCase().replace(/\u00a0/g, " ");
+    console.log(arrCu.filter((element) => element.customer_name.includes(val)));
+    return customSort(
+        val,
+        arrCu.filter((element) => element.customer_name.includes(val))
+    );
+};
 let filterListBox = (el, arrElements) => {
     let val = el.innerText;
     let arrNames = arrElements;
     let fl;
-    arrNames.forEach((element) => {
-        if (
-            element.innerText
-                .toUpperCase()
-                .includes(val.toUpperCase().replace(/\u00a0/g, " "))
-        ) {
-            element.style.display = "flex";
-        } else {
-            element.style.display = "none";
-        }
-    });
-    fl = arrNames;
+    console.log(arrElements.length);
+    console.time("foreach");
+    //Preprocess val to uppercase and replace non-breaking spaces
+    const processedVal = val.toUpperCase().replace(/\u00a0/g, " ");
+
+    fl = arrNames.filter((element) =>
+        element.innerText
+            .toUpperCase()
+            .replace(/\u00a0/g, " ")
+            .includes(processedVal)
+    );
+    //let ma = list.filter;
+    console.log("new mapped array length = " + fl.length);
+    console.log(fl);
+
+    // Loop through arrNames
+    // for (let i = 0; i < arrNames.length; i++) {
+    //     let element = arrNames[i];
+    //     // Preprocess element's innerText
+    //     const processedText = element.innerText
+    //         .toUpperCase()
+    //         .replace(/\u00a0/g, " ");
+    //     console.log(
+    //         window.getComputedStyle(element).getPropertyValue("display")
+    //     );
+    //     if (processedText.includes(processedVal)) {
+    //         if (
+    //             window.getComputedStyle(element).getPropertyValue("display") ==
+    //             "none"
+    //         ) {
+    //             element.style.display = "flex";
+    //         }
+    //     } else {
+    //         if (
+    //             window.getComputedStyle(element).getPropertyValue("display") ==
+    //                 "block" ||
+    //             window.getComputedStyle(element).getPropertyValue("display") ==
+    //                 "flex"
+    //         ) {
+    //             element.style.display = "none";
+    //         }
+    //     }
+    //}
+
+    // arrNames.forEach((element) => {
+    //     if (
+    //         element.innerText
+    //             .toUpperCase()
+    //             .includes(val.toUpperCase().replace(/\u00a0/g, " "))
+    //     ) {
+    //         element.style.display = "flex";
+    //     } else {
+    //         element.style.display = "none";
+    //     }
+    // });
+    console.timeEnd("foreach");
+    //fl = arrNames;
     //fl =$('#Customer-listBox div:visible')
     //console.log('arrNames length ='+arrNames.length)
 
-    return fl;
+    return customSort(val, fl);
 };
 
 let isExactMatch = (text, list) => {
@@ -2756,3 +2872,57 @@ let removeSpecialCharacters = (item) => {
     elem.innerHTML = item.trim().toUpperCase();
     return elem.value;
 };
+
+function customSort(input, arr) {
+    console.log("input is -" + input + "-");
+    console.log(arr);
+    if (input == "" || input == undefined) {
+        console.log("input is -" + input + "-");
+        return arr.sort((a, b) => (a.customer_name > b.customer_name ? 1 : -1));
+    }
+    return arr.sort((a, b) => {
+        // Compare customer_name properties
+        const nameA = a.customer_name.toLowerCase();
+        const nameB = b.customer_name.toLowerCase();
+
+        // Check if input matches at the beginning of the string
+        const aStartsWithInput = nameA.startsWith(input.toLowerCase());
+        const bStartsWithInput = nameB.startsWith(input.toLowerCase());
+
+        // If both start with input or both don't start with input, sort alphabetically
+        if (aStartsWithInput === bStartsWithInput) {
+            return nameA.localeCompare(nameB);
+        }
+
+        // If only one starts with input, it comes first
+        return aStartsWithInput ? -1 : 1;
+    });
+    // return arr.sort((a, b) => {
+    //     const aIndex = a.customer_name
+    //         .toLowerCase()
+    //         .indexOf(input.toLowerCase());
+    //     const bIndex = b.customer_name
+    //         .toLowerCase()
+    //         .indexOf(input.toLowerCase());
+
+    //     // If both strings contain the input
+    //     if (aIndex !== -1 && bIndex !== -1) {
+    //         // Sort by index (i.e., earlier occurrence of input comes first)
+    //         if (aIndex !== bIndex) {
+    //             return aIndex - bIndex;
+    //         }
+    //         // If the same index, sort alphabetically
+    //         return a.customer_name.localeCompare(b.customer_name);
+    //     }
+    //     // If only one string contains the input, it comes first
+    //     else if (aIndex !== -1) {
+    //         return -1;
+    //     } else if (bIndex !== -1) {
+    //         return 1;
+    //     }
+    //     // If neither string contains the input, sort alphabetically
+    //     else {
+    //         return a.customer_name.localeCompare(b.customer_name);
+    //     }
+    // });
+}
