@@ -13,12 +13,18 @@ h3{
     float:left;
 }
 .backupButton{
-    border: 1px solid #5e81ad;
+    
     background-color: whitesmoke;
     color: #1a1a1a;;
     margin: 5px;
     float:left;
     padding: 3px;
     cursor: pointer;
+    border-radius: 5px;
+}
+.backupButton:hover{
+    background-color: #5e81ad;
+    color: whitesmoke;
+    
 }
 

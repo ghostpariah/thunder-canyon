@@ -22,7 +22,11 @@ let pulledCustomers;
 // create is the default and used when creating report.
 // edit is used when a report has already been created for the day. The saved info will populate the fields
 let state = "create";
-window.onload = () => {
+
+window.addEventListener("DOMContentLoaded", () => {
+    console.time("pull no shows in DOMContentLoaded");
+    //pullNoShows();
+    console.timeEnd("pull no shows in DOMContentLoaded");
     createComponent(
         document.getElementById("customerNameWrapper"),
         "comboBox",
@@ -30,6 +34,15 @@ window.onload = () => {
         "Customer",
         "reports"
     );
+});
+window.onload = () => {
+    // createComponent(
+    //     document.getElementById("customerNameWrapper"),
+    //     "comboBox",
+    //     ipc.sendSync("get-customer-names"),
+    //     "Customer",
+    //     "reports"
+    // );
     // $("#option4").click();
     // $("#searchCriteriaHS").on({
     //     keyup: function (event) {
@@ -37,7 +50,10 @@ window.onload = () => {
     //         console.log(this.value);
     //     },
     // });
-    loadModal();
+    //pullNoShows();
+    console.time("loadModal");
+    //loadModal();
+    console.timeEnd("loadModal");
 };
 
 document.addEventListener("keydown", function (event) {
@@ -128,10 +144,13 @@ function getEODdata() {
         //createEODitem($('#datepickerReport'),'date')
         inpBatch.value = data.batch;
         createEODitem(inpBatch, "batch");
-        inpCity.value = data.city;
-        createEODitem(inpCity, "city");
+
         inpDaily.value = data.daily;
         createEODitem(inpDaily, "daily");
+
+        inpCity.value = data.city;
+        createEODitem(inpCity, "city");
+
         inpDirector.value = data.director;
         createEODitem(inpDirector, "director");
 
@@ -173,7 +192,7 @@ async function loadModal() {
     pulledCustomers = await getAllCustomers();
     console.timeEnd("get-all-customers");
     console.time("pull no show");
-    pullNoShows();
+    //pullNoShows();
 
     console.timeEnd("pull no show");
 
@@ -185,9 +204,11 @@ async function loadModal() {
         view: window,
     });
 
-    // Dispatch the click event on the element
-    document.getElementById("option4").dispatchEvent(clickEvent);
-
+    // Dispatch the click event on the element if admin
+    console.log(currentUser);
+    // if (currentUser.role == "admin") {
+    //     document.getElementById("option4").dispatchEvent(clickEvent);
+    // }
     const achContainer = document.getElementById("achBox");
 
     const printPDFBtn = document.getElementById("btnReport");
@@ -445,11 +466,33 @@ ipc.on("close-window", (event) => {
     }, 500);
 });
 ipc.on("role", (event, role, companyID, user, companyName) => {
+    const loadTime = performance.now() - startTime;
+    console.log("role starts after:", loadTime.toFixed(2), "milliseconds");
+
     console.log("role: " + role, companyName);
+    console.log(user);
+    console.time("role from main");
+    const clickEvent = new MouseEvent("click", {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+    });
+    if (user) {
+        loadTabs(user.role);
+        currentUser = user;
+        // Dispatch the click event on the element if admin
+        console.log(currentUser);
+        loadModal();
+
+        if (user.role == "admin") {
+            document.getElementById("option4").dispatchEvent(clickEvent);
+        }
+    }
+
     //if more args were sent then open specific report
     if (companyName) {
         setTimeout(() => {
-            document.getElementById("option3").click();
+            document.getElementById("option2").click();
             document.getElementById("searchCriteriaNS").value = companyName; //ipc.sendSync('db-get-customer-name',companyID)
 
             //trigger an 'enter' keypress
@@ -457,14 +500,13 @@ ipc.on("role", (event, role, companyID, user, companyName) => {
             $("#searchCriteriaNS").trigger(e);
         }, 100);
     }
-    if (role == "user") {
-        document.getElementById("option1").style.display = "none";
-        // document.getElementById('option2').style.display = 'none';
-        document.getElementById("option4").style.display = "none";
-    }
-    if (user) {
-        currentUser = user;
-    }
+    // if (role == "user") {
+    //     document.getElementById("option1").style.display = "none";
+    //     // document.getElementById('option2').style.display = 'none';
+    //     document.getElementById("option4").style.display = "none";
+    // }
+
+    console.timeEnd("role from main");
 });
 
 // function formatReport(a){
@@ -494,6 +536,7 @@ function toggleVisibility(el) {
     document.getElementById("searchResult").innerHTML = "";
 
     let mainOpts = document.getElementsByClassName("mainOption");
+    console.log(mainOpts);
     for (i = 1; i < mainOpts.length + 1; i++) {
         if (mainOpts.id != "ribbon5") {
             document
@@ -518,7 +561,7 @@ function toggleVisibility(el) {
         ? el.setAttribute("class", "mainOption unchosen")
         : el.setAttribute("class", "mainOption chosen");
 
-    if (chosenOption == 2) {
+    if (chosenOption == 1) {
         // setTimeout(() => {
 
         ribVisibility < 0
@@ -538,7 +581,7 @@ function toggleVisibility(el) {
             ? ribbon.setAttribute("class", "ribbon hidden")
             : ribbon.setAttribute("class", "ribbon visible");
     }
-    if (chosenOption == 3) {
+    if (chosenOption == 2) {
         ribVisibility < 0
             ? ribbon.setAttribute("class", "ribbon hidden")
             : ribbon.setAttribute("class", "ribbon visible");
@@ -549,7 +592,7 @@ function toggleVisibility(el) {
             search("noshow");
         }
     }
-    if (chosenOption == 5) {
+    if (chosenOption == 3) {
         ribVisibility < 0
             ? ribbon.setAttribute("class", "ribbon hidden")
             : ribbon.setAttribute("class", "ribbon visible historyRibbon");
@@ -561,7 +604,7 @@ function toggleVisibility(el) {
     } else {
         //(ribVisibility<0) ? ribbon.setAttribute('class','ribbon hidden') : ribbon.setAttribute('class','ribbon visible');
     }
-    if (chosenOption == 1) {
+    if (chosenOption == 5) {
         ribVisibility < 0
             ? ribbon.setAttribute("class", "ribbon hidden")
             : ribbon.setAttribute("class", "ribbon flexBetween");
@@ -1653,3 +1696,101 @@ function fillCustomerDataList() {
         },
     });
 }
+loadTabs = (user_role) => {
+    let mainMenu = document.getElementById("mainMenu");
+    if (user_role == "admin") {
+        let tab1 = document.createElement("span");
+        tab1.setAttribute("id", "option1");
+        tab1.setAttribute("class", "mainOption unchosen");
+        tab1.addEventListener("click", (event) => {
+            toggleVisibility(tab1);
+        });
+        let tab1text = document.createTextNode("On the Lot");
+        tab1.appendChild(tab1text);
+        mainMenu.appendChild(tab1);
+
+        let tab2 = document.createElement("span");
+        tab2.setAttribute("id", "option2");
+        tab2.setAttribute("class", "mainOption unchosen");
+        tab2.addEventListener("click", (event) => {
+            toggleVisibility(tab2);
+        });
+        let tab2text = document.createTextNode("No Shows");
+        tab2.appendChild(tab2text);
+        mainMenu.appendChild(tab2);
+
+        let tab3 = document.createElement("span");
+        tab3.setAttribute("id", "option3");
+        tab3.setAttribute("class", "mainOption unchosen");
+        tab3.addEventListener("click", (event) => {
+            toggleVisibility(tab3);
+        });
+        let tab3text = document.createTextNode("History");
+        tab3.appendChild(tab3text);
+        mainMenu.appendChild(tab3);
+
+        let tab4 = document.createElement("span");
+        tab4.setAttribute("id", "option4");
+        tab4.setAttribute("class", "mainOption unchosen");
+        tab4.addEventListener("click", (event) => {
+            toggleVisibility(tab4);
+        });
+        let tab4text = document.createTextNode("EOD");
+        tab4.appendChild(tab4text);
+        mainMenu.appendChild(tab4);
+
+        let tab5 = document.createElement("span");
+        tab5.setAttribute("id", "option5");
+        tab5.setAttribute("class", "mainOption unchosen");
+        tab5.addEventListener("click", (event) => {
+            toggleVisibility(tab5);
+        });
+        let tab5text = document.createTextNode("User Activity");
+        tab5.appendChild(tab5text);
+        mainMenu.appendChild(tab5);
+    } else {
+        let tab2 = document.createElement("span");
+        tab2.setAttribute("id", "option1");
+        tab2.setAttribute("class", "mainOption unchosen");
+        tab2.addEventListener("click", (event) => {
+            toggleVisibility(tab2);
+        });
+        let tab2text = document.createTextNode("On the Lot");
+        tab2.appendChild(tab2text);
+        mainMenu.appendChild(tab2);
+
+        let tab3 = document.createElement("span");
+        tab3.setAttribute("id", "option2");
+        tab3.setAttribute("class", "mainOption unchosen");
+        tab3.addEventListener("click", (event) => {
+            toggleVisibility(tab3);
+        });
+        let tab3text = document.createTextNode("No Shows");
+        tab3.appendChild(tab3text);
+        mainMenu.appendChild(tab3);
+
+        let tab5 = document.createElement("span");
+        tab5.setAttribute("id", "option3");
+        tab5.setAttribute("class", "mainOption unchosen");
+        tab5.addEventListener("click", (event) => {
+            toggleVisibility(tab5);
+        });
+        let tab5text = document.createTextNode("History");
+        tab5.appendChild(tab5text);
+        mainMenu.appendChild(tab5);
+    }
+};
+
+const startTime = performance.now();
+
+// Wait for the page to fully load
+window.addEventListener("load", function () {
+    // Calculate the page load time
+    const loadTime = performance.now() - startTime;
+    console.log("Page load time:", loadTime.toFixed(2), "milliseconds");
+});
+
+//trying to load no shows outside of events
+setTimeout(() => {
+    pullNoShows();
+}, 100);

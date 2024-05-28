@@ -209,14 +209,24 @@ function createComponent(
                             event.target.innerText,
                             ...arrNames,
                         ];
+                        let arr2 = [
+                            { text: "Group 1", clickId: 1 },
+                            { text: "Option 1", clickId: 2 },
+                            { text: "Option 2", clickId: 3 },
+                            { text: "Group 2", clickId: 4 },
+                            { text: "Option 3", clickId: 5 },
+                            { text: "Option 4", clickId: 6 },
+                            "Cancel",
+                        ];
 
                         const options = {
                             type: "question",
                             buttons: arrButtons, //['Cancel', 'Yes, please', 'No, thanks'],
                             defaultId: 1,
                             title: "Choose customer name",
-                            message: "Choose Customer",
-                            detail: "There are partial matches. Choose customer name from list.",
+                            message:
+                                "Are you sure you want to create a new customer?",
+                            detail: `The customer entered has partial matches. Only choose the (new customer) option if the intended customer isn't in the list.`, //"There are partial matches. Choose customer name from list.",
                         };
                         let answer = ipc.sendSync("open-dialog", options);
                         let company = arrButtons[answer];
@@ -2738,7 +2748,44 @@ let isExactMatch = (text, list) => {
     return is;
 };
 
-let createMessageBox = (lt, messageType) => {
+function buildExistingCustomersString(arrList) {
+    let stringCustomers = "\n";
+    console.log("existing customer array length is " + arrList.length);
+    if (arrList.length == 1) {
+        stringCustomers = `${
+            arrList[0].first_name ? arrList[0].first_name : ""
+        } ${arrList[0].last_name ? arrList[0].last_name : ""} at ${
+            arrList[0].customer_name
+        }`;
+        return stringCustomers;
+    }
+    if (arrList.length > 1) {
+        for (let i = 0; i < arrList.length; i++) {
+            stringCustomers =
+                stringCustomers +
+                `${arrList[i].first_name ? arrList[i].first_name : ""} ${
+                    arrList[i].last_name ? arrList[i].last_name : ""
+                } at ${arrList[i].customer_name}${
+                    i == arrList.length - 1
+                        ? "."
+                        : i == arrList.length - 2
+                        ? " and "
+                        : ", "
+                }\n`;
+        }
+
+        return stringCustomers;
+    }
+}
+/**
+ * Function to create message box for imvalid input data
+ * @param {*} lt /will be Customer, phone, email etc. It describes the input data
+ * @param {*} messageType /describes the type i.e. invalid, existing number, not enough digits
+ * @param {*} errorType /describes the type to determine background color. i.e error, warning
+ * @param {*} objExistingCustomers /object of existing contacts that already have entered number or email associated with them.
+ * @returns
+ */
+let createMessageBox = (lt, messageType, errorType, objExistingCustomers) => {
     let messageContainer = document.createElement("div");
     messageContainer.setAttribute("id", `${lt}-MessageContainer`);
     messageContainer.setAttribute("class", "messageContainer");
@@ -2798,8 +2845,40 @@ let createMessageBox = (lt, messageType) => {
             messageContainer.setAttribute("class", "messageContainer invalid");
             break;
         case "phone":
+        case "phone-add":
         case "email":
             if (messageType == "digits") {
+                let addFromEditParent = document.getElementById(
+                    `${lt}-add-MessageContainer`
+                );
+                let addFromAddParent = document.getElementById(
+                    `${lt}-MessageContainer`
+                );
+                let digitError = document.getElementById(
+                    `${lt}-digits-MessageContainer`
+                );
+                let existingError = document.getElementById(
+                    `${lt}-existing-MessageContainer`
+                );
+                if (existingError) {
+                    if (addFromEditParent) {
+                        addFromEditParent.removeChild(existingError);
+                    }
+                    if (addFromAddParent) {
+                        addFromAddParent.removeChild(existingError);
+                    }
+                }
+                if (digitError) {
+                    if (addFromEditParent) {
+                        addFromEditParent.removeChild(digitError);
+                    }
+                    if (addFromAddParent) {
+                        addFromAddParent.removeChild(digitError);
+                    }
+                    // document
+                    //     .getElementById(`${lt}_message_container`)
+                    //     .removeChild(digitError);
+                }
                 messageContainer.setAttribute(
                     "id",
                     `${lt}-digits-MessageContainer`
@@ -2807,6 +2886,31 @@ let createMessageBox = (lt, messageType) => {
                 messageText = document.createTextNode(
                     `Number must be at least 10 digits`
                 );
+
+                message.appendChild(messageText);
+                messageContainer.appendChild(message);
+                messageContainer.setAttribute(
+                    "class",
+                    "messageContainer invalid"
+                );
+
+                break;
+            }
+            if (messageType == "invalid") {
+                let invalidError = document.getElementById(
+                    `${lt}-invalid-MessageContainer`
+                );
+                messageContainer.setAttribute(
+                    "id",
+                    `${lt}-invalid-MessageContainer`
+                );
+
+                if (invalidError) {
+                    document
+                        .getElementById(`${lt}_message_container`)
+                        .removeChild(invalidError);
+                }
+                messageText = document.createTextNode(`Invalid email address`);
                 message.appendChild(messageText);
                 messageContainer.appendChild(message);
                 messageContainer.setAttribute(
@@ -2815,18 +2919,68 @@ let createMessageBox = (lt, messageType) => {
                 );
                 break;
             }
-            if (messageType == "invalid") {
+            if (messageType == "existing") {
+                // let link = document.createElement("span");
+                // //link.setAttribute("class", "actionLink");
+                // let linkText = document.createTextNode("view");
+                // link.appendChild(linkText);
+                // link.addEventListener("click", (event) => {
+                //     let props = {};
+                //     props.action = "edit";
+                //     props.contacts = objExistingCustomers[0];
+                //     props.customer_name = objExistingCustomers[0].customer_name;
+                //     props.launcher = "edit page";
+
+                //     props.customer_ID = objExistingCustomers[0].customer_ID;
+
+                //     ipc.send("open-contacts-add", props);
+                // });
+                let addFromEditParent = document.getElementById(
+                    `${lt}-add-MessageContainer`
+                );
+                let addFromAddParent = document.getElementById(
+                    `${lt}-MessageContainer`
+                );
+                let existingError = document.getElementById(
+                    `${lt}-existing-MessageContainer`
+                );
+                if (existingError) {
+                    if (addFromEditParent) {
+                        addFromEditParent.removeChild(existingError);
+                    }
+                    if (addFromAddParent) {
+                        addFromAddParent.removeChild(existingError);
+                    }
+                    // document
+                    //     .getElementById(`${lt}_message_container`)
+                    //     .removeChild(existingError);
+                }
                 messageContainer.setAttribute(
                     "id",
-                    `${lt}-invalid-MessageContainer`
+                    `${lt}-existing-MessageContainer`
                 );
-                messageText = document.createTextNode(`Invalid email address`);
+                console.log(objExistingCustomers);
+                messageText = document.createTextNode(
+                    `*CAUTION* Number already associated with ${buildExistingCustomersString(
+                        objExistingCustomers
+                    )}`
+                );
                 message.appendChild(messageText);
+
                 messageContainer.appendChild(message);
-                messageContainer.setAttribute(
-                    "class",
-                    "messageContainer invalid"
-                );
+                //messageContainer.appendChild(link);
+                if (errorType == "warning") {
+                    messageContainer.setAttribute(
+                        "class",
+                        "messageContainer warning"
+                    );
+                } else {
+                    messageContainer.setAttribute(
+                        "class",
+                        "messageContainer invalid"
+                    );
+                }
+
                 break;
             }
 

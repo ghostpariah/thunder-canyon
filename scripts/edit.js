@@ -414,11 +414,30 @@ ipc.on("contacts-updated", (event, args, args2) => {
     upProps.launcher = "edit page";
     upProps.action = "add";
     upProps.passed_ID = args2;
+    upProps.customer_ID = args[0].customer_ID;
     fillContactsNew(upProps);
     setTimeout(() => {
         console.log(document.querySelector(`[method-id='${args2}']`).innerText);
         $(`[method-id='${args2}']`).click();
     }, 400);
+});
+
+//when contact editing launched from the edit page, this refills the contacts
+ipc.on("contact-updated", (event, args, mID) => {
+    console.log(args);
+    let ecProps = {};
+    ecProps.contacts = ipc.sendSync("get-contacts", args.customer_ID);
+    ecProps.customer_ID = args.customer_ID;
+    ecProps.customer_name = ipc.sendSync(
+        "db-get-customer-name",
+        args.customer_ID
+    );
+    ecProps.launcher = "edit page";
+    fillContactsNew(ecProps);
+    setTimeout(() => {
+        console.log(mID);
+        $(`[method-id='${parseInt(mID, 10)}']`).click();
+    }, 100);
 });
 
 /**

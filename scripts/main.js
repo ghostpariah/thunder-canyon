@@ -391,6 +391,7 @@ async function createDatabase(file) {
         "customer_ID"	INTEGER NOT NULL UNIQUE,
         "customer_name"	TEXT NOT NULL,
         "primary_contact"	INTEGER,
+        "active" INTEGER DEFAULT 1,
 	    FOREIGN KEY("primary_contact") REFERENCES "contacts"("contact_ID") ON UPDATE CASCADE ON DELETE CASCADE,
         PRIMARY KEY("customer_ID" AUTOINCREMENT)
     )`;
@@ -843,15 +844,30 @@ ipcMain.on("get-backups", (event) => {
 const renameDB = async (oldName, newName) => {
     return await fsp.rename(oldName, newName);
 };
-ipcMain.on("open-dialog", (event, args) => {
+
+ipcMain.on("open-dialog", (event, args, args2) => {
     console.log(event.sender.getTitle());
+    let arrB = args.buttons;
+    // if (!args2) {
+    //     arrB[1] = "(new customer)  " + arrB[1];
+    // }
+    args.buttons = arrB;
+    console.log(args);
     let bw;
     switch (event.sender.getTitle()) {
         case "Add New Job":
+            arrB[1] = "(new customer)  " + arrB[1];
             bw = addJobWin;
             break;
         case "Contacts":
             bw = contactWin;
+            break;
+        case "Database Maintenance":
+            bw = dbmWin;
+            break;
+        case "Workflow App":
+            bw = win;
+
             break;
         default:
             break;
@@ -1267,15 +1283,35 @@ ipcMain.on("edit-customer-name", (event, args1, args2) => {
     });
     dboCustomerName.close();
 });
+ipcMain.on("get-customer", (event, args) => {
+    let dboCustomerName = new sqlite3.Database(workflowDB, (err) => {
+        if (err) {
+            console.error(err.message);
+        }
+    });
+    let active = 1;
+    let sql = `SELECT * FROM customers WHERE customer_ID = ? AND active = ?`;
+    dboCustomerName.all(sql, [args, active], function (err, row) {
+        if (err) {
+            console.log("first select" + err.message);
+            return err;
+        } else {
+            //console.log(args)
+            // console.log(`from db-get-customer-name row= ${row[0].customer_name}`)
+            event.returnValue = row;
+        }
+        dboCustomerName.close();
+    });
+});
 ipcMain.on("db-get-customer-name", (event, args) => {
     let dboCustomerName = new sqlite3.Database(workflowDB, (err) => {
         if (err) {
             console.error(err.message);
         }
     });
-
-    let sql = `SELECT customer_name FROM customers WHERE customer_ID = ?`;
-    dboCustomerName.all(sql, [args], function (err, row) {
+    let active = 1;
+    let sql = `SELECT customer_name FROM customers WHERE customer_ID = ? AND active = ?`;
+    dboCustomerName.all(sql, [args, active], function (err, row) {
         if (err) {
             console.log("first select" + err.message);
             return err;
@@ -1445,7 +1481,12 @@ async function logActivity(args1, args2, args3) {
             logEvent = `${args2.user.user_name} Deactivated job-ID ${args2.job_ID} at ${timeStamp}\n`;
             break;
         case "restored":
-            logEvent = "restored database";
+            logEvent = "restored database\n";
+            break;
+        case "merge":
+            logEvent = `${args3.user_name} merged ${await getCustomerName(
+                args2.c1
+            )} and ${await getCustomerName(args2.c2)} at ${timeStamp}\n`;
             break;
         default:
             logEvent = "error";
@@ -1895,6 +1936,58 @@ ipcMain.on("db-get-contact", (event, args) => {
         dboContact.close();
     });
 });
+
+ipcMain.on("get-contact-from-item", (event, args) => {
+    let dboContact = new sqlite3.Database(workflowDB, (err) => {
+        if (err) {
+            console.error(err.message);
+        }
+    });
+    let sql = `SELECT `;
+    dboContact.get(
+        "SELECT * FROM phone_numbers WHERE phone_ID = ?",
+        [args],
+        (err, row) => {
+            if (err) {
+                event.reply("retrieveItemsResult", {
+                    success: false,
+                    error: err.message,
+                });
+            } else if (!row) {
+                event.reply("retrieveItemsResult", {
+                    success: false,
+                    error: "Item not found",
+                });
+            } else {
+                // Query to retrieve item based on foreign key from table2
+                dboContact.get(
+                    "SELECT * FROM contacts WHERE contact_ID = ?",
+                    [row.p_contact_ID],
+                    (err, row2) => {
+                        if (err) {
+                            event.reply("retrieveItemsResult", {
+                                success: false,
+                                error: err.message,
+                            });
+                        } else if (!row2) {
+                            event.reply("retrieveItemsResult", {
+                                success: false,
+                                error: "Associated item not found",
+                            });
+                        } else {
+                            event.returnValue = row2;
+                            event.reply("retrieveItemsResult", {
+                                success: true,
+                                item1: row,
+                                item2: row2,
+                            });
+                        }
+                    }
+                );
+            }
+        }
+    );
+});
 ipcMain.on("db-get-phone", (event, args) => {
     let dboPhone = new sqlite3.Database(workflowDB, (err) => {
         if (err) {
@@ -1909,6 +2002,60 @@ ipcMain.on("db-get-phone", (event, args) => {
             return err;
         } else {
             event.returnValue = row[0];
+        }
+        dboPhone.close();
+    });
+});
+
+ipcMain.on("findThem", (event) => {
+    let dboPhone = new sqlite3.Database(workflowDB, (err) => {
+        if (err) {
+            console.error(err.message);
+        }
+    });
+    let sql = `SELECT contacts.*
+    FROM contacts
+    JOIN customers ON contacts.customer_ID = customers.customer_ID
+    JOIN phone_numbers ON contacts.contact_ID = phone_numbers.p_contact_ID
+    WHERE contacts.active = 1
+    AND customers.active = 0
+    AND phone_numbers.active = 1;
+    `;
+    let sql2 = `SELECT contacts.*
+    FROM contacts
+    JOIN customers ON contacts.customer_ID = customers.customer_ID
+    WHERE contacts.active = 1
+    AND customers.active = 0;`;
+    let sql3 = `SELECT phone_numbers.*
+    FROM phone_numbers
+    JOIN contacts ON phone_numbers.p_contact_ID = contacts.contact_ID
+    WHERE phone_numbers.active = 1
+    AND contacts.active = 0;`;
+    dboPhone.all(sql3, function (err, row) {
+        if (err) {
+            console.log("first select" + err.message);
+            return err;
+        } else {
+            event.returnValue = row;
+        }
+        dboPhone.close();
+    });
+});
+
+ipcMain.on("get-all-phone-numbers", (event, args) => {
+    let dboPhone = new sqlite3.Database(workflowDB, (err) => {
+        if (err) {
+            console.error(err.message);
+        }
+    });
+
+    let sql = `SELECT * FROM phone_numbers WHERE active = 1`;
+    dboPhone.all(sql, function (err, row) {
+        if (err) {
+            console.log("first select" + err.message);
+            return err;
+        } else {
+            event.returnValue = row;
         }
         dboPhone.close();
     });
@@ -2196,7 +2343,9 @@ function createReportWindow(args, args2, args3, args4) {
             slashes: true,
         })
     );
-    reportWin.once("ready-to-show", () => {});
+    reportWin.once("ready-to-show", () => {
+        console.log("ready to show");
+    });
     reportWin.webContents.once("did-finish-load", () => {
         console.log("role for report window is: " + args);
         reportWin.webContents.send("role", args, args2, args3, args4);
@@ -2298,6 +2447,35 @@ function createCreateUserWindow() {
     );
     cuWin.once("ready-to-show", () => {
         cuWin.show();
+    });
+}
+function createDatabaseMaintenanceWindow(args) {
+    dbmWin = new BrowserWindow({
+        parent: win,
+        modal: true,
+        width: 650,
+        height: 650, //w425 h300
+        autoHideMenuBar: true,
+        show: false,
+        icon: path.join(__dirname, "../images/logo.ico"),
+        webPreferences: {
+            nodeIntegration: true,
+            webSecurity: false,
+            contextIsolation: false,
+        },
+    });
+    dbmWin.loadURL(
+        url.format({
+            pathname: path.join(__dirname, "../pages/dbMaintenance.html"),
+            protocol: "file",
+            slashes: true,
+        })
+    );
+    dbmWin.once("ready-to-show", () => {
+        dbmWin.show();
+    });
+    dbmWin.webContents.once("did-finish-load", () => {
+        dbmWin.webContents.send("user-data", args);
     });
 }
 function createContactsWindow(
@@ -2443,6 +2621,125 @@ ipcMain.on("delete-scheduled", (event, args, args2) => {
         }
         console.log(`Row(s) deleted ${this.changes}`);
         logActivity("delete", args);
+    });
+
+    // close the database connection
+    db.close((err) => {
+        if (err) {
+            return console.error(err.message);
+        }
+    });
+});
+
+ipcMain.on("merge", (event, args, args2, user) => {
+    console.log("merge triggered");
+    let objMerged = new Object();
+    objMerged.c1 = args;
+    objMerged.c2 = args2;
+    console.log(args, args2, user);
+    let db = new sqlite3.Database(workflowDB, (err) => {
+        if (err) {
+            console.error(err.message);
+        }
+    });
+    let updateContacts = `UPDATE contacts SET customer_ID = ? WHERE customer_ID = ?`;
+    let updateJobs = `UPDATE jobs SET customer_ID =? WHERE customer_ID = ?`;
+    let deactivateCustomer = `UPDATE customers SET active = 0 WHERE customer_ID = ?`;
+    let mergeSQL = `BEGIN TRANSACTION;
+
+    UPDATE jobs
+    SET customer_ID = ${args}
+    WHERE customer_ID = ${args2};
+    
+    UPDATE contacts
+    SET customer_ID = ${args}
+    WHERE customer_ID = ${args2};
+    
+    UPDATE customers
+    SET active = 0
+    WHERE customer_ID = ${args2};
+    
+    COMMIT;`;
+    let id = args;
+    // delete a row based on id
+    // db.run(mergeSQL, function (err) {
+    //     if (err) {
+    //         return console.error(err.message);
+    //     }
+    //     event.returnValue = true;
+    //     console.log(`Row(s) deleted ${this.changes}`);
+    //     logActivity("delete", args);
+    // });
+    db.run("BEGIN TRANSACTION;", function (err) {
+        if (err) {
+            console.error("Failed to begin transaction:", err);
+            return;
+        }
+
+        // Run the first SQL statement
+        db.run(updateJobs, [args, args2], function (err) {
+            if (err) {
+                console.error("Error executing SQL statement 1:", err);
+                // Rollback the transaction if an error occurred
+                db.run("ROLLBACK TRANSACTION;", function (rollbackErr) {
+                    if (rollbackErr) {
+                        console.error(
+                            "Failed to rollback transaction:",
+                            rollbackErr
+                        );
+                    }
+                });
+                return;
+            }
+
+            // Run the second SQL statement
+            db.run(updateContacts, [args, args2], function (err) {
+                if (err) {
+                    console.error("Error executing SQL statement 2:", err);
+                    // Rollback the transaction if an error occurred
+                    db.run("ROLLBACK TRANSACTION;", function (rollbackErr) {
+                        if (rollbackErr) {
+                            console.error(
+                                "Failed to rollback transaction:",
+                                rollbackErr
+                            );
+                        }
+                    });
+                    return;
+                }
+
+                // Run the third SQL statement
+                db.run(deactivateCustomer, [args2], function (err) {
+                    if (err) {
+                        console.error("Error executing SQL statement 3:", err);
+                        // Rollback the transaction if an error occurred
+                        db.run("ROLLBACK TRANSACTION;", function (rollbackErr) {
+                            if (rollbackErr) {
+                                console.error(
+                                    "Failed to rollback transaction:",
+                                    rollbackErr
+                                );
+                            }
+                        });
+                        return;
+                    }
+
+                    // Commit the transaction if all SQL statements were successful
+                    db.run("COMMIT TRANSACTION;", function (commitErr) {
+                        if (commitErr) {
+                            console.error(
+                                "Failed to commit transaction:",
+                                commitErr
+                            );
+                        } else {
+                            logActivity("merge", objMerged, user);
+                            event.returnValue = true;
+                            console.log("Transaction completed successfully.");
+                        }
+                    });
+                });
+            });
+        });
     });
 
     // close the database connection
@@ -2638,7 +2935,9 @@ ipcMain.on("add-new-customer", (event, args) => {
 
     dboCustomer.close();
 });
-
+ipcMain.on("open-database-maintenance", (event, args) => {
+    createDatabaseMaintenanceWindow(args);
+});
 ipcMain.on("pass-new-customer-to-main-window", (event, args) => {
     let dboCustomer = new sqlite3.Database(workflowDB, (err) => {
         if (err) {
@@ -2668,9 +2967,10 @@ ipcMain.on("get-customer-names", (event, args) => {
             console.error(err.message);
         }
     });
+    let active = 1;
     //make sql query for dboContacts
-    let sql = `SELECT * FROM customers`;
-    dboCustomers.all(sql, [], function (err, row) {
+    let sql = `SELECT * FROM customers WHERE active = ?`;
+    dboCustomers.all(sql, [active], function (err, row) {
         if (err) {
             return err;
         } else {
@@ -2698,10 +2998,11 @@ ipcMain.on("get-customer-ID", (event, args) => {
         }
     });
     var data = [];
+    let active = 1;
     //make sql query for dboContacts
-    let sql = `SELECT customer_ID FROM customers WHERE UPPER(customer_name) =?`;
+    let sql = `SELECT customer_ID FROM customers WHERE UPPER(customer_name) =? AND active =?`;
     console.log(args);
-    dboCustomers.all(sql, args.toUpperCase(), function (err, row) {
+    dboCustomers.all(sql, [args.toUpperCase(), active], function (err, row) {
         if (err) {
             return err;
         }
@@ -2729,7 +3030,9 @@ ipcMain.on("open-contacts-add", (event, props) => {
 
     createContactsWindow(props);
 });
-
+ipcMain.on("open-contacts-merge", (event, props) => {
+    createContactsWindow(props);
+});
 ipcMain.on(
     "open-contacts",
     (event, args1, args2, args3, args4, args5, args6, args7, args8) => {
@@ -2743,8 +3046,8 @@ ipcMain.on(
             });
             var data = [];
             //make sql query for dboContacts
-
-            let sql = `SELECT customer_ID FROM customers WHERE UPPER(customer_name) =?`;
+            let active = 1;
+            let sql = `SELECT customer_ID FROM customers WHERE UPPER(customer_name) =? AND active = ?`;
 
             dboCustomers.all(sql, args2.toUpperCase(), function (err, row) {
                 if (err) {
@@ -2900,14 +3203,15 @@ ipcMain.on("get-contacts", (event, args) => {
         }); //end serialize
     } //end main if
 });
-ipcMain.on("edit-phone", (event, args, args2) => {
+ipcMain.on("edit-phone", (event, args, args2, pageLauncher, contacts) => {
     let dboPhone = new sqlite3.Database(workflowDB, (err) => {
         if (err) {
             console.error(err.message);
         }
     });
     let data = [args.text, args.id];
-
+    console.log(data);
+    console.log(contacts);
     let sql = `UPDATE phone_numbers
             SET number = ?
             WHERE phone_ID = ?`;
@@ -2915,13 +3219,16 @@ ipcMain.on("edit-phone", (event, args, args2) => {
         if (err) {
             return console.error(err.message);
         }
-        console.log(`Row(s) updated: ${this.changes}`);
+        console.log(`Row(s) updated in "edit-phone": ${this.changes}`);
         contactWin.webContents.send("contact-edited", args2);
+        if (pageLauncher == "edit") {
+            winEdit.webContents.send("contact-updated", contacts, args.id);
+        }
         dboPhone.close();
     });
 });
 
-ipcMain.on("edit-email", (event, args, args2) => {
+ipcMain.on("edit-email", (event, args, args2, pageLauncher, contacts) => {
     let dboEmail = new sqlite3.Database(workflowDB, (err) => {
         if (err) {
             console.error(err.message);
@@ -2938,6 +3245,10 @@ ipcMain.on("edit-email", (event, args, args2) => {
         }
         console.log(`Row(s) updated: ${this.changes}`);
         contactWin.webContents.send("contact-edited", args2);
+
+        if (pageLauncher == "edit") {
+            winEdit.webContents.send("contact-updated", contacts, args.id);
+        }
         dboEmail.close();
     });
 });
@@ -3219,7 +3530,7 @@ ipcMain.on("db-get-all-customers", (event) => {
             console.error(err.message);
         }
     });
-
+    let active = 1;
     let sql = `SELECT * FROM customers`;
     dboCustomers.run(sql, function (err, row) {
         if (err) {

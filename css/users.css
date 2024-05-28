@@ -25,8 +25,8 @@ h3{
 
 .-user-submit{
     float:left;
-    color:black;
-    background-color:#5e81ad;
+    color:white;
+    background-color:green;
     width: 15%;   
     font-size: 1.2em;
     height: 1.6em;
@@ -35,6 +35,8 @@ h3{
     padding-top: 0px;
     margin-top: 4px;
     cursor: pointer;
+    border-radius: 5px;
+    box-sizing: border-box;
 }
 .-user-submit-edit{
     float:right;
@@ -50,6 +52,7 @@ h3{
 }
 .-user-submit:hover{
     color: white;
+    border: 2px solid white;
 }
 .-user-submit-edit:hover{
     color: white;

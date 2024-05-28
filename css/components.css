@@ -188,9 +188,9 @@
   }
   /* add a display:none for the <br> that gets inserted by the browser when 
   contenteditable is emptied programmatically*/
-  [contenteditable] br{
-    /* display:none; */
-  }
+  /* [contenteditable] br{
+     display:none; 
+  } */
   
   .blue{
     background-color: red;
@@ -479,7 +479,7 @@
   }
   .messageContainer{
     display:flex;
-    justify-content: right;
+    justify-content: left;
     flex-direction: row;
     align-items: center;
     /* color:rgb(192, 1, 1); */
@@ -498,6 +498,7 @@
     color:rgb(192, 1, 1);
     border: 1px solid rgb(5, 5, 5);/*rgb(77, 77, 77);*/
     background-color: rgb(255, 245, 152);
+    white-space: pre-line;
   }
   .warning::before{
     

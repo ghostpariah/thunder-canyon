@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Database Maintenance</title>
+
+        <link
+            rel="stylesheet"
+            type="text/css"
+            media="all"
+            href="../scripts/jquery-ui-1.11.4.custom/jquery-ui.css"
+        />
+        <!-- <link
+            rel="stylesheet"
+            type="text/css"
+            media="all"
+            href="../css/users.css"
+        /> -->
+
+        <link
+            rel="stylesheet"
+            href="../css/components.css"
+            type="text/css"
+            media="all"
+        />
+        <link
+            rel="stylesheet"
+            href="../css/formComponents.css"
+            type="text/css"
+            media="all"
+        />
+        <link
+            rel="stylesheet"
+            href="../css/dbMaintenance.css"
+            type="text/css"
+            media="all"
+        />
+        <script>
+            if (typeof module === "object") {
+                window.module = module;
+                module = undefined;
+            }
+        </script>
+
+        <script src="../scripts/jquery-1.11.3.min.js"></script>
+
+        <script src="../scripts/jquery-ui-1.11.4.custom/jquery-ui.min.js"></script>
+
+        <script src="../scripts/dbCon.js"></script>
+
+        <script src="../scripts/users.js" defer></script>
+        <!-- <script src="../scripts/createComponent.js" defer></script> -->
+        <script src="../scripts/dbMaintenance.js" defer></script>
+        <script src="../scripts/customSort.js" defer></script>
+
+        <script>
+            if (window.module) module = window.module;
+        </script>
+    </head>
+    <body>
+        <h2>Merge Customers</h2>
+        <!-- <div id="maintenanceInstructions">Choose customers to merge</div> -->
+        <div id="mergeWrapper" class="dbmWrapper">
+            <div id="merge1" class="dbmDropDown"></div>
+            <div id="merge2" class="dbmDropDown"></div>
+        </div>
+        <div id="mergeButtonContainer" class="buttonWrapper">
+            <button
+                id="mergeSubmit"
+                type="submit"
+                class="-submit"
+                onclick="merge()"
+            >
+                Merge
+            </button>
+
+            <div id="mergeMessage" class="messageBox"></div>
+        </div>
+        <!-- <select id="customer1"></select> -->
+        <h2>Delete Customer</h2>
+        <div id="deleteWrapper" class="dbmWrapper">
+            <div id="delete1" class="dbmDropDown"></div>
+        </div>
+        <div class="buttonWrapper">
+            <button
+                id="findNumbers"
+                type="submit"
+                class="-submit"
+                onclick="find()"
+            >
+                Find
+            </button>
+        </div>
+    </body>
+</html>

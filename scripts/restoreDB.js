@@ -1,40 +1,40 @@
 //const electron = require('electron')
 //const ipc = electron.ipcRenderer
 
-let allBackups
+let allBackups;
 
-window.onload = ()=>{
-    allBackups = ipc.sendSync('get-backups')
-    console.log(allBackups)
-    createButtons()
-}
+window.onload = () => {
+    let ab = ipc.sendSync("get-backups");
+    allBackups = ab.sort((a, b) => (a.stats.mtime < b.stats.mtime ? 1 : -1));
+    console.log(allBackups);
+    createButtons();
+};
 
-function restoreDB(rp){
-    
+function restoreDB(rp) {
     //alert(rp)
-    let restorePoint = rp
-    ipc.send('restore-database',restorePoint)
-    
+    let restorePoint = rp;
+    ipc.send("restore-database", restorePoint);
 }
 
-function createButtons(){
-    let container = document.getElementById('backups')
-    
-    for(i in allBackups){
-        console.log(allBackups[i].fileName)
+function createButtons() {
+    let container = document.getElementById("backups");
 
-        let button = document.createElement('div')
-        button.setAttribute('id', allBackups[i].fileName)
-        button.setAttribute('class', 'backupButton')
-        button.addEventListener('click',(event)=>{
-            let confirmed = confirm(`Any data added after the chosen restore point will be gone.
-Are you sure you would like to roll back to the restore point?`)
-            if(confirmed) restoreDB(button.id)
-        })
-        let buttonText = document.createTextNode(`${allBackups[i].stats.mtime} File Size: ${allBackups[i].stats.size}`)
-        button.appendChild(buttonText)
-        container.appendChild(button)
+    for (i in allBackups) {
+        console.log(allBackups[i].fileName);
 
+        let button = document.createElement("div");
+        button.setAttribute("id", allBackups[i].fileName);
+        button.setAttribute("class", "backupButton");
+        button.addEventListener("click", (event) => {
+            let confirmed =
+                confirm(`Any data added after the chosen restore point will be gone.
+Are you sure you would like to roll back to the restore point?`);
+            if (confirmed) restoreDB(button.id);
+        });
+        let buttonText = document.createTextNode(
+            `${allBackups[i].stats.mtime} File Size: ${allBackups[i].stats.size}`
+        );
+        button.appendChild(buttonText);
+        container.appendChild(button);
     }
-
 }

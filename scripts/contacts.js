@@ -73,6 +73,90 @@ $(inpFirstname).on({
     },
 });
 
+function formatEmail(inp) {
+    $(inp).on({
+        keydown: function (event) {
+            //console.log(event.key)
+        },
+        keypress: function (event) {},
+        input: function (event) {},
+        keyup: function (event) {
+            if (emailValid) {
+                //document.getElementById('email_message').innerHTML = "";
+                document.getElementById(
+                    "email_message_container"
+                ).style.display = "none";
+            }
+            emailValid = false;
+            const exp = /[^@][@]/;
+            const exp2 = /[^/.][/.]/;
+
+            let hasAtSymbol = exp.test(this.value);
+
+            if (hasAtSymbol) {
+                //bring string into two after @ found
+                let rest = this.value.substring(
+                    this.value.lastIndexOf("@") + 1
+                );
+
+                //search the string after @ for a period
+                if (exp2.test(rest)) {
+                    let afterPeriod = rest.substring(rest.lastIndexOf(".") + 1);
+                    if (afterPeriod.length >= 2) {
+                        emailValid = true;
+                        if ($("#email-invalid-MessageContainer")) {
+                            $("#email-invalid-MessageContainer").remove();
+                        }
+                        if ($("#email-MessageContainer")) {
+                            $("#email-MessageContainer").remove();
+                        }
+                        if ($("#phone-MessageContainer")) {
+                            $("#phone-MessageContainer").remove();
+                        }
+                        //document.getElementById('email_message').innerHTML = "";
+                        document.getElementById(
+                            "email_message_container"
+                        ).style.display = "none";
+                        //document.getElementById('message').innerHTML = "";
+                        //document.getElementById('message_container').style.display = 'none';
+                    }
+                }
+            } else {
+                emailValid = this.value == "" ? true : false;
+                if (emailValid) {
+                    //document.getElementById('email_message').innerHTML = "";
+                    document.getElementById(
+                        "email_message_container"
+                    ).style.display = "none";
+                }
+            }
+        },
+        blur: function (event) {
+            console.log(
+                " email blur -- contactInfoValid : " + contactInfoValid
+            );
+            if (emailValid === false) {
+                console.log("condition triggered");
+                if ($("#email-invalid-MessageContainer")) {
+                    $("#email-invalid-MessageContainer").remove();
+                }
+
+                document
+                    .getElementById("email_add_message_container")
+                    .appendChild(createMessageBox("email", "invalid"));
+                //document.getElementById("email_message").innerText = "Invalid email";
+                document.getElementById(
+                    "email_add_message_container"
+                ).style.display = "block";
+                inp.focus();
+                contactInfoValid = false;
+            } else {
+                //TODO:insert search for no show here
+                contactInfoValid = true;
+            }
+        },
+    });
+}
 $(inpEmail).on({
     keydown: function (event) {
         //console.log(event.key)
@@ -233,11 +317,20 @@ function formatPN(inp) {
                 if ($("#phone-MessageContainer")) {
                     $("#phone-MessageContainer").remove();
                 }
+                if ($("#phone-add-MessageContainer")) {
+                    $("#phone-add-MessageContainer").remove();
+                }
+                if ($("#phone-edit-MessageContainer")) {
+                    $("#phone-edit-MessageContainer").remove();
+                }
                 if ($("#phone-digits-MessageContainer")) {
                     $("#phone-digits-MessageContainer").remove();
                 }
                 if ($("#email-MessageContainer")) {
                     $("#email-MessageContainer").remove();
+                }
+                if ($("#phone-existing-MessageContainer")) {
+                    $("#phone-existing-MessageContainer").remove();
                 }
 
                 //document.getElementById('phone_message').innerHTML = "";
@@ -252,6 +345,12 @@ function formatPN(inp) {
             if (num.length >= 10) {
                 if ($("#phone-MessageContainer")) {
                     $("#phone-MessageContainer").remove();
+                }
+                if ($("#phone-add-MessageContainer")) {
+                    $("#phone-add-MessageContainer").remove();
+                }
+                if ($("#phone-edit-MessageContainer")) {
+                    $("#phone-edit-MessageContainer").remove();
                 }
                 if ($("#phone-digits-MessageContainer")) {
                     $("#phone-digits-MessageContainer").remove();
@@ -286,6 +385,12 @@ function formatPN(inp) {
                         if ($("#phone-MessageContainer")) {
                             $("#phone-MessageContainer").remove();
                         }
+                        if ($("#phone-add-MessageContainer")) {
+                            $("#phone-add-MessageContainer").remove();
+                        }
+                        if ($("#phone-edit-MessageContainer")) {
+                            $("#phone-edit-MessageContainer").remove();
+                        }
                         if ($("#phone-digits-MessageContainer")) {
                             $("#phone-digits-MessageContainer").remove();
                         }
@@ -298,6 +403,7 @@ function formatPN(inp) {
                         ).style.display = "none";
                     }
                 }
+                valid = false;
             }
 
             this.value = val;
@@ -307,26 +413,159 @@ function formatPN(inp) {
                 " phone blur -- contactInfoValid : " + contactInfoValid
             );
             if (!valid) {
+                console.log("number not at least 10");
                 inpPhoneNumber.focus();
                 if ($("#phone-MessageContainer")) {
                     $("#phone-MessageContainer").remove();
                 }
+                if ($("#phone-add-MessageContainer")) {
+                    $("#phone-add-MessageContainer").remove();
+                }
+                if ($("#phone-edit-MessageContainer")) {
+                    $("#phone-edit-MessageContainer").remove();
+                }
+                if ($("#phone-digits-MessageContainer")) {
+                    $("#phone-digits-MessageContainer").remove();
+                }
                 //document.getElementById('phone_message').innerHTML = "Phone number must be at least 10 digits"
-                document.getElementById(
-                    "phone_message_container"
-                ).style.display = "block";
-                document
-                    .getElementById("phone_message_container")
-                    .appendChild(createMessageBox("phone", "digits"));
+
+                if (document.getElementById("phone_message_container")) {
+                    document.getElementById(
+                        "phone_message_container"
+                    ).style.display = "block";
+                    document
+                        .getElementById("phone_message_container")
+                        .appendChild(createMessageBox("phone", "digits"));
+                }
+
+                if (document.getElementById("phone_add_message_container")) {
+                    document.getElementById(
+                        "phone_add_message_container"
+                    ).style.display = "block";
+                    document
+                        .getElementById("phone_add_message_container")
+                        .appendChild(createMessageBox("phone", "digits"));
+                }
+                if (document.getElementById("phone_edit_message_container")) {
+                    document.getElementById(
+                        "phone_edit_message_container"
+                    ).style.display = "block";
+                    document
+                        .getElementById("phone_edit_message_container")
+                        .appendChild(createMessageBox("phone", "digits"));
+                }
+
                 contactInfoValid = false;
             } else {
-                //TODO: insert search for no shows here
+                //TODO: check to see if number associated with another customer
+                let all_phone_numbers = ipc.sendSync("get-all-phone-numbers");
+                //console.log(this.value);
+                //console.log(typeof this.value);
+                //console.log(this.value.length);
+                //console.log(all_phone_numbers);
+                let matched = all_phone_numbers.filter(
+                    (m) => m.number === this.value
+                );
+                let k = [];
+                // setTimeout(() => {
+                //     console.log(matched);
+                // }, 10000);
+                console.log(matched);
+                if (matched.length > 0) {
+                    for (member in matched) {
+                        k.push(
+                            ipc.sendSync(
+                                "get-contact-from-item",
+                                matched[member].phone_ID
+                            )
+                        );
+                    }
+                    for (member in k) {
+                        k[member].customer_name = ipc.sendSync(
+                            "db-get-customer-name",
+                            k[member].customer_ID
+                        );
+                    }
+                    console.log(k);
+                    if (document.getElementById("phone_message_container")) {
+                        document.getElementById(
+                            "phone_message_container"
+                        ).style.display = "block";
+                        document.getElementById(
+                            "phone_message_container"
+                        ).innerHTML = "";
+                        document
+                            .getElementById("phone_message_container")
+                            .appendChild(
+                                createMessageBox(
+                                    "phone",
+                                    "existing",
+                                    "warning",
+                                    k
+                                )
+                            );
+                    }
+                    if (
+                        document.getElementById("phone_add_message_container")
+                    ) {
+                        document.getElementById(
+                            "phone_add_message_container"
+                        ).style.display = "block";
+                        document.getElementById(
+                            "phone_add_message_container"
+                        ).innerHTML = "";
+                        document
+                            .getElementById("phone_add_message_container")
+                            .appendChild(
+                                createMessageBox(
+                                    "phone",
+                                    "existing",
+                                    "warning",
+                                    k
+                                )
+                            );
+                    }
+                    if (
+                        document.getElementById("phone_edit_message_container")
+                    ) {
+                        document.getElementById(
+                            "phone_edit_message_container"
+                        ).style.display = "block";
+                        document.getElementById(
+                            "phone_edit_message_container"
+                        ).innerHTML = "";
+                        document
+                            .getElementById("phone_edit_message_container")
+                            .appendChild(
+                                createMessageBox(
+                                    "phone",
+                                    "existing",
+                                    "warning",
+                                    k
+                                )
+                            );
+                    }
+                } else {
+                    //if messageBox for matched number exists
+                    document.getElementById(
+                        "phone_message_container"
+                    ).innerHTML = "";
+                    if (
+                        document.getElementById("phone_add_message_container")
+                    ) {
+                        document.getElementById(
+                            "phone_add_message_container"
+                        ).innerHTML = "";
+                    }
+                }
                 contactInfoValid = true;
             }
         },
     });
 }
-
+ipc.on("retrieveItemsResult", (event, args) => {
+    console.log(args);
+});
 formatPN(inpPhoneNumber);
 ipc.on("open-contact-page", (event, args) => {
     customerNameWrapper.style.display = "flex";
@@ -491,6 +730,21 @@ ipc.on(
                     pullContacts(props.customer_ID);
 
                     break;
+                case "dbm":
+                    pageLauncher = "dbm";
+                    loadHeader(props.customer_name);
+                    pullContacts(props.customer_ID);
+                    var event = new Event("click", {
+                        bubbles: true,
+                        cancelable: true,
+                    });
+
+                    // Dispatch the event on the target element
+                    //document.getElementById("btnMainEdit").dispatchEvent(event);
+                    setTimeout(() => {
+                        document.getElementById("btnMainEdit").click();
+                    }, 100);
+                    break;
                 case "edit page":
                     pageLauncher = "edit";
                     console.log("edit page launched this contacts instnce");
@@ -515,7 +769,7 @@ ipc.on(
                     break;
             }
             // company name
-            if (args1?.customer_name) {
+            if (args1?.customer_name && props.launcher != "dbm") {
                 addCN = args1.customer_name;
                 //addCN = args2;
                 argCount += 1;
@@ -1078,6 +1332,9 @@ function clearMessageCenters() {
     if ($("#phone-digits-MessageContainer")) {
         $("#phone-digits-MessageContainer").remove();
     }
+    if ($("#phone-existing-MessageContainer")) {
+        $("#phone-existing-MessageContainer").remove();
+    }
     // document.getElementById('email_message').innerHTML = "";
     // document.getElementById('email_message_container').style.display = 'none';
     // document.getElementById('message').innerHTML = "";
@@ -1242,14 +1499,21 @@ function createInput(conMethod, contactToAddTo, text, actionType) {
     wrapper.setAttribute("class", "wrapper");
     let inpA = document.createElement("input");
     inpA.setAttribute("type", "text");
+    inpA.setAttribute("data-method", cm);
     let saveButton = document.createElement("div");
     let sb = document.createTextNode("save");
+
+    // $(inpA).on({
+    //     blur: () => {
+    //         alert("alert");
+    //     },
+    // });
 
     saveButton.appendChild(sb);
     saveButton.setAttribute("class", "contactButton");
     saveButton.addEventListener("click", () => {
         //determine whether an item is being added or edited
-
+        console.log(at);
         if (at == "add") {
             let objAdd = new Object();
             objAdd.contact_ID = id;
@@ -1263,7 +1527,16 @@ function createInput(conMethod, contactToAddTo, text, actionType) {
             let objEdit = new Object();
             objEdit.id = id;
             objEdit.text = saveButton.parentNode.firstChild.value;
-            ipc.send(`edit-${cm}`, objEdit, globalObjectContact.customer_ID);
+            console.log(objEdit);
+            console.log(cm);
+            console.log(pageLauncher);
+            ipc.send(
+                `edit-${cm}`,
+                objEdit,
+                globalObjectContact.customer_ID,
+                pageLauncher,
+                globalObjectContact
+            );
             ipc.send("update-main-page");
             togglePageView("cancel");
         } else {
@@ -1274,7 +1547,7 @@ function createInput(conMethod, contactToAddTo, text, actionType) {
             setTimeout(function () {
                 pullContacts(
                     saveButton.parentNode.parentNode.parentNode.parentNode.id.substr(
-                        4
+                        1
                     )
                 );
             }, 30);
@@ -1298,19 +1571,29 @@ function createInput(conMethod, contactToAddTo, text, actionType) {
         }
         toggleActionLinkVisibility("off");
     });
+
+    let messageContainer = document.createElement("div");
+    messageContainer.setAttribute("id", `${cm}_${at}_message_container`);
+    messageContainer.setAttribute("class", "inline-input-group hidden");
     inpA.setAttribute("id", "inp" + id);
     inpA.setAttribute("value", t);
 
     wrapper.appendChild(inpA);
     wrapper.appendChild(saveButton);
     wrapper.appendChild(cancelButton);
+    wrapper.appendChild(messageContainer);
     wrapper.setAttribute("id", at + "CreatedListItem");
     editDataFieldList.appendChild(wrapper);
+    editDataFieldList.appendChild(messageContainer);
 
     if (cm == "phone") {
+        console.log("cm = phone and formatPN about to be called");
         formatPN(inpA);
     }
-
+    if (cm == "email") {
+        formatEmail(inpA);
+    }
+    console.log(inpA);
     return editDataFieldList;
 }
 
@@ -1710,7 +1993,7 @@ function fillContacts(cont) {
                     let pContainer = pnListItem.parentNode;
                     let pnText = pnListItem.firstChild.textContent;
 
-                    let pID = pnListItem.id.substring(3);
+                    let pID = pnListItem.id.substring(1);
                     let p = event.target.parentNode.id;
                     objListItemTray.listItem = pnListItem;
                     let newListItem = createInput("phone", pID, pnText, "edit");
@@ -1887,7 +2170,7 @@ function fillContacts(cont) {
                     let eListItem = eList.parentNode;
                     let eContainer = eListItem.parentNode;
                     let eText = eListItem.firstChild.textContent;
-                    let eID = eListItem.id.substring(3);
+                    let eID = eListItem.id.substring(1);
                     let p = event.target.parentNode.id;
                     objListItemTray.listItem = eListItem;
                     //alert(cont[member].id)
@@ -1982,8 +2265,8 @@ function fillContacts(cont) {
                 eUl.appendChild(createInput("email", conID, "", "add"));
                 $("#inp" + conID).focus();
             }
-        }
-    } //end if member != primary_contact
+        } //end if member != primary_contact
+    }
     //append list of contacts for company to container
     contactContent.appendChild(wholeCompanyList);
     console.log("fill contacts ended");

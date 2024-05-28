@@ -1,0 +1,89 @@
+body{
+    background-color: #5e81ad;
+    
+    color:#070274;
+    font-family: 'Arial Narrow'
+    
+}
+.label{
+    
+    text-shadow: 1px 1px black;
+}
+h2{
+    text-align: left;
+    width:95%;
+    border-bottom:1px solid #1a1a1a;
+    color:#1b1a1a;
+}
+.dbmWrapper{
+    display:flex;
+    justify-content:space-between;
+    flex-direction: row;
+    width:100%;
+    height:6em;
+    
+    
+}
+.buttonWrapper{
+    display: flex;
+    margin-top: 10px;
+    margin-bottom:75px;
+}
+.dbmDropDown{
+    width: 40%;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+.listBox{
+    position: relative;
+    display: flex;
+   margin-top: -57px;
+}
+#maintenanceInstructions{
+    display:flex;
+    height:75px;
+    color:rgb(196, 201, 191);
+    justify-content: center;
+}
+
+.-submit{
+    display:flex;
+    color:white;
+    background-color:green;
+    width: 15%;   
+    font-size: 1.2em;
+    height: 1.6em;
+    border:none;
+    
+    margin-left: 20px;    
+    justify-content: center;
+    padding-top: 5px;
+    cursor: pointer;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+.-submit:hover{
+    border: 2px solid white;
+    padding-top: 3px;
+}
+.messageBox{
+    display:flex;    
+    
+    margin-left: 20px;
+    justify-content: center;
+    font-weight: bold;
+    min-width:300px;
+    font-size: 1.5em;
+}
+.success{
+    color:green;
+}
+.error{
+    color: yellow;/*rgb(255, 78, 78);*/
+}
+.contactLink{
+    display: flex;
+    border: 1px solid white;
+    padding:4px;
+    cursor:pointer;
+}

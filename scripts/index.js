@@ -1049,14 +1049,28 @@ function createGlimpsePopUp(element) {
         objNoshow.job_ID = objJobData.job_ID;
         objNoshow.no_show = 1;
         objNoshow.active = 0;
-        ipc.send(
-            "update-job",
-            objNoshow,
-            "context-menu",
-            currentUser,
-            getCustomerNames(objJobData.customer_ID)
-        );
-        e.remove();
+        const options = {
+            type: "question",
+            buttons: ["Cancel", "Yes, please", "No, thanks"],
+            defaultId: 1,
+            title: "Confirm No Show",
+            message: "Are you sure you want to mark the job as a No Show?",
+            detail: ``, //"There are partial matches. Choose customer name from list.",
+        };
+        let answer = ipc.sendSync("open-dialog", options, "no-show");
+        console.log(answer);
+        if (answer == 1) {
+            ipc.send(
+                "update-job",
+                objNoshow,
+                "context-menu",
+                currentUser,
+                getCustomerNames(objJobData.customer_ID)
+            );
+            e.remove();
+        }
+
+        //e.remove();
     });
 
     item3Text = document.createTextNode("SEND TO LOT");
@@ -1090,14 +1104,26 @@ function createGlimpsePopUp(element) {
         objCancel.job_ID = objJobData.job_ID;
         objCancel.cancelled = 1;
         objCancel.active = 0;
-        ipc.send(
-            "update-job",
-            objCancel,
-            "context-menu",
-            currentUser,
-            getCustomerNames(objJobData.customer_ID)
-        );
-        e.remove();
+        const options = {
+            type: "question",
+            buttons: ["Cancel", "Yes, please", "No, thanks"],
+            defaultId: 1,
+            title: "Confirm Cancellation",
+            message: "Are you sure you want to cancel this appointment?",
+            detail: ``, //"There are partial matches. Choose customer name from list.",
+        };
+        let answer = ipc.sendSync("open-dialog", options, "cancel");
+        console.log(answer);
+        if (answer == 1) {
+            ipc.send(
+                "update-job",
+                objCancel,
+                "context-menu",
+                currentUser,
+                getCustomerNames(objJobData.customer_ID)
+            );
+            e.remove();
+        }
     });
     menuBox.appendChild(item1Box);
     menuBox.appendChild(item2Box);
@@ -1199,7 +1225,7 @@ function toggleAdminMenu() {
             text: "Restore DB",
         },
         {
-            text: "Merge Companies",
+            text: "Database Maintenance",
         },
     ];
     let menuItem;
@@ -1273,6 +1299,9 @@ function dosomething(e) {
                     break;
                 case "Reports":
                     openReports();
+                    break;
+                case "Database Maintenance":
+                    ipc.send("open-database-maintenance", currentUser);
                 default:
                     break;
             }
@@ -2235,7 +2264,7 @@ function makeJobDiv2(args) {
             : arrShopLocations.includes(args.shop_location)
             ? "tooltipRight"
             : "toolTipDefault";
-        console.log("berry boop os your mon");
+        //console.log("berry boop os your mon");
         let n =
             args.notes != null ? "<b>Notes: </b>" + args.notes + "</br>" : "";
         let it =
