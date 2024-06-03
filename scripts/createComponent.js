@@ -194,6 +194,7 @@ function createComponent(
                     console.log(exactMatch, fl.length, customerChosen);
                     let id;
                     if (
+                        txtSection.innerText.length > 0 &&
                         fl?.length > 0 &&
                         !customerChosen &&
                         keyPressed !== "ArrowDown" &&
@@ -275,7 +276,7 @@ function createComponent(
                 event.stopImmediatePropagation();
             },
             keydown: (event) => {
-                console.log("keydown fired in createcombobox()");
+                console.log("keydown fired in createcombobox()", event.key);
                 //set key to stop blur from opening popup to choose between matching companies
                 //when hitting the arrow down to enter the listbox
                 keyPressed = event.key;
@@ -302,6 +303,7 @@ function createComponent(
 
                         break;
                     case "ArrowDown":
+                        console.log("arrowDoawn");
                         event.preventDefault();
 
                         focusedIndex = 0;
@@ -324,7 +326,7 @@ function createComponent(
                             }
                         }
                         usingListBox = true;
-
+                        console.log(focusedIndex);
                         e[focusedIndex].focus();
                         e[focusedIndex].classList.add("focusedListItem");
 
@@ -861,6 +863,12 @@ function createComponent(
                         `listItem${editL[member].customer_ID}`
                     );
                     text = document.createTextNode(editL[member].customer_name);
+                    if (text.length > 25) {
+                        listItem.setAttribute(
+                            "class",
+                            "listItem wrap-detected"
+                        );
+                    }
 
                     $(listItem).on({
                         keydown: (event) => {

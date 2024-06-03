@@ -300,16 +300,18 @@ select{
   width:30%;
   height:30px;
   justify-content: center;
-  border:1px solid #5e81ad;
+  border:2px solid #5e81ad;
   background-color:#5e81ad;
   border-radius: 3px;
   cursor:pointer;
   color: black;
   text-shadow: 1px 1px black;
   text-align: center;  
+  box-sizing:border-box;
 }
 .btn:hover{
   color:white;
+  border:1px solid white;
   
 }
 

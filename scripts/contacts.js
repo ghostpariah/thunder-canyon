@@ -2704,7 +2704,7 @@ let fillListBoxCP = (box, editL) => {
     box.innerHTML = "";
     for (var member in l) {
         let listItem = document.createElement("div");
-        listItem.setAttribute("class", "listItem");
+
         listItem.setAttribute("data-selected", false);
         listItem.tabIndex = -1;
         let text;
@@ -2712,6 +2712,11 @@ let fillListBoxCP = (box, editL) => {
         //list.sort((a, b) => (a.customer_name > b.customer_name ? 1 : -1));
         listItem.setAttribute("id", `listItem${l[member].customer_ID}`);
         text = document.createTextNode(l[member].customer_name);
+        if (text.length > 25) {
+            listItem.setAttribute("class", "listItem wrap-detected");
+        } else {
+            listItem.setAttribute("class", "listItem");
+        }
 
         $(listItem).on({
             keydown: (event) => {

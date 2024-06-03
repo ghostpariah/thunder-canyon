@@ -2350,6 +2350,7 @@ function createReportWindow(args, args2, args3, args4) {
         console.log("role for report window is: " + args);
         reportWin.webContents.send("role", args, args2, args3, args4);
     });
+    //reportWin.webContents.openDevTools({ mode: "detach" });
     reportWin.webContents.focus();
 }
 
