@@ -1,4 +1,4 @@
-![Logo](/images/logo.svg)
+![Logo](/images/logo.svg?version=1)
 # Overview
 Workflow App is an application created for managing the workflow of truck repair jobs and customer information at Frame & Spring, Inc.
 
