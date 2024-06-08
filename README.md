@@ -1,4 +1,4 @@
-![Logo](/images/logo.svg)
+![Logo](/images/logo2.svg)
 
 # Overview
 
