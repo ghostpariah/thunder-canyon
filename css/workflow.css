@@ -281,6 +281,10 @@ margin-right: px;
 	
 	
 }
+.waitingTT{
+	font-style: normal;
+	color: red;
+}
 
 #wip.cat {
 	/*height: 625px;*/

@@ -916,6 +916,10 @@ let createGlimpseToolTip = (e) => {
             : "<b>Unit Type: </b>" + objJob.unit_type + "</br>";
     //let sd = (objJob.date_scheduled != null) ? (objJob.designation == 'Scheduled')?'<b>Sched. Date: </b>':'<b> Drop Off Date:' +objJob.date_scheduled+' '+objJob.time_of_day+'<br/>': ''
     let sd;
+    let w =
+        objJob.waiting_customer == 1
+            ? "<i class = 'waitingTT'>CUSTOMER WILL BE WAITING</i><br/>"
+            : "";
     if (objJob.date_scheduled != null) {
         if (objJob.designation == "Scheduled") {
             sd =
@@ -949,6 +953,7 @@ let createGlimpseToolTip = (e) => {
 
     ttBox.innerHTML = ` <div>
 		${cuN}
+        ${w}
 		<hr>
 		${con}
 		${it}
@@ -962,6 +967,7 @@ let createGlimpseToolTip = (e) => {
 		<hr>
 		${dIn}
 		${sd}
+        
 		${dc}
 		
 	</div>`;
@@ -2045,6 +2051,18 @@ function findSpot(args) {
             "wfw9",
             "wfw10",
             "wfw11",
+            "wfw60",
+            "wfw61",
+            "wfw62",
+            "wfw63",
+            "wfw64",
+            "wfw65",
+            "wfw66",
+            "wfw67",
+            "wfw68",
+            "wfw69",
+            "wfw70",
+            "wfw71",
         ];
         let checkallBucket = [
             "wfw12",

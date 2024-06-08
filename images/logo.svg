@@ -26,10 +26,10 @@
      units="px"
      width="315px"
      inkscape:zoom="1.4823793"
-     inkscape:cx="189.89741"
+     inkscape:cx="174.04452"
      inkscape:cy="205.41301"
      inkscape:window-width="1920"
-     inkscape:window-height="1017"
+     inkscape:window-height="1009"
      inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
@@ -76,22 +76,22 @@
     <text
        xml:space="preserve"
        style="font-size:56.8313px;line-height:1.25;font-family:sans-serif;fill:#5e81ad;fill-opacity:1;stroke-width:0.295996"
-       x="13.77923"
-       y="62.34734"
+       x="14.373079"
+       y="62.522472"
        id="text9108"
-       transform="scale(0.98121641,1.0191432)"><tspan
+       transform="scale(0.98121638,1.0191432)"><tspan
          sodipodi:role="line"
          id="tspan9106"
          style="fill:#5e81ad;fill-opacity:1;stroke-width:0.295996"
-         x="13.77923"
-         y="62.34734">W</tspan></text>
+         x="14.373079"
+         y="62.522472">W</tspan></text>
     <path
        style="fill:#cccccc;fill-opacity:1;stroke:none;stroke-width:0.0944117px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 20.476452,11.906251 V 15.875 h 37.731881 v 1.984376 l 3.593516,-3.96875 -3.593516,-3.968749 v 1.984374 z"
+       d="M 21.009176,11.906251 V 15.875 h 37.731881 v 1.984376 l 3.593516,-3.96875 -3.593516,-3.968749 v 1.984374 z"
        id="path14797" />
     <path
        style="fill:#cccccc;fill-opacity:1;stroke:none;stroke-width:0.0944117px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 61.801849,72.098959 V 68.13021 H 24.069968 v -1.984376 l -3.593516,3.96875 3.593516,3.968749 v -1.984374 z"
+       d="M 62.334573,72.098959 V 68.13021 H 24.602692 v -1.984376 l -3.593516,3.96875 3.593516,3.968749 v -1.984374 z"
        id="path17491" />
   </g>
 </svg>
