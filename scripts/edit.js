@@ -40,21 +40,21 @@ window.onload = () => {
         "date in",
         null,
         "DateIn",
-        "edit"
+        "edit",
     );
     createComponent(
         document.getElementById("originWrapper"),
         "comboBox",
         originList,
         "Designation",
-        "edit"
+        "edit",
     );
     createComponent(
         document.getElementById("dateSchWrapper"),
         "date sched",
         null,
         "DateSched",
-        "edit"
+        "edit",
     );
     if (!document.getElementById("customerNames")) {
         createComponent(
@@ -62,7 +62,7 @@ window.onload = () => {
             "comboBox",
             ipc.sendSync("get-customer-names"),
             "Customer",
-            "edit"
+            "edit",
         );
     }
     createComponent(
@@ -70,28 +70,28 @@ window.onload = () => {
         "split select",
         null,
         "Contacts",
-        "edit"
+        "edit",
     );
     createComponent(
         document.getElementById("unitWrapper"),
         "textBox",
         null,
         "Unit",
-        "edit"
+        "edit",
     );
     createComponent(
         document.getElementById("unitTypeWrapper"),
         "textBox",
         null,
         "UnitType",
-        "edit"
+        "edit",
     );
     createComponent(
         document.getElementById("jobTypeWrapper"),
         "comboBox",
         ["Spring", "Check All", "Alignment", "King Pin", "Frame"],
         "JobType",
-        "edit"
+        "edit",
     );
     currentUser = ipc.sendSync("get-logged-in-user");
     // $('#Designation-choice').focus()
@@ -370,12 +370,12 @@ ipc.on("edit-data", async (event, args, args2, args3) => {
         change: function () {
             if (cbOTL_scheduled.checked) {
                 document.getElementById(
-                    "dateWrapper_OTL_SCHEDULED"
+                    "dateWrapper_OTL_SCHEDULED",
                 ).style.display = "block";
                 document.getElementById("DateOTL-choice").focus();
             } else {
                 document.getElementById(
-                    "dateWrapper_OTL_SCHEDULED"
+                    "dateWrapper_OTL_SCHEDULED",
                 ).style.display = "none";
             }
         },
@@ -390,7 +390,7 @@ ipc.on("edit-data", async (event, args, args2, args3) => {
                     document.getElementById("OTL_wrapper").style.display =
                         "none";
                     document.getElementById(
-                        "dateWrapper_OTL_SCHEDULED"
+                        "dateWrapper_OTL_SCHEDULED",
                     ).style.display = "none";
                     break;
                 case "On the Lot":
@@ -430,7 +430,7 @@ ipc.on("contact-updated", (event, args, mID) => {
     ecProps.customer_ID = args.customer_ID;
     ecProps.customer_name = ipc.sendSync(
         "db-get-customer-name",
-        args.customer_ID
+        args.customer_ID,
     );
     ecProps.launcher = "edit page";
     fillContactsNew(ecProps);
@@ -461,7 +461,7 @@ function loadData(objJobToEdit) {
     currentDesignationState = d;
 
     let customerNamesList = Array.from(
-        document.querySelectorAll("#Customer-listBox .listItem")
+        document.querySelectorAll("#Customer-listBox .listItem"),
     );
 
     inpDateIn.value = d?.date_in;
@@ -566,7 +566,7 @@ function loadData(objJobToEdit) {
                     "date OTL",
                     null,
                     "DateOTL",
-                    "edit"
+                    "edit",
                 );
                 $("#DateOTL-choice").datepicker({
                     dateFormat: "mm/dd/yy",
@@ -604,7 +604,7 @@ function loadData(objJobToEdit) {
         document.querySelector("#noContact").click();
     }
     let contactsList = Array.from(
-        document.querySelectorAll("#Contacts-listBox .option")
+        document.querySelectorAll("#Contacts-listBox .option"),
     );
     console.log(d.number_ID);
     if (d.number_ID != null && d.number_ID != "") {
@@ -664,7 +664,7 @@ function changeContact(choice) {
             con_ID = Number(
                 contactsInput.options[
                     contactsInput.selectedIndex
-                ].parentElement.getAttribute("contactID")
+                ].parentElement.getAttribute("contactID"),
             );
             ipc.send(
                 "open-contacts",
@@ -674,7 +674,7 @@ function changeContact(choice) {
                 contactName[0],
                 contactName[1],
                 con_ID,
-                conMeth
+                conMeth,
             );
             console.log("test " + con_ID);
             break;
@@ -688,7 +688,7 @@ function changeContact(choice) {
             con_ID = Number(
                 contactsInput.options[
                     contactsInput.selectedIndex
-                ].parentElement.getAttribute("contactID")
+                ].parentElement.getAttribute("contactID"),
             );
             ipc.send(
                 "open-contacts",
@@ -698,7 +698,7 @@ function changeContact(choice) {
                 contactName[0],
                 contactName[1],
                 con_ID,
-                conMeth
+                conMeth,
             );
 
             break;
@@ -734,7 +734,7 @@ function showLabel() {
                     arrOptions.options[i].text = arrOptions.options[
                         i
                     ].text.substring(
-                        arrOptions.options[i].text.indexOf("~") + 1
+                        arrOptions.options[i].text.indexOf("~") + 1,
                     );
                 }
             }
@@ -792,7 +792,7 @@ function updateJob() {
                     $(`#UnitType-MessageContainer`).remove();
                 }
                 verified[1][i].parentNode.parentNode.appendChild(
-                    createMessageBox(type[0], null)
+                    createMessageBox(type[0], null),
                 );
                 document
                     .querySelector("#unitTypeWrapper")
@@ -802,7 +802,7 @@ function updateJob() {
                     $(`#${type[0]}-MessageContainer`).remove();
                 }
                 verified[1][i].parentNode.parentNode.appendChild(
-                    createMessageBox(type[0], null)
+                    createMessageBox(type[0], null),
                 );
             }
         }
@@ -849,7 +849,7 @@ function updateJob() {
 
     if (editData.time_of_day != null && editData.time_of_day != "") {
         editData.time_of_day.localeCompare(
-            $("input[name=ampmSched]:checked").val()
+            $("input[name=ampmSched]:checked").val(),
         ) != 0
             ? (objNewJob.time_of_day =
                   $("input[name=ampmSched]:checked").val() != undefined
@@ -860,7 +860,7 @@ function updateJob() {
         if (designation.innerText == "Scheduled") {
             $("input[name=ampmSched]:checked").val() != undefined
                 ? (objNewJob.time_of_day = $(
-                      "input[name=ampmSched]:checked"
+                      "input[name=ampmSched]:checked",
                   ).val())
                 : (objNewJob.time_of_day = "am");
         }
@@ -876,7 +876,7 @@ function updateJob() {
         ) {
             objNewJob.date_scheduled = dateScheduled.value;
             objNewJob.julian_date = jDate(
-                document.getElementById("DateSched-choice").value
+                document.getElementById("DateSched-choice").value,
             );
         }
     }
@@ -920,10 +920,16 @@ function updateJob() {
         txtNotes.value != null &&
         txtNotes.value != ""
     ) {
+        console.log("Existing:", editData.notes);
+        console.log("New:", txtNotes.value);
+        console.log("Compare:", editData.notes.localeCompare(txtNotes.value));
         objNewJob.notes = txtNotes.value;
         objChangeLog.notes = txtNotes.value;
     }
     if (editData.notes != null) {
+        console.log("Existing:", editData.notes);
+        console.log("New:", txtNotes.value);
+        console.log("Compare:", editData.notes.localeCompare(txtNotes.value));
         if (editData.notes.localeCompare(txtNotes.value) != 0) {
             objNewJob.notes = txtNotes.value;
             objChangeLog.notes = txtNotes.value;
@@ -1037,7 +1043,7 @@ function updateJob() {
                     ? $("input[name=ampmOTL]:checked").val()
                     : "z";
             objNewJob.julian_date = jDate(
-                document.getElementById("DateOTL-choice").value
+                document.getElementById("DateOTL-choice").value,
             );
         } else {
             objNewJob.comeback_customer = 0;
@@ -1062,7 +1068,7 @@ function jDate(ds) {
 
     var dayScheduled = new Date(ds);
     var julian = Math.ceil(
-        (dayScheduled - new Date(dayScheduled.getFullYear(), 0, 0)) / 86400000
+        (dayScheduled - new Date(dayScheduled.getFullYear(), 0, 0)) / 86400000,
     );
 
     return julian;
@@ -1097,7 +1103,7 @@ function openOTLandScheduled(event, cb, OTL_container) {
             "date OTL",
             null,
             "DateOTL",
-            "edit"
+            "edit",
         );
         $("#DateOTL-choice").datepicker({
             dateFormat: "mm/dd/yy",
@@ -1215,7 +1221,7 @@ function openInput(e, active, inputID1, inputID2) {
                     document.getElementById("OTL_SCHEDULED").className =
                         "hiddenInput";
                     document.getElementById(
-                        "dateWrapper_OTL_SCHEDULED"
+                        "dateWrapper_OTL_SCHEDULED",
                     ).className = "hiddenInput";
                     document.getElementById("cbOTL_scheduled").checked = false;
                     $("#datepicker").on({

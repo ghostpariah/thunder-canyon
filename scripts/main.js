@@ -20,6 +20,7 @@ const errLog = log.create("anotherInstance");
 const defaultErrLog = log.create("anotherInstance");
 const Store = require("electron-store");
 const process = require("process");
+const WebSocket = require("ws");
 
 let instance;
 
@@ -37,7 +38,7 @@ const y = date.getFullYear();
 const strToday = `${m}/${d}/${y}`;
 const dayOfYear = (date) =>
     Math.floor(
-        (date - new Date(date.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24)
+        (date - new Date(date.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24),
     );
 let today = dayOfYear(new Date());
 const appStartDay = today;
@@ -60,13 +61,13 @@ const logLocation = path.join(rootStorage, `/data/logs/`);
 const activityLog = path.join(
     rootStorage,
     "/data/logs",
-    `activityLog${today}.txt`
+    `activityLog${today}.txt`,
 );
 const errorLog = path.join(rootStorage, "/data/logs", `errorLog${today}.txt`);
 const defaultErrorLog = path.join(
     app.getPath("userData"),
     "/logs",
-    `errorLog${today}.txt`
+    `errorLog${today}.txt`,
 );
 
 let objList;
@@ -103,6 +104,52 @@ const userStore = new Store({
 const EODinfo = new Store({
     name: "EODinfo",
 });
+
+const wsClient = new WebSocket("ws://localhost:8080");
+/**********
+ * ********
+ * section for websocket communication
+ * ********
+ **********
+ */
+//Start the WebSocket server
+function startWebSocketServer() {
+    const server = new WebSocket.Server({ port: 8080 });
+
+    server.on("connection", (socket) => {
+        console.log("Client connected");
+
+        socket.on("message", (message) => {
+            console.log("Received:", message);
+            // Broadcast the message to all connected clients
+            server.clients.forEach((client) => {
+                if (client !== socket && client.readyState === WebSocket.OPEN) {
+                    client.send(message);
+                }
+            });
+        });
+
+        socket.on("close", () => {
+            console.log("Client disconnected");
+        });
+    });
+
+    console.log("WebSocket server started on port 8080");
+}
+startWebSocketServer();
+wsClient.on("message", (message) => {
+    console.log("message from ws : " + message);
+    win.webContents.send("update");
+    //const data = JSON.parse(message);
+    //mainWindow.webContents.send('drag-action', data);
+});
+
+function sendThroughWebSocket() {
+    console.log("sendThroughWebSocket called");
+    if (wsClient.readyState === WebSocket.OPEN) {
+        wsClient.send("update");
+    }
+}
 
 /***********************
 ********
@@ -147,7 +194,7 @@ async function readyUpdates() {
         //sendStatusToWindow(log_message);
         sendStatusToWindow(
             "Download progress",
-            Math.floor(progressObj.percent)
+            Math.floor(progressObj.percent),
         );
     });
     autoUpdater.on("update-downloaded", (info) => {
@@ -342,7 +389,7 @@ async function readyApp() {
                                 // myAction = false
                                 console.log(
                                     "fswatchCount=" + fswatchCount,
-                                    myAction
+                                    myAction,
                                 );
                                 fswatchCount = 0;
                                 //win.webContents.send('update-single')
@@ -357,7 +404,7 @@ async function readyApp() {
                         }
                     } else {
                         errLog.error(
-                            `whiteboard file doesn't exist or connection to v: lost`
+                            `whiteboard file doesn't exist or connection to v: lost`,
                         );
                     }
                 });
@@ -526,6 +573,7 @@ app.on("ready", () => {
     // ipcMain.handle('dialog', (event, method, params) => {
     //     dialog[method](params);
     //   });
+    //startWebSocketServer();
 });
 
 function readyFolders() {
@@ -554,7 +602,7 @@ function readyFolders() {
                     if (file.length > 4) {
                         doy = file.slice(
                             file.indexOf("g") + 1,
-                            file.indexOf(".")
+                            file.indexOf("."),
                         );
                         console.log("day of year after slice = " + doy);
                         console.log("today = " + today);
@@ -570,12 +618,12 @@ function readyFolders() {
                                 case "a":
                                     oldALogPath = path.join(
                                         logLocation,
-                                        `activityLog${doy}.txt`
+                                        `activityLog${doy}.txt`,
                                     );
                                     if (doy == "365" || doy == "366") {
                                         if (
                                             !fs.existsSync(
-                                                `${logLocation}${y - 1}/${doy}/`
+                                                `${logLocation}${y - 1}/${doy}/`,
                                             )
                                         ) {
                                             fs.mkdirSync(
@@ -584,29 +632,29 @@ function readyFolders() {
                                                 }/${doy}/`,
                                                 {
                                                     recursive: true,
-                                                }
+                                                },
                                             );
                                         }
                                         newALogPath = path.join(
                                             logLocation,
-                                            `${y - 1}/${doy}/activityLog.txt`
+                                            `${y - 1}/${doy}/activityLog.txt`,
                                         );
                                     } else {
                                         if (
                                             !fs.existsSync(
-                                                `${logLocation}${y}/${doy}/`
+                                                `${logLocation}${y}/${doy}/`,
                                             )
                                         ) {
                                             fs.mkdirSync(
                                                 `${logLocation}${y}/${doy}/`,
                                                 {
                                                     recursive: true,
-                                                }
+                                                },
                                             );
                                         }
                                         newALogPath = path.join(
                                             logLocation,
-                                            `${y}/${doy}/activityLog.txt`
+                                            `${y}/${doy}/activityLog.txt`,
                                         );
                                     }
                                     fs.rename(
@@ -616,20 +664,20 @@ function readyFolders() {
                                             if (err) throw err;
                                             console.log(
                                                 "Successfully moved to " +
-                                                    newALogPath
+                                                    newALogPath,
                                             );
-                                        }
+                                        },
                                     );
                                     break;
                                 case "e":
                                     oldELogPath = path.join(
                                         logLocation,
-                                        `errorLog${doy}.txt`
+                                        `errorLog${doy}.txt`,
                                     );
                                     if (doy == lastDay) {
                                         if (
                                             !fs.existsSync(
-                                                `${logLocation}${y - 1}/${doy}/`
+                                                `${logLocation}${y - 1}/${doy}/`,
                                             )
                                         ) {
                                             fs.mkdirSync(
@@ -638,29 +686,29 @@ function readyFolders() {
                                                 }/${doy}/`,
                                                 {
                                                     recursive: true,
-                                                }
+                                                },
                                             );
                                         }
                                         newELogPath = path.join(
                                             logLocation,
-                                            `${y - 1}/${doy}/errorLog.txt`
+                                            `${y - 1}/${doy}/errorLog.txt`,
                                         );
                                     } else {
                                         if (
                                             !fs.existsSync(
-                                                `${logLocation}${y}/${doy}/`
+                                                `${logLocation}${y}/${doy}/`,
                                             )
                                         ) {
                                             fs.mkdirSync(
                                                 `${logLocation}${y}/${doy}/`,
                                                 {
                                                     recursive: true,
-                                                }
+                                                },
                                             );
                                         }
                                         newELogPath = path.join(
                                             logLocation,
-                                            `${y}/${doy}/errorLog.txt`
+                                            `${y}/${doy}/errorLog.txt`,
                                         );
                                     }
                                     fs.rename(
@@ -672,10 +720,10 @@ function readyFolders() {
                                             } else {
                                                 console.log(
                                                     "Successfully moved to " +
-                                                        newELogPath
+                                                        newELogPath,
                                                 );
                                             }
-                                        }
+                                        },
                                     );
                                     break;
                                 default:
@@ -702,40 +750,41 @@ function readyFolders() {
             // glitch that causes multiple firings
             // of the watch event
 
-            let actLogWatcher = fs.watch(activityLog, (eventType, filename) => {
-                console.log(
-                    "myAction before fswatch processing is " + myAction
-                );
-                if (filename) {
-                    if (fsWait) return;
-                    fsWait = setTimeout(() => {
-                        fsWait = false;
-                        //win.webContents.send('update')
-                    }, 200);
+            // let actLogWatcher = fs.watch(activityLog, (eventType, filename) => {
+            //     console.log(
+            //         "myAction before fswatch processing is " + myAction
+            //     );
+            //     if (filename) {
+            //         console.log(eventType, filename);
+            //         if (fsWait) return;
+            //         fsWait = setTimeout(() => {
+            //             fsWait = false;
+            //             //win.webContents.send('update')
+            //         }, 200);
 
-                    setTimeout(function () {
-                        console.log(myAction, eventType);
-                        if (myAction) {
-                            console.log("myAction in fswatch");
-                            fswatchCount++;
-                            if (fswatchCount % 2 == 0) {
-                                myAction = false;
-                                console.log("fswatchCount=" + fswatchCount);
-                                fswatchCount = 0;
-                                win.webContents.send("update");
-                            }
-                        } else {
-                            console.log("not myAction in fswatch");
-                            win.webContents.send("update");
-                        }
-                    }, 5);
-                } else {
-                    errLog.error(
-                        `activityLog file doesn't exist or connection to v: lost`
-                    );
-                }
-                console.log("hello");
-            });
+            //         setTimeout(function () {
+            //             console.log(myAction, eventType);
+            //             if (myAction) {
+            //                 console.log("myAction in fswatch");
+            //                 fswatchCount++;
+            //                 if (fswatchCount % 2 == 0) {
+            //                     myAction = false;
+            //                     console.log("fswatchCount=" + fswatchCount);
+            //                     fswatchCount = 0;
+            //                     win.webContents.send("update");
+            //                 }
+            //             } else {
+            //                 console.log("not myAction in fswatch");
+            //                 win.webContents.send("update");
+            //             }
+            //         }, 5);
+            //     } else {
+            //         errLog.error(
+            //             `activityLog file doesn't exist or connection to v: lost`
+            //         );
+            //     }
+            //     console.log("hello");
+            // });
 
             //console.log(actLogWatcher)
         });
@@ -924,10 +973,10 @@ ipcMain.on("restore-database", (event, restorePoint) => {
                                 NPAGES++;
                                 restore.step(restore.pageCount);
                                 console.log(
-                                    "page count = " + restore.pageCount
+                                    "page count = " + restore.pageCount,
                                 );
                                 console.log(
-                                    "pages remaining = " + restore.remaining
+                                    "pages remaining = " + restore.remaining,
                                 );
                             }
                             if (restore.completed || restore.failed) {
@@ -943,7 +992,7 @@ ipcMain.on("restore-database", (event, restorePoint) => {
                             }
                         }, 250);
                     }
-                }
+                },
             );
         }, 200);
     } catch (e) {
@@ -1070,79 +1119,186 @@ ipcMain.on("update-main-page", (event) => {
     win.webContents.send("update");
 });
 //update a single job
+// ipcMain.on("update-job", (event, args, args2, args3, args4) => {
+//     console.log(args);
+//     console.log("args2 = " + args2);
+//     let k = Object.keys(args);
+//     let v = Object.values(args);
+//     let arrC = new Array();
+//     let arrV = new Array();
+//     let strColumns;
+//     let strValues;
+//     for (let i = 1; i < k.length; i++) {
+//         if (v[i] == null) {
+//             arrC.push(`${k[i]}=${v[i]}`);
+//         } else {
+//             arrC.push(`${k[i]}="${v[i]}"`);
+//             arrV.push(v[i]);
+//         }
+//     }
+//     if (arrC.length > 1) {
+//         strColumns = arrC.join(",");
+//     } else {
+//         strColumns = arrC[0];
+//     }
+//     if (arrV.length > 1) {
+//         strValues = arrV.join(",");
+//     } else {
+//         strValues = arrV[0];
+//     }
+
+//     console.log(strColumns);
+//     let dboUpdate = new sqlite3.Database(workflowDB, (err) => {
+//         if (err) {
+//             console.error(err.message);
+//         }
+//     });
+//     let pull = `SELECT * FROM jobs WHERE active = 1 AND cancelled = 0`;
+//     let sql = `UPDATE jobs SET ${strColumns} WHERE job_ID = ${args.job_ID}`;
+
+//     dboUpdate.serialize(() => {
+//         dboUpdate
+//             .run(sql, function (err, row) {
+//                 if (err) {
+//                     return console.error(err.message);
+//                 }
+//                 console.log(`Row(s) updated: ${this.changes}${row}`);
+//             })
+//             .all(pull, [], (err, row) => {
+//                 if (err) {
+//                     return console.error(err.message);
+//                 } else {
+//                     args.user = args3;
+//                     switch (args2) {
+//                         case "context-menu":
+//                             break;
+//                         case "edit job":
+//                             winEdit.close();
+//                             break;
+//                         case "calendar":
+//                             calendarWin.webContents.send("refresh");
+//                             break;
+//                         case "reports":
+//                             reportWin.webContents.send("refresh");
+//                         default:
+//                             break;
+//                     }
+//                     args.customer_name = args4;
+//                     console.log(args3);
+//                     myAction = true;
+//                     logActivity("edited", args, args3);
+//                     win.webContents.send("update", row);
+//                 }
+//             });
+
+//         dboUpdate.close();
+//     });
+// });
 ipcMain.on("update-job", (event, args, args2, args3, args4) => {
     console.log(args);
-    console.log("args2 = " + args2);
-    let k = Object.keys(args);
-    let v = Object.values(args);
-    let arrC = new Array();
-    let arrV = new Array();
-    let strColumns;
-    let strValues;
-    for (i = 1; i < k.length; i++) {
-        if (v[i] == null) {
-            arrC.push(`${k[i]}=${v[i]}`);
-        } else {
-            arrC.push(`${k[i]}='${v[i]}'`);
-            arrV.push(v[i]);
-        }
-    }
-    if (arrC.length > 1) {
-        strColumns = arrC.join(",");
-    } else {
-        strColumns = arrC[0];
-    }
-    if (arrV.length > 1) {
-        strValues = arrV.join(",");
-    } else {
-        strValues = arrV[0];
+    console.log("args2 =", args2);
+
+    const updateFields = [];
+    const sqlParams = [];
+
+    // Build dynamic UPDATE statement
+    for (const [key, value] of Object.entries(args)) {
+        if (key === "job_ID") continue;
+
+        updateFields.push(`${key} = ?`);
+        sqlParams.push(value);
     }
 
-    console.log(strColumns);
-    let dboUpdate = new sqlite3.Database(workflowDB, (err) => {
+    // Add WHERE parameter
+    sqlParams.push(args.job_ID);
+
+    const sql = `
+        UPDATE jobs
+        SET ${updateFields.join(", ")}
+        WHERE job_ID = ?
+    `;
+
+    const pull = `
+        SELECT *
+        FROM jobs
+        WHERE active = 1
+        AND cancelled = 0
+    `;
+
+    console.log("SQL:", sql);
+    console.log("Parameters:", sqlParams);
+
+    const dboUpdate = new sqlite3.Database(workflowDB, (err) => {
         if (err) {
             console.error(err.message);
+            return;
         }
     });
-    let pull = `SELECT * FROM jobs WHERE active = 1 AND cancelled = 0`;
-    let sql = `UPDATE jobs SET ${strColumns} WHERE job_ID = ${args.job_ID}`;
 
     dboUpdate.serialize(() => {
-        dboUpdate
-            .run(sql, function (err, row) {
-                if (err) {
-                    return console.error(err.message);
-                }
-                console.log(`Row(s) updated: ${this.changes}${row}`);
-            })
-            .all(pull, [], (err, row) => {
-                if (err) {
-                    return console.error(err.message);
-                } else {
-                    args.user = args3;
-                    switch (args2) {
-                        case "context-menu":
-                            break;
-                        case "edit job":
-                            winEdit.close();
-                            break;
-                        case "calendar":
-                            calendarWin.webContents.send("refresh");
-                            break;
-                        case "reports":
-                            reportWin.webContents.send("refresh");
-                        default:
-                            break;
-                    }
-                    args.customer_name = args4;
-                    console.log(args3);
-                    myAction = true;
-                    logActivity("edited", args, args3);
-                    win.webContents.send("update", row);
-                }
-            });
+        dboUpdate.run(sql, sqlParams, function (err) {
+            if (err) {
+                console.error("Update Error:", err.message);
 
-        dboUpdate.close();
+                return dboUpdate.close((closeErr) => {
+                    if (closeErr) {
+                        console.error(closeErr.message);
+                    }
+                });
+            }
+
+            console.log(`Row(s) updated: ${this.changes}`);
+
+            dboUpdate.all(pull, [], (err, rows) => {
+                if (err) {
+                    console.error("Select Error:", err.message);
+
+                    return dboUpdate.close((closeErr) => {
+                        if (closeErr) {
+                            console.error(closeErr.message);
+                        }
+                    });
+                }
+
+                args.user = args3;
+                args.customer_name = args4;
+
+                switch (args2) {
+                    case "edit job":
+                        winEdit.close();
+                        break;
+
+                    case "calendar":
+                        calendarWin.webContents.send("refresh");
+                        break;
+
+                    case "reports":
+                        reportWin.webContents.send("refresh");
+                        break;
+
+                    case "context-menu":
+                    default:
+                        break;
+                }
+
+                myAction = true;
+
+                console.log("Logging activity...");
+                logActivity("edited", args, args3);
+
+                console.log("Sending update to renderer...");
+                win.webContents.send("update", rows);
+
+                // Close DB ONLY after all work is finished
+                dboUpdate.close((err) => {
+                    if (err) {
+                        console.error("Close Error:", err.message);
+                    } else {
+                        console.log("Database connection closed.");
+                    }
+                });
+            });
+        });
     });
 });
 
@@ -1265,7 +1421,7 @@ ipcMain.on("get-jobs", (event, args) => {
 
 ipcMain.on("edit-customer-name", (event, args1, args2) => {
     console.log(
-        `args1 in edit-customer-name is ${args1} and args2 is ${args2}`
+        `args1 in edit-customer-name is ${args1} and args2 is ${args2}`,
     );
     let dboCustomerName = new sqlite3.Database(workflowDB, (err) => {
         if (err) {
@@ -1358,7 +1514,7 @@ let getCustomerName = async (args) => {
     async function getIdByName() {
         // assemble sql statement
         let sql = `SELECT customer_name FROM customers WHERE customer_ID = ${Number(
-            args
+            args,
         )}`;
         return await dboCustomerName.query(sql, []);
     }
@@ -1485,7 +1641,7 @@ async function logActivity(args1, args2, args3) {
             break;
         case "merge":
             logEvent = `${args3.user_name} merged ${await getCustomerName(
-                args2.c1
+                args2.c1,
             )} and ${await getCustomerName(args2.c2)} at ${timeStamp}\n`;
             break;
         default:
@@ -1495,6 +1651,7 @@ async function logActivity(args1, args2, args3) {
 
     actLog.write(logEvent);
     actLog.close();
+    sendThroughWebSocket();
     //console.timeEnd('actlog')
 }
 async function pullName(id) {
@@ -1686,7 +1843,7 @@ ipcMain.on("create-user", (event, args) => {
                 }
                 // get the last insert id
                 console.log(
-                    `A row has been inserted with rowid ${this.lastID}`
+                    `A row has been inserted with rowid ${this.lastID}`,
                 );
             })
             .all(sql2, function (err, row) {
@@ -1799,7 +1956,7 @@ ipcMain.on("add-job", (event, args, args2, args3) => {
             args.customer_name = cn;
             logActivity("added", args);
             console.log(
-                `${this.changes} items inserted at row: ${this.lastID}`
+                `${this.changes} items inserted at row: ${this.lastID}`,
             );
         }
     });
@@ -1841,7 +1998,7 @@ ipcMain.on("db-contact-add", (event, args) => {
 
             new_contact_ID = this.lastID;
             console.log(
-                `${this.changes} items inserted at row: ${this.lastID} of contacts`
+                `${this.changes} items inserted at row: ${this.lastID} of contacts`,
             );
             objPhone.p_contact_ID = this.lastID;
             objEmail.e_contact_ID = this.lastID;
@@ -1875,7 +2032,7 @@ ipcMain.on("db-contact-add", (event, args) => {
 
                 item_ID = this.lastID;
                 console.log(
-                    `${this.changes} items inserted at row: ${this.lastID} of phone_numbers`
+                    `${this.changes} items inserted at row: ${this.lastID} of phone_numbers`,
                 );
                 if (args.email != null) {
                     objEmail.email = args.email;
@@ -1902,7 +2059,7 @@ ipcMain.on("db-contact-add", (event, args) => {
                     } else {
                         item_ID = this.lastID;
                         console.log(
-                            `${this.changes} items inserted at row: ${this.lastID} of emails`
+                            `${this.changes} items inserted at row: ${this.lastID} of emails`,
                         );
                         event.returnValue = item_ID;
                     }
@@ -1982,10 +2139,10 @@ ipcMain.on("get-contact-from-item", (event, args) => {
                                 item2: row2,
                             });
                         }
-                    }
+                    },
                 );
             }
-        }
+        },
     );
 });
 ipcMain.on("db-get-phone", (event, args) => {
@@ -2157,10 +2314,10 @@ function createMainWindow() {
             pathname: path.join(__dirname, "../pages/workflow.html"),
             protocol: "file",
             slashes: true,
-        })
+        }),
     );
     console.log(
-        "main window has loaded this is just before the session is create"
+        "main window has loaded this is just before the session is create",
     );
 
     // let mainSession = win.webContents.session;
@@ -2204,7 +2361,7 @@ function createUpdateWindow(args) {
             pathname: path.join(__dirname, "../pages/updateMessage.html"),
             protocol: "file",
             slashes: true,
-        })
+        }),
     );
 
     updateWin.on("ready", () => {});
@@ -2266,7 +2423,7 @@ function createEditWindow(args, args2, args3) {
             pathname: path.join(__dirname, "../pages/edit2.html"),
             protocol: "file",
             slashes: true,
-        })
+        }),
     );
 
     winEdit.on("ready", () => {
@@ -2308,7 +2465,7 @@ function createLoginWindow() {
             pathname: path.join(__dirname, "../pages/login.html"),
             protocol: "file",
             slashes: true,
-        })
+        }),
     );
     //win.removeMenu()
     loginWin.on("ready", () => {
@@ -2341,7 +2498,7 @@ function createReportWindow(args, args2, args3, args4) {
             pathname: path.join(__dirname, "../pages/reports.html"),
             protocol: "file",
             slashes: true,
-        })
+        }),
     );
     reportWin.once("ready-to-show", () => {
         console.log("ready to show");
@@ -2375,7 +2532,7 @@ function createRestoreWindow() {
             pathname: path.join(__dirname, "../pages/restoreDB.html"),
             protocol: "file",
             slashes: true,
-        })
+        }),
     );
     restoreWin.once("ready-to-show", () => {});
 
@@ -2407,7 +2564,7 @@ function createAddJobWindow(args, launcher) {
             pathname: path.join(__dirname, "../pages/addJob.html"),
             protocol: "file",
             slashes: true,
-        })
+        }),
     );
     addJobWin.once("ready-to-show", () => {
         addJobWin.show();
@@ -2444,7 +2601,7 @@ function createCreateUserWindow() {
             pathname: path.join(__dirname, "../pages/createUser.html"),
             protocol: "file",
             slashes: true,
-        })
+        }),
     );
     cuWin.once("ready-to-show", () => {
         cuWin.show();
@@ -2470,7 +2627,7 @@ function createDatabaseMaintenanceWindow(args) {
             pathname: path.join(__dirname, "../pages/dbMaintenance.html"),
             protocol: "file",
             slashes: true,
-        })
+        }),
     );
     dbmWin.once("ready-to-show", () => {
         dbmWin.show();
@@ -2487,7 +2644,7 @@ function createContactsWindow(
     args5,
     args6,
     args7,
-    args8
+    args8,
 ) {
     contactWin = new BrowserWindow({
         parent: win,
@@ -2509,7 +2666,7 @@ function createContactsWindow(
             pathname: path.join(__dirname, "../pages/contacts.html"),
             protocol: "file",
             slashes: true,
-        })
+        }),
     );
     contactWin.once("ready-to-show", () => {
         //contactWin.webContents.openDevTools()
@@ -2562,7 +2719,7 @@ function createCalendarWindow(args, args2) {
             pathname: path.join(__dirname, "../pages/calendar.html"),
             protocol: "file",
             slashes: true,
-        })
+        }),
     );
     calendarWin.once("ready-to-show", () => {
         calendarWin.show();
@@ -2686,7 +2843,7 @@ ipcMain.on("merge", (event, args, args2, user) => {
                     if (rollbackErr) {
                         console.error(
                             "Failed to rollback transaction:",
-                            rollbackErr
+                            rollbackErr,
                         );
                     }
                 });
@@ -2702,7 +2859,7 @@ ipcMain.on("merge", (event, args, args2, user) => {
                         if (rollbackErr) {
                             console.error(
                                 "Failed to rollback transaction:",
-                                rollbackErr
+                                rollbackErr,
                             );
                         }
                     });
@@ -2718,7 +2875,7 @@ ipcMain.on("merge", (event, args, args2, user) => {
                             if (rollbackErr) {
                                 console.error(
                                     "Failed to rollback transaction:",
-                                    rollbackErr
+                                    rollbackErr,
                                 );
                             }
                         });
@@ -2730,7 +2887,7 @@ ipcMain.on("merge", (event, args, args2, user) => {
                         if (commitErr) {
                             console.error(
                                 "Failed to commit transaction:",
-                                commitErr
+                                commitErr,
                             );
                         } else {
                             logActivity("merge", objMerged, user);
@@ -3055,7 +3212,7 @@ ipcMain.on(
                     return err;
                 }
                 console.log(
-                    `has args onw and args 6. returns ${row[0].customer_ID}`
+                    `has args onw and args 6. returns ${row[0].customer_ID}`,
                 );
                 createContactsWindow(
                     args1,
@@ -3066,7 +3223,7 @@ ipcMain.on(
                     args6,
                     args7,
                     args8,
-                    row[0].customer_ID
+                    row[0].customer_ID,
                 );
 
                 return row[0].customer_ID;
@@ -3084,10 +3241,10 @@ ipcMain.on(
                 args5,
                 args6,
                 args7,
-                args8
+                args8,
             );
         }
-    }
+    },
 );
 
 //seacrh for contact info associated with no-show
@@ -3186,12 +3343,12 @@ ipcMain.on("get-contacts", (event, args) => {
                                                     event.returnValue = row;
                                                     event.sender.send(
                                                         "set-contacts",
-                                                        row
+                                                        row,
                                                     );
                                                     dboContacts.close();
                                                 }
                                             }
-                                        }
+                                        },
                                     );
                                 }
                             }); //end second .all
@@ -3653,12 +3810,12 @@ ipcMain.on("pull-activity-log", (event, args1, args2, args3) => {
         if (args3 === true) {
             list = fs.readFileSync(
                 `${logLocation}activityLog${args2}.txt`,
-                "UTF-8"
+                "UTF-8",
             );
         } else {
             list = fs.readFileSync(
                 `${logLocation}${args1}\\${args2}\\activityLog.txt`,
-                "UTF-8"
+                "UTF-8",
             );
         }
         event.returnValue = list;

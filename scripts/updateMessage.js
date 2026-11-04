@@ -13,9 +13,8 @@ ipc.on("updater", (event, args, args2) => {
         document
             .querySelector(".circle-progress")
             .setAttribute("data-percentage", `${args2}%`);
-        document.querySelector(
-            ".circle-progress"
-        ).style.background = `conic-gradient(
+        document.querySelector(".circle-progress").style.background =
+            `conic-gradient(
             #5e81ad ${args2 * 3.6}deg,
             white ${args2 * 3.6}deg
         )`;
@@ -54,7 +53,7 @@ ipc.on("no-mapped-drive", (event, args) => {
 ipc.on("new-database", (event, args) => {
     console.log("new-database triggered");
     let createDatabase = confirm(
-        "Database not found. Is this a new installation?"
+        "Database not found. Is this a new installation?",
     );
     if (createDatabase) {
         console.log("creating database");
@@ -62,7 +61,7 @@ ipc.on("new-database", (event, args) => {
         ipc.send("start-app");
     } else {
         let restoreDatabase = confirm(
-            "Would you like to restore from last backup file?"
+            "Would you like to restore from last backup file?",
         );
         if (restoreDatabase) {
             console.log("restoring databse");
