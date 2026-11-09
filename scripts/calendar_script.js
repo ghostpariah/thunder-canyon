@@ -137,33 +137,41 @@ function clearDays() {
 }
 function fillDays(y) {
     var year = y;
-
+    var jdYear = year;
     //console.log(hd.getHolidays())
     let dim = daysInMonth(monthIndex, year);
     daysBefore = firstDay;
     daysAfter = totalBlocks - dim - daysBefore;
     var test = totalBlocks - dim;
-    console.log(totalBlocks);
+    //console.log(totalBlocks);
 
     for (i = 0; i < dim + daysAfter; i++) {
         var cell = i + firstDay;
         //assignJulian to block
         var m = monthIndex + 1;
+
         var dnumber = i + 1;
+        //if greyed out days for next month are days in a new year reset month to 1 and increment year
         if (dnumber > dim) {
             dnumber = dnumber - dim;
-            m += 1;
+            if (m === 12) {
+                jdYear = y + 1;
+                m = 1;
+            } else {
+                m += 1;
+            }
         }
         var jd = jDate(
-            m.toString() + "/" + dnumber.toString() + "/" + year.toString()
+            m.toString() + "/" + dnumber.toString() + "/" + jdYear.toString(),
         );
+        //console.log(jd, year, m);
         document
             .getElementById("dayBlock" + cell)
             .setAttribute("data-julian", jd);
         let h = hd.isHoliday(
             new Date(
-                m.toString() + "/" + dnumber.toString() + "/" + year.toString()
-            )
+                m.toString() + "/" + dnumber.toString() + "/" + year.toString(),
+            ),
         );
         let strHolidayName = "";
         let eleHolidayBox = document.createElement("div");
@@ -195,7 +203,7 @@ function fillDays(y) {
                 "white";
         } else {
             let txtDayNumber = document.createTextNode(
-                i - daysInMonth(monthIndex, year) + 1
+                i - daysInMonth(monthIndex, year) + 1,
             );
             // document.getElementById("dayNumber"+cell).innerHTML=(h)
             // ?`${h[0].name} ${i-daysInMonth(monthIndex, year)+1}`
@@ -219,16 +227,17 @@ function fillDays(y) {
             objCalData.launcher = "calendar";
             objCalData.time_of_day = "am";
             let m = monthIndex + 1;
+            //console.log(preview);
 
             //if it is part of the greyed out next month preview
             if (this.classList.contains("preview")) {
                 preview = true;
             }
-
+            console.log(year);
             objCalData.date_scheduled = getFormattedDateString(
                 year,
                 this.parentNode.getAttribute("data-julian"),
-                preview
+                preview,
             );
             ipc.send("open-add-job", currentUser, objCalData);
         };
@@ -249,11 +258,11 @@ function fillDays(y) {
             if (this.classList.contains("preview")) {
                 preview = true;
             }
-
+            console.log(this.parentNode.getAttribute("data-julian"));
             objCalData.date_scheduled = getFormattedDateString(
                 year,
                 this.parentNode.getAttribute("data-julian"),
-                preview
+                preview,
             );
             ipc.send("open-add-job", currentUser, objCalData);
         };
@@ -266,7 +275,7 @@ function fillDays(y) {
             document.getElementById("am" + cell).appendChild(indicator);
 
             var thisIndicator = document.getElementById(
-                "indicatorAM" + jd + "_" + j
+                "indicatorAM" + jd + "_" + j,
             );
 
             switch (j) {
@@ -307,7 +316,7 @@ function fillDays(y) {
             indicator.setAttribute("id", "indicatorPM" + jd + "_" + j);
             document.getElementById("pm" + cell).appendChild(indicator);
             var thisIndicator = document.getElementById(
-                "indicatorPM" + jd + "_" + j
+                "indicatorPM" + jd + "_" + j,
             );
 
             switch (j) {
@@ -359,8 +368,22 @@ function fillDays(y) {
     }
 }
 function getFormattedDateString(y, jd, preview) {
-    let m = preview ? monthIndex + 2 : monthIndex + 1;
+    console.log(preview);
+    //let m = preview ? monthIndex + 2 : monthIndex + 1;
+    let m;
+    if (preview) {
+        if (monthIndex === 11) {
+            y = y + 1;
+            m = 1;
+        } else {
+            m = monthIndex + 2;
+        }
+    } else {
+        m = monthIndex + 1;
+    }
+    //let m = preview ? (monthIndex === 11 ? 1 : monthIndex + 2) : monthIndex + 1;
     let mo = m.toString().padStart(2, "0");
+    console.log(mo, y, jd);
     let ds = new Date(y, 0, jd).getDate().toString().padStart(2, "0");
     console.log(`${mo}/${ds}/${y}`);
     return `${mo}/${ds}/${y}`;
@@ -375,11 +398,11 @@ function getScheduled() {
             ? arrScheduledJobs.push(allJobs[member])
             : "";
     }
-    console.log(arrScheduledJobs);
+    //console.log(arrScheduledJobs);
     for (i = 0; i < arrScheduledJobs.length; i++) {
         arrScheduledJobs[i].customer_name = ipc.sendSync(
             "db-get-customer-name",
-            arrScheduledJobs[i].customer_ID
+            arrScheduledJobs[i].customer_ID,
         );
     }
 
@@ -391,13 +414,13 @@ function countSchJobsForCalendar() {
     let dim = daysInMonth(monthIndex, year);
 
     scheduledJobs = getScheduled();
-    console.log(
-        "daysBefore = " + daysBefore,
-        "days in month = " + daysInMonth(monthIndex, year),
-        "daysAfter = " + daysAfter
-    );
-    console.log(daysAfter + daysBefore + daysInMonth(monthIndex, year));
-    console.log(scheduledJobs.length);
+    // console.log(
+    //     "daysBefore = " + daysBefore,
+    //     "days in month = " + daysInMonth(monthIndex, year),
+    //     "daysAfter = " + daysAfter,
+    // );
+    // console.log(daysAfter + daysBefore + daysInMonth(monthIndex, year));
+    // console.log(scheduledJobs.length);
     for (i = 1; i <= daysInMonth(monthIndex, year) + daysAfter; i++) {
         for (j = 0; j < scheduledJobs.length; j++) {
             let schD = scheduledJobs[j].date_scheduled;
@@ -407,7 +430,7 @@ function countSchJobsForCalendar() {
             var todaysJulianDate;
             if (i <= daysInMonth(monthIndex, year)) {
                 todaysJulianDate = jDate(
-                    m.toString() + "/" + i.toString() + "/" + year.toString()
+                    m.toString() + "/" + i.toString() + "/" + year.toString(),
                 );
             } else {
                 let nd = i - dim;
@@ -418,7 +441,7 @@ function countSchJobsForCalendar() {
                             "/" +
                             nd.toString() +
                             "/" +
-                            year.toString()
+                            year.toString(),
                     );
                 } else {
                     let nm = 1;
@@ -428,20 +451,25 @@ function countSchJobsForCalendar() {
                             "/" +
                             nd.toString() +
                             "/" +
-                            ny.toString()
+                            ny.toString(),
                     );
                 }
             }
+            //console.log(selectedYear, calYear);
             var isEligible =
-                selectedYear == calYear || monthIndex == 11 ? true : false;
-            console.log(todaysJulianDate);
+                selectedYear == calYear ||
+                (monthIndex == 11 && selectedYear + 1 == calYear)
+                    ? true
+                    : false;
+            //console.log(todaysJulianDate);
+            //console.log("isELigible is " + isEligible);
             if (
                 todaysJulianDate == scheduledJobs[j].julian_date &&
                 isEligible
             ) {
                 var ampm = scheduledJobs[j].time_of_day;
                 var jd = scheduledJobs[j].julian_date;
-
+                //console.log(jd);
                 switch (scheduledJobs[j].job_type) {
                     case "Check All":
                         if (ampm == "am") {
@@ -450,7 +478,7 @@ function countSchJobsForCalendar() {
                                     ampm.toUpperCase() +
                                     jd +
                                     "_" +
-                                    "1"
+                                    "1",
                             ).style.visibility = "visible";
                             dayHolder[jd].am.checkallCount++;
                             document.getElementById(
@@ -458,7 +486,7 @@ function countSchJobsForCalendar() {
                                     ampm.toUpperCase() +
                                     jd +
                                     "_" +
-                                    "1"
+                                    "1",
                             ).innerHTML = dayHolder[jd].am.checkallCount;
                         } else if (ampm == "pm") {
                             document.getElementById(
@@ -466,7 +494,7 @@ function countSchJobsForCalendar() {
                                     ampm.toUpperCase() +
                                     jd +
                                     "_" +
-                                    "1"
+                                    "1",
                             ).style.visibility = "visible";
                             dayHolder[jd].pm.checkallCount++;
                             document.getElementById(
@@ -474,15 +502,15 @@ function countSchJobsForCalendar() {
                                     ampm.toUpperCase() +
                                     jd +
                                     "_" +
-                                    "1"
+                                    "1",
                             ).innerHTML = dayHolder[jd].pm.checkallCount;
                         } else if (ampm == "") {
                             document.getElementById(
-                                "indicatorAM" + jd + "_" + "1"
+                                "indicatorAM" + jd + "_" + "1",
                             ).style.visibility = "visible";
                             dayHolder[jd].am.checkallCount++;
                             document.getElementById(
-                                "indicatorAM" + jd + "_" + "1"
+                                "indicatorAM" + jd + "_" + "1",
                             ).innerHTML = dayHolder[jd].am.checkallCount;
                         }
                         break;
@@ -493,7 +521,7 @@ function countSchJobsForCalendar() {
                                     ampm.toUpperCase() +
                                     jd +
                                     "_" +
-                                    "5"
+                                    "5",
                             ).style.visibility = "visible";
                             dayHolder[jd].am.kingpinCount++;
                             document.getElementById(
@@ -501,7 +529,7 @@ function countSchJobsForCalendar() {
                                     ampm.toUpperCase() +
                                     jd +
                                     "_" +
-                                    "5"
+                                    "5",
                             ).innerHTML = dayHolder[jd].am.kingpinCount;
                         } else if (ampm == "pm") {
                             document.getElementById(
@@ -509,7 +537,7 @@ function countSchJobsForCalendar() {
                                     ampm.toUpperCase() +
                                     jd +
                                     "_" +
-                                    "5"
+                                    "5",
                             ).style.visibility = "visible";
                             dayHolder[jd].pm.kingpinCount++;
                             document.getElementById(
@@ -517,15 +545,15 @@ function countSchJobsForCalendar() {
                                     ampm.toUpperCase() +
                                     jd +
                                     "_" +
-                                    "5"
+                                    "5",
                             ).innerHTML = dayHolder[jd].pm.kingpinCount;
                         } else if (ampm == "") {
                             document.getElementById(
-                                "indicatorAM" + jd + "_" + "5"
+                                "indicatorAM" + jd + "_" + "5",
                             ).style.visibility = "visible";
                             dayHolder[jd].am.kingpinCount++;
                             document.getElementById(
-                                "indicatorAM" + jd + "_" + "5"
+                                "indicatorAM" + jd + "_" + "5",
                             ).innerHTML = dayHolder[jd].am.kingpinCount;
                         }
                         break;
@@ -536,7 +564,7 @@ function countSchJobsForCalendar() {
                                     ampm.toUpperCase() +
                                     jd +
                                     "_" +
-                                    "3"
+                                    "3",
                             ).style.visibility = "visible";
                             dayHolder[jd].am.frameCount++;
                             document.getElementById(
@@ -544,7 +572,7 @@ function countSchJobsForCalendar() {
                                     ampm.toUpperCase() +
                                     jd +
                                     "_" +
-                                    "3"
+                                    "3",
                             ).innerHTML = dayHolder[jd].am.frameCount;
                         } else if (ampm == "pm") {
                             document.getElementById(
@@ -552,7 +580,7 @@ function countSchJobsForCalendar() {
                                     ampm.toUpperCase() +
                                     jd +
                                     "_" +
-                                    "3"
+                                    "3",
                             ).style.visibility = "visible";
                             dayHolder[jd].pm.frameCount++;
                             document.getElementById(
@@ -560,27 +588,27 @@ function countSchJobsForCalendar() {
                                     ampm.toUpperCase() +
                                     jd +
                                     "_" +
-                                    "3"
+                                    "3",
                             ).innerHTML = dayHolder[jd].pm.frameCount;
                         } else if (ampm == "") {
                             document.getElementById(
-                                "indicatorAM" + jd + "_" + "3"
+                                "indicatorAM" + jd + "_" + "3",
                             ).style.visibility = "visible";
                             dayHolder[jd].am.frameCount++;
                             document.getElementById(
-                                "indicatorAM" + jd + "_" + "3"
+                                "indicatorAM" + jd + "_" + "3",
                             ).innerHTML = dayHolder[jd].am.frameCount;
                         }
                         break;
                     case "Spring":
                         if (ampm == "am") {
-                            console.log(jd, dayHolder.length);
+                            //console.log(jd, dayHolder.length);
                             document.getElementById(
                                 "indicator" +
                                     ampm.toUpperCase() +
                                     jd +
                                     "_" +
-                                    "2"
+                                    "2",
                             ).style.visibility = "visible";
                             dayHolder[jd].am.springCount++;
                             document.getElementById(
@@ -588,7 +616,7 @@ function countSchJobsForCalendar() {
                                     ampm.toUpperCase() +
                                     jd +
                                     "_" +
-                                    "2"
+                                    "2",
                             ).innerHTML = dayHolder[jd].am.springCount;
                         } else if (ampm == "pm") {
                             document.getElementById(
@@ -596,7 +624,7 @@ function countSchJobsForCalendar() {
                                     ampm.toUpperCase() +
                                     jd +
                                     "_" +
-                                    "2"
+                                    "2",
                             ).style.visibility = "visible";
                             dayHolder[jd].pm.springCount++;
                             document.getElementById(
@@ -604,15 +632,15 @@ function countSchJobsForCalendar() {
                                     ampm.toUpperCase() +
                                     jd +
                                     "_" +
-                                    "2"
+                                    "2",
                             ).innerHTML = dayHolder[jd].pm.springCount;
                         } else if (ampm == "") {
                             document.getElementById(
-                                "indicatorAM" + jd + "_" + "2"
+                                "indicatorAM" + jd + "_" + "2",
                             ).style.visibility = "visible";
                             dayHolder[jd].am.springCount++;
                             document.getElementById(
-                                "indicatorAM" + jd + "_" + "2"
+                                "indicatorAM" + jd + "_" + "2",
                             ).innerHTML = dayHolder[jd].am.springCount;
                         }
                         break;
@@ -623,7 +651,7 @@ function countSchJobsForCalendar() {
                                     ampm.toUpperCase() +
                                     jd +
                                     "_" +
-                                    "4"
+                                    "4",
                             ).style.visibility = "visible";
                             dayHolder[jd].am.alignmentCount++;
                             document.getElementById(
@@ -631,7 +659,7 @@ function countSchJobsForCalendar() {
                                     ampm.toUpperCase() +
                                     jd +
                                     "_" +
-                                    "4"
+                                    "4",
                             ).innerHTML = dayHolder[jd].am.alignmentCount;
                         } else if (ampm == "pm") {
                             document.getElementById(
@@ -639,7 +667,7 @@ function countSchJobsForCalendar() {
                                     ampm.toUpperCase() +
                                     jd +
                                     "_" +
-                                    "4"
+                                    "4",
                             ).style.visibility = "visible";
                             dayHolder[jd].pm.alignmentCount++;
                             document.getElementById(
@@ -647,15 +675,15 @@ function countSchJobsForCalendar() {
                                     ampm.toUpperCase() +
                                     jd +
                                     "_" +
-                                    "4"
+                                    "4",
                             ).innerHTML = dayHolder[jd].pm.alignmentCount;
                         } else if (ampm == "") {
                             document.getElementById(
-                                "indicatorAM" + jd + "_" + "4"
+                                "indicatorAM" + jd + "_" + "4",
                             ).style.visibility = "visible";
                             dayHolder[jd].am.alignmentCount++;
                             document.getElementById(
-                                "indicatorAM" + jd + "_" + "4"
+                                "indicatorAM" + jd + "_" + "4",
                             ).innerHTML = dayHolder[jd].am.alignmentCount;
                         }
                         break;
@@ -683,7 +711,7 @@ function clearDayBlock() {
 function setSelectedYear(incrementor) {
     var incrementor = incrementor;
     var sYear = new Date(
-        new Date().setFullYear(new Date().getFullYear() + incrementor)
+        new Date().setFullYear(new Date().getFullYear() + incrementor),
     );
     selectedYear = sYear.getFullYear();
 }
@@ -810,7 +838,7 @@ function jDate(ds) {
     var ds = ds;
     var dayScheduled = new Date(ds);
     var julian = Math.ceil(
-        (dayScheduled - new Date(dayScheduled.getFullYear(), 0, 0)) / 86400000
+        (dayScheduled - new Date(dayScheduled.getFullYear(), 0, 0)) / 86400000,
     );
 
     return julian;
@@ -944,7 +972,7 @@ function makeCalenderJobContainers(e) {
         //create customer name box
         let cnBox = document.createElement("span");
         let cnText = document.createTextNode(
-            thisDaysSchJobs[j].customer_name.toUpperCase()
+            thisDaysSchJobs[j].customer_name.toUpperCase(),
         );
         cnBox.setAttribute("class", "cnBoxHeader");
         cnBox.appendChild(cnText);
@@ -1043,7 +1071,7 @@ function makeCalenderJobContainers(e) {
         jw.style.top = shift + "px";
         document.body.style.setProperty(
             "--speech-arrow-offset",
-            (shift - 40) * -1 + "px"
+            (shift - 40) * -1 + "px",
         );
     }
 }
@@ -1079,11 +1107,11 @@ function openContextMenu(e) {
                 : //on top row but not the right side
                   cmList.setAttribute("class", "cm_list") //"cm_list top"
             : //not on top
-            arrWeekendContext.includes(thisDay)
-            ? //not on top row but on the right side
-              cmList.setAttribute("class", "cm_list") //"cm_list left"
-            : //not on top row or the right side
-              cmList.setAttribute("class", "cm_list");
+              arrWeekendContext.includes(thisDay)
+              ? //not on top row but on the right side
+                cmList.setAttribute("class", "cm_list") //"cm_list left"
+              : //not on top row or the right side
+                cmList.setAttribute("class", "cm_list");
 
         cmList.setAttribute("id", "cmList");
         callingElement.appendChild(cmList);
@@ -1111,13 +1139,13 @@ function openContextMenu(e) {
                         //console.log(allCustomers)
                         objJobInfo.customer_name = ipc.sendSync(
                             "db-get-customer-name",
-                            objJobInfo.customer_ID
+                            objJobInfo.customer_ID,
                         );
                         ipc.send(
                             "open-edit",
                             objJobInfo,
                             "calendar",
-                            currentUser
+                            currentUser,
                         );
 
                         break;
@@ -1130,7 +1158,7 @@ function openContextMenu(e) {
                             "update-job",
                             objNoshow,
                             "calendar",
-                            currentUser
+                            currentUser,
                         );
 
                         break;
@@ -1151,7 +1179,7 @@ function openContextMenu(e) {
                         let answer = ipc.sendSync(
                             "open-dialog",
                             options,
-                            "cancel"
+                            "cancel",
                         );
                         console.log(answer);
                         if (answer == 1) {
@@ -1159,7 +1187,7 @@ function openContextMenu(e) {
                                 "update-job",
                                 objCancel,
                                 "calendar",
-                                currentUser
+                                currentUser,
                             );
                             //e.remove();
                         }

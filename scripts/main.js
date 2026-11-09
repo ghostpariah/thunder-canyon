@@ -148,6 +148,9 @@ function sendThroughWebSocket() {
     console.log("sendThroughWebSocket called");
     if (wsClient.readyState === WebSocket.OPEN) {
         wsClient.send("update");
+        win.webContents.send("update");
+    } else {
+        console.log("WebSocket is not open");
     }
 }
 

@@ -920,16 +920,16 @@ function updateJob() {
         txtNotes.value != null &&
         txtNotes.value != ""
     ) {
-        console.log("Existing:", editData.notes);
-        console.log("New:", txtNotes.value);
-        console.log("Compare:", editData.notes.localeCompare(txtNotes.value));
+        //console.log("Existing:", editData.notes);
+        //console.log("New:", txtNotes.value);
+        //console.log("Compare:", editData.notes.localeCompare(txtNotes.value));
         objNewJob.notes = txtNotes.value;
         objChangeLog.notes = txtNotes.value;
     }
     if (editData.notes != null) {
-        console.log("Existing:", editData.notes);
-        console.log("New:", txtNotes.value);
-        console.log("Compare:", editData.notes.localeCompare(txtNotes.value));
+        //console.log("Existing:", editData.notes);
+        //console.log("New:", txtNotes.value);
+        //console.log("Compare:", editData.notes.localeCompare(txtNotes.value));
         if (editData.notes.localeCompare(txtNotes.value) != 0) {
             objNewJob.notes = txtNotes.value;
             objChangeLog.notes = txtNotes.value;

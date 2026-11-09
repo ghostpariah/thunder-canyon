@@ -1,6 +1,6 @@
 {
   "name": "electronworkflow",
-  "version": "1.8.6",
+  "version": "1.8.7",
   "description": "app to manage workflow for Frame & Spring",
   "main": "scripts/main.js",
   "scripts": {

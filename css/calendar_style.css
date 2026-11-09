@@ -52,8 +52,8 @@ body{
     
 }
 .jobWallet{
-   
-    border:2px solid #1b1a1a;
+   border-radius: 5px;
+    border:2px solid rgb(27, 26, 26);    
     height:auto;
     width:300px;
     position:absolute;
@@ -63,29 +63,50 @@ body{
     /* bottom: 40px;     */
     background-color: black;
     z-index: 1;
-    padding:0;
+    padding:3px;
+    
     
 }
 /* right side speech bubble arrow to point to calendar day */
 .speechArrowRight::before{
-    transform: skewX(0deg);
+    content: "";
+    position: absolute;
+    top: 10px;
+    right: 95%;
+
+    width: 20px;
+    height: 20px;
+
+    background: black;
+    transform:rotate(45deg);
+    /*transform: skewX(0deg);
     content: "";
     position: absolute;
     top: -1px;
     right: 100%;
-    border-width: 0 0 15px 30px;/*30px 30px 0 0;*/
+    border-width: 0 0 15px 30px;*/
     border-style: solid;
     border-color: black transparent;
-    clear:both;
+    clear:both; 
 }
 /* left side speech bubble arrow to point to calendar day */
 .speechArrowLeft::before{
-    transform: skewX(0deg);
+    content: "";
+    position: absolute;
+    top: 10px;
+    left: 95%;
+
+    width: 20px;
+    height: 20px;
+
+    background: black;
+    transform:rotate(45deg);
+    /* transform: skewX(0deg);
     content: "";
     position: absolute;
     top: -1px;
-    left: 100%;
-    border-width: 0 30px 15px 0;/*30px 30px 0 0;*/
+    left: 95%;
+    border-width: 0 30px 15px 0;30px 30px 0 0; */
     border-style: solid;
     border-color: black transparent ;
     clear:both;
@@ -129,7 +150,7 @@ body{
 }
 
 .jobWalletLeft{
-
+    border-radius: 5px;
     border:2px solid #1b1a1a;
     height:auto;
     width:300px;
@@ -140,7 +161,7 @@ body{
     /* bottom: 40px;     */
     background-color: black;
     z-index: 1;
-    padding:0;
+    padding:3px;
     
     /* border:2px solid #1b1a1a;
     height:auto;
@@ -342,7 +363,7 @@ body{
     /* font-family: "Arial Rounded MT Bold"; */
     font-size: 20px;
     margin: 2px;
-    background-color: #545151;/*#cecece;*/
+    background-color: #7e7d7d;/*#cecece;*/
     color: whitesmoke;/*rgb(78, 77, 77);*/
     text-align: center;
 	
